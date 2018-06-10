@@ -1,0 +1,102 @@
+
+.btn {
+    color: #ffffff;
+    background-color:  rgb(180,28,89);
+}
+
+.stilefucsia {
+    color: rgb(180,28,89);
+    text-shadow: -1px 1px #ffffff, -1px 1px #ffffff, 1px -1px #ffffff, 0px -1px #ffffff;
+}
+
+.stilebianco {
+    color: #333333;
+    text-shadow: -2px 0 #666666, 0 2px #666666, 2px 0 #666666, 0 -2px #666666;
+}
+
+.stileverde {
+    color: #5b9e14;
+    text-shadow: -1px 1px #ffffff, -1px 1px #ffffff, 1px -1px #ffffff, 0px -1px #ffffff;
+}
+
+.btn:hover {
+  color: #ffffff;
+  background-color: #91ce0f;
+ }
+
+
+.display-4 {
+    color: #ffffff;
+}
+
+.display-5.registrazione {
+    color: rgb(180,28,89);
+    text-shadow: -1px 1px #ffffff, -1px 1px #ffffff, 1px -1px #ffffff, 0px -1px #ffffff;
+}
+
+.card-header {
+    background-color: rgb(180,28,89);
+}
+
+.carousel-item {
+    height: 437;
+}
+
+.carousel-inner.register {
+    max-height: 800px;
+    background-size: cover; background-position: center center}
+
+.col-md-12.jumbotron.border.bianco {
+    background-color: rgba(255,255,255, 0.8);
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.card-footer {
+    background-color: rgb(180,28,89);
+}
+
+.animated {
+    animation-duration: 1s;
+    animation-fill-mode: both;
+  }
+  
+.animated.infinite {
+    animation-iteration-count: infinite;
+  }
+
+@keyframes bounceInDown {
+    from,
+    60%,
+    75%,
+    90%,
+    to {
+      animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+    }
+  
+    0% {
+      opacity: 0;
+      transform: translate3d(0, -3000px, 0);
+    }
+  
+    60% {
+      opacity: 1;
+      transform: translate3d(0, 25px, 0);
+    }
+  
+    75% {
+      transform: translate3d(0, -10px, 0);
+    }
+  
+    90% {
+      transform: translate3d(0, 5px, 0);
+    }
+  
+    to {
+      transform: translate3d(0, 0, 0);
+    }
+  }
+  
+  .bounceInDown {
+    animation-name: bounceInDown;
+  }
