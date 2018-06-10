@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class BusinessProfile extends Model
 {
-    protected $table = 'business_profiles';
+    protected $table = 'business_profiless';
 
     protected $primaryKey = 'id_business_profile';
 
