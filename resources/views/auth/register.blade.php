@@ -36,47 +36,72 @@
                     <form class="form-horizontal" method="POST" action="{{ route('register') }}">
                         {{ csrf_field() }}
                         <h1 class="display-5 registrazione">Entra anche tu in Smartlogis</h1>
-                        <div class="form-group">
-                            <div class="form-check-inline">
-                                <label class="form-check-label">
-                                    Sei un azienda?
-                                    <input class="form-check-input" type="radio" name="business" id="business1" value="0" checked onclick="lock(this, 'partiva')">
-                                    <label class="form-check-label" for="exampleRadios1">
-                                        No
-                                    </label>
-                                    <input class="form-check-input" type="radio" name="business" id="business2" value="1" onclick="unlock(this, 'partiva')">
-                                    <label class="form-check-label" for="exampleRadios2">
-                                        Si
-                                    </label>
-                                    <input type="text" class="form-control" name="partiva" id="partiva" placeholder="Digita la partita IVA" hidden="true">
-                                </label>
-                            </div>
+                        <div class="form-group{{ $errors->has('partiva') ? ' has-error' : '' }}">
+                                <div class="form-group">
+                                    <div class="form-check-inline">
+
+                                        <label class="form-check-label">
+                                            Sei un azienda?
+                                            <input class="form-check-input" type="radio" name="business" id="business1" value="0"
+                                                @if(old('business')=='1')
+                                                    onclick="lock(this, 'partiva')">
+                                                @else
+                                                    checked onclick="lock(this, 'partiva')">
+                                                @endif
+                                            <label class="form-check-label" for="exampleRadios1">
+                                                No
+                                            </label>
+                                            <input class="form-check-input" type="radio" name="business" id="business2" value="1" onclick="unlock(this, 'partiva')"
+                                                @if(old('business')=='1')
+                                                    checked
+                                                @endif
+                                            >
+                                            <label class="form-check-label" for="exampleRadios2">
+                                                Si
+                                            </label>
+                                            <input type="text" class="form-control" name="partiva" id="partiva" maxlength="11" placeholder="Digita la partita IVA"
+                                                   @if(old('business')=='1')
+                                                        value="{{ old('partiva') }}">
+                                                        @else
+                                                        value="{{ '12345678912' }}" hidden="true">
+                                                    @endif
+                                                    @if(old('business')=='1')
+                                                        @if ($errors->has('partiva'))
+                                                            @component('components.alert-info')
+                                                                {{$errors->first('partiva')}}
+                                                            @endcomponent
+                                                        @endif
+                                                    @endif
+                                        </label>
+                                    </div>
+                                </div>
+
                         </div>
                         <div class="form-group{{ $errors->has('name') ? ' has-error' : '' }}">
                             <label for="name">Nome</label>
                             <input id="name" type="text" class="form-control" name="name" value="{{ old('name') }}" required autofocus placeholder="Il tuo nome">
                             @if ($errors->has('name'))
-                                    <span class="help-block">
-                                        <strong>{{ $errors->first('name') }}</strong>
-                                    </span>
+                                @component('components.alert-info')
+                                    {{$errors->first('name')}}
+                                @endcomponent
                             @endif
                         </div>
                         <div class="form-group{{ $errors->has('cognome') ? ' has-error' : '' }}">
                             <label for="cognome">Cognome</label>
                             <input id="cognome" type="text" class="form-control" name="cognome" value="{{ old('cognome') }}" required autofocus placeholder="Il tuo cognome">
                             @if ($errors->has('cognome'))
-                                <span class="help-block">
-                                        <strong>{{ $errors->first('cognome') }}</strong>
-                                    </span>
+                                @component('components.alert-info')
+                                    {{$errors->first('cognome')}}
+                                @endcomponent
                             @endif
                         </div>
                         <div class="form-group{{ $errors->has('email') ? ' has-error' : '' }}">
                             <label for="email">E-Mail</label>
                                 <input id="email" type="email" class="form-control" name="email" value="{{ old('email') }}" required placeholder="example: info@email.it">
                                 @if ($errors->has('email'))
-                                    <span class="help-block">
-                                        <strong>{{ $errors->first('email') }}</strong>
-                                    </span>
+                                    @component('components.alert-info')
+                                        {{$errors->first('email')}}
+                                    @endcomponent
                                 @endif
                         </div>
 
@@ -87,9 +112,9 @@
                                 <input id="password" type="password" class="form-control" name="password" required>
 
                                 @if ($errors->has('password'))
-                                    <span class="help-block">
-                                        <strong>{{ $errors->first('password') }}</strong>
-                                    </span>
+                                    @component('components.alert-info')
+                                        {{$errors->first('password')}}
+                                    @endcomponent
                                 @endif
                             </div>
                         </div>

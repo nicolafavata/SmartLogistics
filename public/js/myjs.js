@@ -1,7 +1,9 @@
 // funzione che utilizziamo per bloccare pulsanti
 function unlock(el1, el2) {
+            document.getElementById(el2).value = '';
             if(el1.checked) {
                 document.getElementById(el2).hidden = false;
+                document.getElementById('alert').hidden = false;
             } else {
                 document.getElementById(el2).hidden = 'true';
             }
@@ -16,8 +18,10 @@ function undisabled(el1, el2) {
 }
 
 function lock(el1, el2) {
+    document.getElementById(el2).value = '12345678912';
     if(el1.checked) {
         document.getElementById(el2).hidden = true;
+        document.getElementById('alert').hidden = true;
     } else {
         document.getElementById(el2).hidden = 'false';
     }
