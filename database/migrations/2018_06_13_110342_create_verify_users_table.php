@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class RinominaTabellaCompanyOfficeExtra extends Migration
+class CreateVerifyUsersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,11 @@ class RinominaTabellaCompanyOfficeExtra extends Migration
      */
     public function up()
     {
-        Schema::rename('company_office_extra_italia','company_offices_extra_italia');
+        Schema::create('verify_users', function (Blueprint $table) {
+            $table->integer('user_id');
+            $table->string('token');
+            $table->timestamps();
+        });
     }
 
     /**
@@ -23,6 +27,6 @@ class RinominaTabellaCompanyOfficeExtra extends Migration
      */
     public function down()
     {
-        //
+        Schema::dropIfExists('verify_users');
     }
 }
