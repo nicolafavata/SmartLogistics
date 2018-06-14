@@ -17,6 +17,16 @@ function undisabled(el1, el2) {
     }
 }
 
+function hideloader() {
+    document.getElementById('loading').style.display = 'none';
+    
+}
+
+function showloader() {
+    document.getElementById('loading').style.display = 'inline-block';
+
+}
+
 function lock(el1, el2) {
     document.getElementById(el2).value = '12345678912';
     if(el1.checked) {
@@ -26,6 +36,9 @@ function lock(el1, el2) {
         document.getElementById(el2).hidden = 'false';
     }
 }
+
+//funzione spinner
+
 
 // funzioni che utilizziamo per controlli nelle fasi di login o di registrazione.
 function validate() {

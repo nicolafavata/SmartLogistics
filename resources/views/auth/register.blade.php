@@ -17,6 +17,7 @@
                     <div class="col-xs-5"></div>
                     <div class="col-xs-3 text-left">
                         <a href="{{ route('welcome') }}"><button type="button" class="btn">Home</button></a>
+                        <a href="{{ route('login') }}"><button type="button" class="btn">Accedi</button></a>
                     </div>
                 </div>
             </nav>
@@ -33,7 +34,7 @@
 
                 <div class="panel-body">
 
-                    <form class="form-horizontal" method="POST" action="{{ route('register') }}">
+                    <form onsubmit="showloader()" class="form-horizontal" method="POST" action="{{ route('register') }}">
                         {{ csrf_field() }}
                         <h1 class="display-5 registrazione">Entra anche tu in Smartlogis</h1>
                         <div class="form-group{{ $errors->has('partiva') ? ' has-error' : '' }}">

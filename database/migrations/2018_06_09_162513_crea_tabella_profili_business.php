@@ -15,14 +15,14 @@ class CreaTabellaProfiliBusiness extends Migration
     {
         Schema::create('business_profiles', function (Blueprint $table) {
             $table->increments('id_business_profile');
-            $table->string('rag_soc',50);
+            $table->string('rag_soc',50)->nullable();
             $table->mediumText('descrizione')->nullable();
-            $table->string('nazione',128);
-            $table->string('indirizzo',30);
-            $table->char('civico',6);
-            $table->integer('cap');
+            $table->string('nazione',128)->nullable();
+            $table->string('indirizzo',30)->nullable();
+            $table->char('civico',6)->nullable();
+            $table->integer('cap')->nullable();
             //Un profilo ha un solo cap, un cap può avere più profili
-            $table->foreign('cap')->on('comuni')->references('id_comune')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreign('cap')->on('comuni')->references('id_comune');
             $table->char('partita_iva',11);
             $table->char('codice_fiscale',16)->nullable();
             $table->char('rea',8)->nullable();

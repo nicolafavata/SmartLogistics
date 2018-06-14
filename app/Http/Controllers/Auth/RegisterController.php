@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Mail\VerifyMail;
 use App\Models\BusinessProfile;
 use App\User;
 use App\Http\Controllers\Controller;
+use App\VerifyUser;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Auth\RegistersUsers;
@@ -141,10 +145,40 @@ class RegisterController extends Controller
                 ]);
 
             }
+            if ($push==true){
+                $verifyUser = VerifyUser::create([
+                    'user_id' => $push->id,
+                    'token' => str_random(40),
+                ]);
+            }
+            if($push==true){
+                Mail::to($push->email)->send(new VerifyMail($push));
+            }
             return $push;
     }
 
+    public function verifyUser($token){
+        $verifyUser = VerifyUser::where('token',$token)->first();
+        if(isset($verifyUser)){
+            $user = $verifyUser->user;
+            if (!$user->verified) {
+                $verifyUser->user->verified = 1;
+                $verifyUser->user->save();
+                $status = "La tua email è stata verificata. Puoi accedere a SmartLogis.";
+            } else{
+                $status= "La tua email è verificata. Puoi accedere.";
+            }
+        } else {
+            return redirect('/login')->with('warning','Ci dispiace ma la tua email non è stata ancora verificata.');
+        }
 
-
-
+        return redirect('/login')->with('status',$status);
     }
+
+    public function registered(Request $request, $user)
+    {
+        $this->guard()->logout();
+        return redirect('/login')->with('status','Ti abbiamo trasmesso un codice d\'attivazione. Controlla la tua casella di posta');
+    }
+
+}

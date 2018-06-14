@@ -13,7 +13,7 @@ class CreateCompanyOfficeExtraItaliasTable extends Migration
      */
     public function up()
     {
-        Schema::create('company_office_extra_italia', function (Blueprint $table) {
+        Schema::create('company_offices_extra_italia', function (Blueprint $table) {
             $table->increments('id_company_office_extra');
             $table->string('cap_company_office_extra',8);
             $table->string('city_company_office_extra',30);

@@ -19,13 +19,22 @@
     <!-- CSS di bootstrat + CSS stile personalizzato -->
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/mystyle.css') }}" rel="stylesheet">
+
+    <!--script javascript -->
+    <script type="text/javascript" src="js/myjs.js"></script>
+
 </head>
 
-<body>
+<body onload="hideloader()">
     @yield('content')
 
 
     @section('footer')
+        <!-- spnner -->
+        <div id="loading">
+        </div>
+
+
         <!-- footer -->
         <div class="container-fluid" style="text-align: center";>
             <div class="row" style="background-color: #eeeeee; align:center;">
@@ -51,6 +60,5 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
         <script src="{{ asset('js/bootstrap.min.js') }}"></script>
         <script src="{{ asset('js/app.js') }}"></script>
-        <script type="text/javascript" src="js/myjs.js"></script>
 </body>
 </html>

@@ -20,7 +20,7 @@ class CreaTabellaProfiliUtente extends Migration
             $table->char('civico_user_profile',6);
             $table->integer('cap_user_profile');
             //Un profilo utente ha un solo cap, un cap può avere più profili utente
-            $table->foreign('cap_user_profile')->on('comuni')->references('id_comune')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreign('cap_user_profile')->on('comuni')->references('id_comune');
             $table->char('partita_iva_user_profile',11)->nullable();
             $table->char('codice_fiscale_user_profile',16)->nullable();
             $table->string('telefono_user_profile',16)->nullable();

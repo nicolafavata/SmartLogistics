@@ -21,7 +21,7 @@ class CreateCompanyOfficesTable extends Migration
             $table->char('civico_company',6);
             $table->integer('cap_company');
             //Una sede ha un solo cap, un cap può avere più sedi
-            $table->foreign('cap_company')->on('comuni')->references('id_comune')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreign('cap_company')->on('comuni')->references('id_comune');
             $table->char('partita_iva_company',11);
             $table->char('codice_fiscale_company',16)->nullable();
             $table->string('telefono_company',16)->nullable();

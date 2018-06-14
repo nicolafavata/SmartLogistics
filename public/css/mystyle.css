@@ -2,6 +2,7 @@
 .btn {
     color: #ffffff;
     background-color:  rgb(180,28,89);
+    margin-top: 20px;
 }
 
 .stilefucsia {
@@ -23,6 +24,17 @@
   color: #ffffff;
   background-color: #91ce0f;
  }
+
+.btn.verde {
+    color: #ffffff;
+    background-color:  #91ce0f;
+    margin-top: 20px;
+}
+
+.btn.verde:hover {
+    color: #ffffff;
+    background-color: rgb(180,28,89);
+}
 
 
 .display-4 {
@@ -100,3 +112,24 @@
   .bounceInDown {
     animation-name: bounceInDown;
   }
+
+#loading{
+    width: 50px;
+    height: 50px;
+    border: 8px solid #91ce0f;
+    border-top-color: rgb(180,28,89);
+    border-radius: 100%;
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    animation: round 2s linear infinite;
+}
+
+@keyframes round {
+    from{transform: rotate(0deg)}
+    to{transform: rotate(360deg)}
+
+}
