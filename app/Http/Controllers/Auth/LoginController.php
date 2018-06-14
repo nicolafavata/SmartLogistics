@@ -46,4 +46,5 @@ class LoginController extends Controller
         }
         return redirect()->intended($this->redirectPath());
     }
+
 }

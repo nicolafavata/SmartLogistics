@@ -62,9 +62,9 @@ class RegisterController extends Controller
             'cognome' => 'required|string|max:255|min:3',
             'business' => 'required|boolean',
             'gdpr'=> 'required',
-            'partiva' => 'string|digits:11|unique:company_offices,partita_iva_company|unique:business_profiles,partita_iva',
+            'partiva' => 'string|digits:11|unique:business_profiles,partita_iva',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|alpha_dash|min:8|confirmed',
+            'password' => 'required|string|min:8|confirmed',
         ], $this->errorMessages);
     }
 
@@ -88,10 +88,9 @@ class RegisterController extends Controller
         'email.email' => 'Inserisci un email corretta',
         'email.max' => 'Inserisci un email corretta',
         'email.unique' => 'L \'email inserita risulta già registrata',
-        'password.required' => 'Devi inserire una password di almeno 8 caratteri alfanumerici',
-        'password.alpha_dash' => 'Devi inserire una password di almeno 8 caratteri alfanumerici',
-        'password.string' => 'Devi inserire una password di almeno 8 caratteri alfanumerici',
-        'password.min' => 'Devi inserire una password di almeno 8 caratteri alfanumerici',
+        'password.required' => 'La password deve avere minimo 8 caratteri',
+        'password.string' => 'La password deve avere minimo 8 caratteri',
+        'password.min' => 'La password deve avere minimo 8 caratteri',
         'password.confirmed' => 'La password confermata non coincide',
     ];
 

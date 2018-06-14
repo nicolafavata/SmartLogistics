@@ -52,7 +52,7 @@
                 </div>
             </div>
         </div>
-
+    @yield('web_script')
     @section('script')
         <!-- file JavaScript -->
         <!-- prima jQuery, poi Popper.js, infine Bootstrap JS -->
