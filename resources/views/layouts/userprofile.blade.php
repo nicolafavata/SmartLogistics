@@ -17,15 +17,63 @@
     <title>@yield('title','Home')</title>
 
     <!-- CSS di bootstrat + CSS stile personalizzato -->
-    <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/mystyle.css') }}" rel="stylesheet">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/mystyle.css" rel="stylesheet">
+
+    <script type="text/javascript">
+        // Definiamo una funzione per caricare i comuni dopo aver selezionato la provincia
+        function LoadComuni(master,change,path) {
+            ChangeById(master,change,path);
+        }
+    </script>
 </head>
 
-<body>
+<body onload="hideloader()">
+<nav class="navbar fixed-top navbar-expand-lg navbar-light bg-primary2">
+    <div class="container-fluid">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="true" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle shadow" href="#" style="color: white;" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                        Servizi
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                        <a class="dropdown-item" href="{{ route('logout') }}"
+                           onclick="event.preventDefault();
+                                                     document.getElementById('logout-form').submit();">
+                            Esci
+                        </a>
+
+                        <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                            {{ csrf_field() }}
+                        </form>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<nav class="navbar navbar-expand-lg navbar-light  basso">
+    <div class="container-fluid text-left">
+        <img src="img/logo.gif" width="300" height="55" alt="logo_smartlogis">
+    </div>
+</nav>
+
+
+
+
     @yield('content')
 
 
     @section('footer')
+        <!-- spnner -->
+        <div id="loading">
+        </div>
+
+
         <!-- footer -->
         <div class="container-fluid" style="text-align: center";>
             <div class="row" style="background-color: #eeeeee; align:center;">
@@ -51,6 +99,7 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
         <script src="{{ asset('js/bootstrap.min.js') }}"></script>
         <script src="{{ asset('js/app.js') }}"></script>
-        <script type="text/javascript" src="js/myjs.js"></script>
+        <script src="{{ asset('js/myjs.js') }}"></script>
+        <script src="https://unpkg.com/axios@0.18.0/dist/axios.min.js"></script>
 </body>
 </html>

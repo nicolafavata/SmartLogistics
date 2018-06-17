@@ -15,6 +15,8 @@ class CreaTabellaProfiliUtente extends Migration
     {
         Schema::create('users_profiles', function (Blueprint $table) {
             $table->increments('id_user_profile');
+            $table->string('sesso',1)->nullable();
+            $table->date('nascita')->nullable();
             $table->string('nazione_user_profile',128);
             $table->string('indirizzo_user_profile',30);
             $table->char('civico_user_profile',6);

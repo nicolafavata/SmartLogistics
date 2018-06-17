@@ -275,7 +275,35 @@ function ChangeById(master,change,path) {
             document.getElementById(change).innerHTML = xmlhttp.responseText;
         }
     }
-xmlhttp.open("GET",path+document.getElementById(master).value, true);
+    xmlhttp.open("GET",path+document.getElementById(master).value, true);
     xmlhttp.send();
+}
+
+//Geolocation
+function showPosition(){
+    showloader();
+    if(navigator.geolocation){
+
+        navigator.geolocation.getCurrentPosition(function(position){
+            var url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng='+position.coords.latitude+','+position.coords.longitude;
+            axios.get(url,{
+                param:{
+                    key:'AIzaSyDhLYVDNomqt4XPBd7Mb3YrjrXEqmK79pQ'
+                }
+            }).then(function (response) {
+                console.log(response);
+                console.log(response.data.results[0].address_components[2].long_name);
+                var comune = response.data.results[0].address_components[2].long_name;
+                var cap = response.data.results[0].address_components[7].long_name;
+                window.location="user/"+cap+"/"+comune;
+            });
+
+        });
+
+    } else{
+
+        alert("Sorry, your browser does not support HTML5 geolocation.");
+
+    }
 }
 

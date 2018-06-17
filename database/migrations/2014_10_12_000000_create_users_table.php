@@ -22,6 +22,8 @@ class CreateUsersTable extends Migration
             $table->string('cognome');
             $table->boolean('gdpr');
             $table->string('email')->unique();
+            $table->string('capnow',5)->nullable();
+            $table->string('comunenow',45)->nullable()
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();

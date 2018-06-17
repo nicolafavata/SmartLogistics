@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
 {
@@ -22,10 +23,32 @@ class HomeController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index($id)
+    public function index()
     {
 
+        $business = Auth::user()->business;
+        $profile = Auth::user()->profile;
+        if ($profile=='1'){
+            if($business=='0') {
+                return redirect()->route('geocode');
+            }
+            else {
+                $admin = Auth::user()->admin;
+                if ($admin=='0') {
+                    return redirect()->route('employee');
+                }
+                else {
+                    return redirect()->route('admin');
+                }
+            }
+        } else {
+            if ($business=='0') {
+                return redirect()->route('completeuser');
+            }
+            else {
+                return redirect()->route('completebusiness');
+            }
 
-        return view('home');
+        }
     }
 }
