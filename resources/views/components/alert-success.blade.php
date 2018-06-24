@@ -1,4 +1,4 @@
-<div id="success" class='alert alert-success'>
+<div class='alert alert-success' role="alert">
    
     <strong>{{$slot}}</strong>
 </div>

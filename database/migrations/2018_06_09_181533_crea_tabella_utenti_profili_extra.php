@@ -15,8 +15,8 @@ class CreaTabellaUtentiProfiliExtra extends Migration
     {
         Schema::create('users_profiles_extra_italia', function (Blueprint $table) {
             $table->increments('id_user_profile_extra_italia');
-            $table->string('cap_user_profile_extra_italia',8);
-            $table->string('city_user_profile_extra_italia',30);
+            $table->string('cap_user_profile_extra_italia',8)->nullable();
+            $table->string('city_user_profile_extra_italia',30)->nullable();
             $table->string('state_user_profile_extra_italia',30)->nullable();
             $table->integer('user_extra_italia')->unsigned();
             //E' una relazione uno a uno tra un profilo e un indirizzo extra italia

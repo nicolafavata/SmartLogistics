@@ -11,6 +11,6 @@ class BusinessProfileExtraItalia extends Model
     protected $primaryKey = 'id_business_profile_extra';
 
     protected $fillable = [
-        'id_business_profile_extra', 'cap_extra', 'city','state','profile',
+        'id_business_profile_extra', 'cap_extra', 'city','state','profilo',
     ];
 }

@@ -20,9 +20,9 @@ class CreaTabellaProfiliBusiness extends Migration
             $table->string('nazione',128)->nullable();
             $table->string('indirizzo',30)->nullable();
             $table->char('civico',6)->nullable();
-            $table->integer('cap')->nullable();
+            $table->integer('cap_busines')->nullable();
             //Un profilo ha un solo cap, un cap può avere più profili
-            $table->foreign('cap')->on('comuni')->references('id_comune');
+            $table->foreign('cap_busines')->on('comuni')->references('id_comune');
             $table->char('partita_iva',11)->unique();
             $table->char('codice_fiscale',16)->nullable();
             $table->char('rea',8)->nullable();

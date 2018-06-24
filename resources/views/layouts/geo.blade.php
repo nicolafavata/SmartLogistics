@@ -23,7 +23,7 @@
 
 </head>
 
-<body onload="showPosition()">
+<body onload="getPosition()">
 <nav class="navbar fixed-top navbar-expand-lg navbar-light bg-primary2">
     <div class="container-fluid">
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="true" aria-label="Toggle navigation">
@@ -71,41 +71,41 @@
 
 
 
-    @yield('content')
+@yield('content')
 
 
-    @section('footer')
-        <!-- spnner -->
-        <div id="loading">
-        </div>
+@section('footer')
+    <!-- spnner -->
+    <div id="loading">
+    </div>
 
 
-        <!-- footer -->
-        <div class="container-fluid" style="text-align: center";>
-            <div class="row" style="background-color: #eeeeee; align:center;">
-                <div class="col-sm-12">
-                    <br />
-                    <h3 class="card-text">Università degli studi "Guglielmo Marconi"</h5>
-                        <div class="card-body">
-                            <h4 class="card-title" style="text-align: center">Facoltà di scienze e tecnologie applicate</br>Corso di Laurea in Ingegneria Informatica</h5>
-                                <h5 class="card-title" style="text-align: center">Sviluppo di un'applicazione web per la smart logistics</h5>
-                                <p class="card-text">Candidato: Nicola Favata - Matricola: 008272 - Relatore: Luca Regoli</p>
-                        </div>
-                        <div class="card-body">
-                            Anno accademico 2017/2018
-                        </div>
-                </div>
+    <!-- footer -->
+    <div class="container-fluid" style="text-align: center";>
+        <div class="row" style="background-color: #eeeeee; align:center;">
+            <div class="col-sm-12">
+                <br />
+                <h3 class="card-text">Università degli studi "Guglielmo Marconi"</h5>
+                    <div class="card-body">
+                        <h4 class="card-title" style="text-align: center">Facoltà di scienze e tecnologie applicate</br>Corso di Laurea in Ingegneria Informatica</h5>
+                            <h5 class="card-title" style="text-align: center">Sviluppo di un'applicazione web per la smart logistics</h5>
+                            <p class="card-text">Candidato: Nicola Favata - Matricola: 008272 - Relatore: Luca Regoli</p>
+                    </div>
+                    <div class="card-body">
+                        Anno accademico 2017/2018
+                    </div>
             </div>
         </div>
+    </div>
 
-    @section('script')
-        <!-- file JavaScript -->
-        <!-- prima jQuery, poi Popper.js, infine Bootstrap JS -->
-        <script src="{{ asset('js/jquery-3.3.1.slim.min.js') }}"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-        <script src="{{ asset('js/bootstrap.min.js') }}"></script>
-        <script src="{{ asset('js/app.js') }}"></script>
-        <script src="{{ asset('js/myjs.js') }}"></script>
-        <script src="https://unpkg.com/axios@0.18.0/dist/axios.min.js"></script>
+@section('script')
+    <!-- file JavaScript -->
+    <!-- prima jQuery, poi Popper.js, infine Bootstrap JS -->
+    <script src="{{ asset('js/jquery-3.3.1.slim.min.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="{{ asset('js/bootstrap.min.js') }}"></script>
+    <script src="{{ asset('js/app.js') }}"></script>
+    <script src="{{ asset('js/myjs.js') }}"></script>
+    <script src="https://unpkg.com/axios@0.18.0/dist/axios.min.js"></script>
 </body>
 </html>

@@ -14,6 +14,9 @@
     </script>
 
 
+
+
+
     <title>@yield('title','Home')</title>
 
     <!-- CSS di bootstrat + CSS stile personalizzato -->
@@ -32,19 +35,22 @@
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
             <ul class="navbar-nav">
                 <li class="nav-item active">
-                    <a class="nav-link shadow" style="color: white;" href="{{ route('user') }}">La mia Home <span class="sr-only">(current)</span></a>
+                    <a class="nav-link shadow" style="color: white;" href="{{ route('admin') }}">La mia Home <span class="sr-only">(current)</span></a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link shadow" style="color: white;" href="#">Cerca un prodotto</a>
+                    <a class="nav-link shadow" style="color: white;" href="{{ route('addcompany') }}">Aggiungi una sede <span class="sr-only">(current)</span></a>
                 </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle shadow" href="#" style="color: white;" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                         Servizi
                     </a>
                     <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                        <a class="dropdown-item" href="{{ route('completeuser') }}">Il mio account</a>
-                        <a class="dropdown-item" href="#">Cerca un prodotto</a>
-                        <a class="dropdown-item" href="#">Cerca un negozio</a>
+                        <a class="dropdown-item" href="{{ route('adminprofile') }}">Dati fiscali</a>
+                        <a class="dropdown-item" href="{{ route('viewcompany') }}">Le sedi aziendali</a>
+                        <a class="dropdown-item" href="{{ route('addcompany') }}">Aggiungi una sede</a>
+                        <a class="dropdown-item" href="{{ route('logobusiness') }}">Logo aziendale</a>
+                        <a class="dropdown-item" href="{{ route('desc_business') }}">Descrizione</a>
+                        <a class="dropdown-item" href="{{ route('contattibusiness') }}">Contatti</a>
                         <a class="dropdown-item" href="{{ route('logout') }}"
                            onclick="event.preventDefault();
                                                      document.getElementById('logout-form').submit();">
@@ -101,9 +107,14 @@
         <!-- prima jQuery, poi Popper.js, infine Bootstrap JS -->
         <script src="{{ asset('js/jquery-3.3.1.slim.min.js') }}"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
         <script src="{{ asset('js/bootstrap.min.js') }}"></script>
         <script src="{{ asset('js/app.js') }}"></script>
         <script src="{{ asset('js/myjs.js') }}"></script>
-        <script src="https://unpkg.com/axios@0.18.0/dist/axios.min.js"></script>
+        <script>
+            $(document).ready(function () {
+                $('div.alert').fadeOut(5000);
+            });
+        </script>
 </body>
 </html>

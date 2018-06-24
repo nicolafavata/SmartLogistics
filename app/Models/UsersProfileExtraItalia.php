@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class UsersProfileExtraItalia extends Model
 {
-    protected $table = 'users_profile_extra_italia';
+    protected $table = 'users_profiles_extra_italia';
 
     protected $primaryKey = 'id_user_profile_extra_italia';
 

@@ -15,8 +15,8 @@ class CreateCapExtraItaliasTable extends Migration
     {
         Schema::create('business_profiles_extra_italia', function (Blueprint $table) {
             $table->increments('id_business_profile_extra');
-            $table->string('cap_extra',8);
-            $table->string('city',30);
+            $table->string('cap_extra',8)->nullable();
+            $table->string('city',30)->nullable();
             $table->string('state',30)->nullable();
             $table->integer('profilo')->unsigned();
             //E' una relazione uno a uno tra un profilo e un indirizzo extra italia

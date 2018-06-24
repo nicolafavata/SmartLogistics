@@ -13,23 +13,23 @@
 }
 
 .barraverde{
-    padding-bottom: 0px;
-    margin-bottom: 0px;
-    height: 20px;
-    margin-top: 0px;
     color: #ffffff;
     background-color: #91ce0f;
     text-shadow: 2px 1px 4px rgba(23, 30, 30, 0.6);
 }
 
 .shadow{
-    text-shadow: 2px 1px 4px rgba(23, 30, 30, 0.6);
+    text-shadow: 1px 1px 1px rgba(23, 30, 30, 0.6);
 }
 
 .btn {
     color: #ffffff;
     background-color:  rgb(180,28,89);
     margin-top: 20px;
+}
+
+.verde {
+    color: #5b9e14;
 }
 
 .fucsia {
@@ -55,6 +55,30 @@
     text-shadow: -1px 0px #ffffff, -1px 0px #ffffff, 1px -1px #ffffff, 0px -1px #ffffff;
 }
 
+.admin {
+    background-image: url("../img/company.jpg");
+}
+
+.admin_update {
+    background-image: url("../img/profilo_aziendale.jpg");
+}
+
+.admin_logo {
+    background-image: url("../img/logo_aziendale.jpg");
+}
+
+.admin_desc {
+    background-image: url("../img/descrizione_aziendale.jpg");
+}
+
+.admin_contatti {
+    background-image: url("../img/contatti_aziendali.jpg");
+}
+
+.admin_home {
+    padding-top: 10px; padding-bottom: 300px;
+}
+
 .stileverdesenza {
     color: #5b9e14;
 }
@@ -71,6 +95,11 @@
 }
 
 .btn.verde:hover {
+    color: #ffffff;
+    background-color: rgb(180,28,89);
+}
+
+.dropdown-item:hover {
     color: #ffffff;
     background-color: rgb(180,28,89);
 }
@@ -97,10 +126,25 @@
     max-height: 800px;
     background-size: cover; background-position: center center}
 
+.carousel-inner.register-business {
+    max-height: 1500px;
+    background-size: cover; background-position: center center}
+
 .col-md-12.jumbotron.border.bianco {
     background-color: rgba(255,255,255, 0.8);
     padding-top: 5px;
     padding-bottom: 5px;
+}
+
+.col-md-12.jumbotron {
+    background-color: rgba(255,255,255, 0.5);
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.carousel-inner {
+    max-height: 1200px;
+    background-size: cover; background-position: center center}
 }
 
 .card-footer {

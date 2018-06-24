@@ -102,32 +102,11 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-       // $registra=true;
         if ($data['business']=="0")
             $admin='0';
 
         else  $admin='1';
-      //  {
-            //$ricerca_partiva=$data['partiva'];
-            //$sel= DB::table('company_offices')->where('partita_iva_company',$ricerca_partiva)->exists();
-            //if ($sel == true) {
-             //   $registra=false;
-
-                //Session::flash('MessagePiva'=>'La partita iva risulta già presente nei nostri archivi');
-            //} else
-            //{
-             //   $controllo=$this->CheckPiva($ricerca_partiva);
-              //  if ($controllo == true) {
-                 //   $admin='1';
-               // } else {
-                 //   $registra=false;
-                 //   Session::flash('MessagePiva'=>'La partita iva non è corretta');
-               // }
-        //    }
-      //  }
-       // if ($registra==true){
-
-            $push = User::create([
+                $push = User::create([
                 'business'=>$data['business'],
                 'name' => $data['name'],
                 'admin' => $admin,

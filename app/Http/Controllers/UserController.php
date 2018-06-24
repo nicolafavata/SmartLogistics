@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UserRegisterProfile;
+use App\Models\UsersProfileExtraItalia;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,7 +23,7 @@ class UserController extends Controller
     public function index(){
         $controllo = $this->block();
         if ($controllo==false){
-            return redirect()->route('geocode');
+            return view('user.user');
         } else {
             return redirect()->route('completeuser');
         }
@@ -33,7 +35,8 @@ class UserController extends Controller
     }
 
     public function geostore(Request $request) {
-        $user = DB::table('users')->where('id',Auth::user()->id)->get();
+        $id = Auth::user()->id;
+        $user = User::find($id);
         $comune = $user->comunenow;
         if ($comune != ($request->comune)) {
             $user->capnow=$request->cap;
@@ -58,17 +61,21 @@ class UserController extends Controller
             return view('user.profile')->with('nazioni', $nazioni);
     }
 
-    public function CreateUserProfile(){
-        $data = request()->all();
+    public function CreateUserProfile(UserRegisterProfile $request){
+        $data = $request->all();
         if ($data['nazione_user_profile']=='Italia'){
            if ($data['comune']!='Seleziona prima la provincia'){
-                $comune = DB::table('comuni')->select('id_comune')->where('comune',$data['comune'])->get();
-                $data['cap_user_profile']=$comune[0];
+                $comune = DB::table('comuni')->select('id_comune')->where('comune',$data['comune'])->first();
+                foreach ($comune as $com){
+                       $data['cap_user_profile'] = $com->id_comune;
+                }
            } else{
                $data['cap_user_profile']=null;
                $data['indirizzo_user_profile']=null;
                $data['civico_user_profile']=null;
            }
+        } else{
+            $data['cap_user_profile']='8092';
         }
         $res = UsersProfile::create(
           [
@@ -87,11 +94,43 @@ class UserController extends Controller
           ]
         );
         if ($res) {
-            $res2 = DB::table('users')->where('id', Auth::id())->update(
-                ['profile' => 1]
-            );
-            if ($res2) return redirect()->route('user');
-            else return redirect()->route('registeruser');
+            if ($data['nazione_user_profile']!='Italia'){
+                DB::statement('SET FOREIGN_KEY_CHECKS=0');
+                $profilo = DB::table('users_profiles')->select('id_user_profile')->where(
+                    'id_user', Auth::id()
+                )->get();
+                foreach ($profilo as $pro) {
+                    $data['user_extra_italia'] = $pro->id_user_profile;
+                }
+                $extra = UsersProfileExtraItalia::create(
+                    [
+                        'cap_user_profile_extra_italia' => $data['cap_user_profile_extra_italia'],
+                        'city_user_profile_extra_italia' => $data['city_user_profile_extra_italia'],
+                        'state_user_profile_extra_italia' => $data['state_user_profile_extra_italia'],
+                        'user_extra_italia' => $data['user_extra_italia'],
+                    ]
+                );
+                if ($extra) {
+                    $set = $this->SetProfile();
+                }
+            }
+            if (!isset($set)){
+                $set2 = $this->SetProfile();
+            }
+            if (((isset($set)) and $set==true) or ((isset($set2)) and $set2==true)) {
+                return view('user.geo');
+            }
+            else {
+                return redirect()->route('registeruser');
+            }
         }
+    }
+
+    public function SetProfile () {
+        $res = DB::table('users')->where('id', Auth::id())->update(
+            ['profile' => 1]
+        );
+        if ($res) return true;
+        else return false;
     }
 }
