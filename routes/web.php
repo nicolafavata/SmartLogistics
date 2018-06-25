@@ -40,7 +40,9 @@ Route::group(['middleware'=> 'auth'],
         Route::get('/admin', 'BusinessController@index')->name('admin');
         Route::get('/admin/profile', 'BusinessController@viewProfile')->name('adminprofile');
         Route::patch('/admin/updateprofile', 'BusinessController@updateProfile')->name('updateprofile');
-        Route::get('/admin/company', 'BusinessController@addCompany')->name('addcompany');
+        Route::post('/admin/company', 'BusinessController@addCompany')->name('addcompany');
+        Route::post('/admin/addcompany', 'BusinessController@addNewCompany')->name('addnewcompany');
+
         Route::get('/admin/logo', 'BusinessController@logoView')->name('logobusiness');
         Route::patch('/admin/updatelogo', 'BusinessController@updateLogo')->name('updatelogo');
         Route::get('/admin/descrizione', 'BusinessController@viewDesc')->name('desc_business');

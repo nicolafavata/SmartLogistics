@@ -35,7 +35,7 @@
                     <a class="nav-link shadow" style="color: white;" href="{{ route('admin') }}">La mia Home <span class="sr-only">(current)</span></a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link shadow" style="color: white;" href="{{ route('addcompany') }}">Aggiungi una sede <span class="sr-only">(current)</span></a>
+                    <a class="nav-link shadow" style="color: white;" data-toggle="modal" data-target="#exampleModalCenter">Aggiungi una sede <span class="sr-only">(current)</span></a>
                 </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle shadow" href="#" style="color: white;" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
@@ -44,7 +44,6 @@
                     <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                         <a class="dropdown-item" href="{{ route('adminprofile') }}">Dati fiscali</a>
                         <a class="dropdown-item" href="{{ route('viewcompany') }}">Le sedi aziendali</a>
-                        <a class="dropdown-item" href="{{ route('addcompany') }}">Aggiungi una sede</a>
                         <a class="dropdown-item" href="{{ route('logobusiness') }}">Logo aziendale</a>
                         <a class="dropdown-item" href="{{ route('desc_business') }}">Descrizione</a>
                         <a class="dropdown-item" href="{{ route('contattibusiness') }}">Contatti</a>
@@ -68,6 +67,53 @@
         <img src="../img/logo.gif" width="300" height="55" alt="logo_smartlogis">
     </div>
 </nav>
+
+<!-- Modal Add Company -->
+<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalCenterTitle">Aggiungi una sede</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form onsubmit="showloader()" method="POST" action="{{ route('addcompany') }}">
+                {{ csrf_field() }}
+                <div class="modal-body">
+                    <div class="form-check-inline">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <input checked type="checkbox" name="default_azienda" value="1" aria-label="Checkbox for following text input">
+                            </div>
+                        </div>
+                        <label class="form-check">Dati di default azienda</label>
+                    </div>
+                    <div class="form-check-inline">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <input checked type="checkbox" name="default_admin" value="1" aria-label="Checkbox for following text input">
+                            </div>
+                        </div>
+                        <label class="form-check">Dati di default amministratore</label>
+                    </div><br />
+                    <div class="form-check-inline">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <input type="checkbox" name="extra" value="1" aria-label="Checkbox for following text input">
+                            </div>
+                        </div>
+                        <label class="form-check">Sede estera</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Annulla</button>
+                    <button type="submit" class="btn btn-primary">Continua</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 
 

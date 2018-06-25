@@ -5,7 +5,7 @@
 .bg-primary3 {
     color: #ffffff;
     text-shadow: -0px 0px #ffffff, -1px 0px #ffffff, 0px -1px #ffffff, 0px -0px #ffffff;
-    background-color:  #91ce0f;
+    background-color:  #17b44d;
 }
 
 .basso{
@@ -14,9 +14,10 @@
 
 .barraverde{
     color: #ffffff;
-    background-color: #91ce0f;
+    background-color: #17b44d;
     text-shadow: 2px 1px 4px rgba(23, 30, 30, 0.6);
 }
+
 
 .shadow{
     text-shadow: 1px 1px 1px rgba(23, 30, 30, 0.6);
@@ -29,7 +30,7 @@
 }
 
 .verde {
-    color: #5b9e14;
+    color: #17b44d;
 }
 
 .fucsia {
@@ -48,7 +49,7 @@
 }
 
 .stileverde {
-    color: #5b9e14;
+    color: #17b44d;
     text-shadow: -1px 1px #ffffff, -1px 1px #ffffff, 1px -1px #ffffff, 0px -1px #ffffff;
 }
 .ombra {
@@ -67,6 +68,11 @@
     background-image: url("../img/logo_aziendale.jpg");
 }
 
+.admin_newcompany {
+    background-image: url("../img/newcompany.jpg");
+}
+
+
 .admin_desc {
     background-image: url("../img/descrizione_aziendale.jpg");
 }
@@ -79,18 +85,20 @@
     padding-top: 10px; padding-bottom: 300px;
 }
 
+
+
 .stileverdesenza {
-    color: #5b9e14;
+    color: #17b44d;
 }
 
 .btn:hover {
   color: #ffffff;
-  background-color: #91ce0f;
+  background-color: #17b44d;
  }
 
 .btn.verde {
     color: #ffffff;
-    background-color:  #91ce0f;
+    background-color:  #17b44d;
     margin-top: 20px;
 }
 
@@ -144,6 +152,11 @@
 
 .carousel-inner {
     max-height: 1200px;
+    background-size: cover; background-position: center center}
+}
+
+.carousel-inner-maxi {
+    max-height: 1400px;
     background-size: cover; background-position: center center}
 }
 

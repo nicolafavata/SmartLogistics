@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 @section('title','Smartlogis per le aziende')
 @section('content')
-    <nav class="navbar navbar-light justify-content-between" style="background-color: #91ce0f";>
+    <nav class="navbar navbar-light justify-content-between barraverde">
         <div class="container-fluid text-left">
             <div class="row">
                 <div class="col-md-12 text-left barraverde">
