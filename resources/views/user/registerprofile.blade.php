@@ -1,10 +1,10 @@
 @extends('layouts.userprofile')
 @section('title','Smartlogis per il cittadino')
 @section('content')
-    <nav class="navbar navbar-light justify-content-between" style="background-color: #91ce0f";>
+    <nav class="navbar navbar-light justify-content-between barraverde">
         <div class="container-fluid">
             <div class="row">
-                <div class="col-md-12  justify-content-between barraverde">
+                <div class="col-md-12  justify-content-between">
                     <h6> Grazie&nbsp{{ Auth::user()->name }}&nbsp{{ Auth::user()->cognome }}&nbsp{{'per esserti registrato a smart logistcs'}}</h6>
                 </div>
             </div>

@@ -1,14 +1,30 @@
-@extends('layouts.template')
-
+@extends('layouts.reset-password')
+@section('title','Smartlogis')
 @section('content')
+    <nav class="navbar navbar-light justify-content-between" style="background-color: #ffffff";>
+        <div class="container-fluid">
+            <div class="col-xs-4">
+                <div class="text-left">
+                    <img src="/img/logo.gif" width="300" height="55" alt="logo_smartlogis">
+                </div>
+            </div>
+            <div class="col-xs-5"></div>
+            <div class="col-xs-3 text-left">
+                <a href="{{ route('welcome') }}"><button type="button" class="btn">Home</button></a>
+                <a href="{{ route('register') }}"><button type="button" class="btn">Registrati</button></a>
+            </div>
+        </div>
+    </nav>
+    <hr>
+    <hr>
 <div class="container">
     <div class="row">
         <div class="col-md-8 col-md-offset-2">
             <div class="panel panel-default">
-                <div class="panel-heading">Reset Password</div>
+                <div class="h4 panel-heading verde">Imposta una nuova password</div><br>
 
                 <div class="panel-body">
-                    <form class="form-horizontal" method="POST" action="{{ route('password.request') }}">
+                    <form onsubmit="showloader()" class="form-horizontal" method="POST" action="{{ route('password.request') }}">
                         {{ csrf_field() }}
 
                         <input type="hidden" name="token" value="{{ $token }}">
@@ -57,7 +73,7 @@
                         <div class="form-group">
                             <div class="col-md-6 col-md-offset-4">
                                 <button type="submit" class="btn btn-primary">
-                                    Reset Password
+                                    Resetta la password
                                 </button>
                             </div>
                         </div>
@@ -67,4 +83,13 @@
         </div>
     </div>
 </div>
+@endsection
+@section('footer')
+    @parent
+
+@endsection
+
+@section('script')
+    @parent
+
 @endsection

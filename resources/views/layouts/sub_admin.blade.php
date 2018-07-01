@@ -78,7 +78,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form onsubmit="showloader()" method="POST" action="{{ route('addcompany') }}">
+            <form onsubmit="showloader()" method="GET" action="{{ route('addcompany') }}">
                 {{ csrf_field() }}
                 <div class="modal-body">
                     <div class="form-check-inline">

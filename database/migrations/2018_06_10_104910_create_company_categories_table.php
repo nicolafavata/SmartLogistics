@@ -17,10 +17,10 @@ class CreateCompanyCategoriesTable extends Migration
             $table->increments('id_company_categoria');
             //Relazione molti a molti fra la tabella categories e company_offices
             $table->integer('company')->unsigned();
-            $table->index('company')->on('company_offices')->references('id_company_office');
+            $table->index('company')->on('company_offices')->references('id_company_office')->onDelete('cascade')->onUpdate('cascade');
             //
             $table->integer('categoria')->unsigned();
-            $table->index('categoria')->on('categories')->references('id_categoria');
+            $table->index('categoria')->on('categorie')->references('id_categoria')->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();
         });
     }

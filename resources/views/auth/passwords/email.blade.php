@@ -11,7 +11,6 @@
             <div class="col-xs-5"></div>
             <div class="col-xs-3 text-left">
                 <a href="{{ route('welcome') }}"><button type="button" class="btn">Home</button></a>
-                <a href="{{ route('register') }}"><button type="button" class="btn">Registrati</button></a>
             </div>
         </div>
     </nav>

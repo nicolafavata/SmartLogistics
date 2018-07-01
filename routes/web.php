@@ -36,13 +36,19 @@ Route::group(['middleware'=> 'auth'],
         //Impiegati
         Route::get('/employee', 'EmployeeController@index')->name('employee');
 
+        //Impiegati account
+        Route::get('/newpassword', 'EmployeeController@newPassword')->name('new_password');
+        Route::get('/profile', 'EmployeeController@myProfile')->name('my_profile');
+        Route::get('/mypicture', 'EmployeeController@picture')->name('picture');
+
+
+
         //Amministratori
         Route::get('/admin', 'BusinessController@index')->name('admin');
         Route::get('/admin/profile', 'BusinessController@viewProfile')->name('adminprofile');
         Route::patch('/admin/updateprofile', 'BusinessController@updateProfile')->name('updateprofile');
-        Route::post('/admin/company', 'BusinessController@addCompany')->name('addcompany');
+        Route::get('/admin/company', 'BusinessController@addCompany')->name('addcompany');
         Route::post('/admin/addcompany', 'BusinessController@addNewCompany')->name('addnewcompany');
-
         Route::get('/admin/logo', 'BusinessController@logoView')->name('logobusiness');
         Route::patch('/admin/updatelogo', 'BusinessController@updateLogo')->name('updatelogo');
         Route::get('/admin/descrizione', 'BusinessController@viewDesc')->name('desc_business');
@@ -50,6 +56,7 @@ Route::group(['middleware'=> 'auth'],
         Route::get('/admin/contatti', 'BusinessController@viewContatti')->name('contattibusiness');
         Route::patch('/admin/updatecontatti', 'BusinessController@updateContatti')->name('updatecontatti');
         Route::get('admin/our_companies', 'BusinessController@viewCompany')->name('viewcompany');
+        Route::post('admin/delete/companies/{id}', 'BusinessController@deleteCompany')->where('id', '[0-9]+')->name('deletecompany');
 
         //Registrazione
         Route::get('/userprofile', 'UserController@registerProfile')->name('completeuser');

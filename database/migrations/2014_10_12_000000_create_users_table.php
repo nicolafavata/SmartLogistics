@@ -20,7 +20,7 @@ class CreateUsersTable extends Migration
             $table->boolean('profile')->default('0');
             $table->string('name');
             $table->string('cognome');
-            $table->boolean('gdpr');
+            $table->boolean('gdpr')->nullable();
             $table->string('email')->unique();
             $table->string('capnow',5)->nullable();
             $table->string('comunenow',45)->nullable();

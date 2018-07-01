@@ -17,10 +17,10 @@ class CreaTabellaProfiliUtente extends Migration
             $table->increments('id_user_profile');
             $table->string('sesso',1)->nullable();
             $table->date('nascita')->nullable();
-            $table->string('nazione_user_profile',128);
-            $table->string('indirizzo_user_profile',30);
-            $table->char('civico_user_profile',6);
-            $table->integer('cap_user_profile');
+            $table->string('nazione_user_profile',128)->nullable();
+            $table->string('indirizzo_user_profile',30)->nullable();
+            $table->char('civico_user_profile',6)->nullable();
+            $table->integer('cap_user_profile')->nullable();
             //Un profilo utente ha un solo cap, un cap può avere più profili utente
             $table->foreign('cap_user_profile')->on('comuni')->references('id_comune');
             $table->char('partita_iva_user_profile',11)->nullable();

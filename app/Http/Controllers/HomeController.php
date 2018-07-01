@@ -46,7 +46,8 @@ class HomeController extends Controller
                 return redirect()->route('completeuser');
             }
             else {
-                return redirect()->route('completebusiness');
+                if ($admin=='0') return redirect()->route('employee');
+                else return redirect()->route('completebusiness');
             }
 
         }

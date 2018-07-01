@@ -1,3 +1,44 @@
+ul#menu_a_2livelli li ul{
+    list-style-type: none;
+    display: none;
+}
+
+ul#menu_a_2livelli a:hover {
+    background-color: rgb(180,28,89);
+    color: #ffffff;
+    border:2px solid rgba(0,0,0,0.1);
+    span
+}
+
+
+ul#menu_a_2livelli span:hover {
+    background-color: rgb(180,28,89);
+    color: #ffffff;
+    border:2px solid rgba(0,0,0,0.1);
+}
+
+ul#menu_a_2livelli li:hover ul{
+    display: block;
+    position: absolute;
+    z-index:1;
+    width:130px;
+    padding: 0;
+    margin: 0 0 0 -1px;
+    border:2px solid rgba(0,0,0,0.1);
+    background-color: #91ce0f;
+    color: rgb(180,28,89);
+    font-size:.7em;
+    left: 70%;
+    margin-top: -26%;
+    margin-left: -16.5%;
+}
+ul#menu_a_2livelli li li {
+    border-bottom:1px solid rgba(0,0,0,0.1);
+    width: 130px;
+}
+
+
+
 .bg-primary2 {
     color: #ffffff;
     background-color:  rgb(180,28,89);
@@ -8,6 +49,15 @@
     background-color:  #17b44d;
 }
 
+.destra {
+    text-align: right;
+}
+
+.sinistra {
+    text-align: left;
+}
+
+
 .basso{
     padding-top: 65px;
 }
@@ -16,6 +66,18 @@
     color: #ffffff;
     background-color: #17b44d;
     text-shadow: 2px 1px 4px rgba(23, 30, 30, 0.6);
+}
+
+.barraverde-impiegati{
+    color: #ffffff;
+    background-color: #17b44d;
+    text-shadow: 2px 1px 4px rgba(23, 30, 30, 0.6);
+    padding-top: 90px;
+}
+
+
+.barrabianca{
+    background-color: #ffffff;
 }
 
 
@@ -33,9 +95,51 @@
     color: #17b44d;
 }
 
+.grigio {
+  /*  #fffce1 #4e4a46 #91ce0f*/
+    color: #4e4a46;
+    text-shadow: 1px 1px 1px rgba(27, 30, 33, 0.6);
+}
+
+.verdino {
+    color: #91ce0f;
+}
+
+.center {
+    text-align: center;
+}
+
+.uppercase{
+    text-transform: uppercase;
+}
+
+.capitalize {
+    text-transform: capitalize;
+}
+
+.image-responsive{
+    max-width: 60%; height: auto;
+}
+
 .fucsia {
     color: rgb(180,28,89);
     text-shadow: 1px 1px 1px rgba(23, 30, 30, 0.6);
+}
+
+.footer {
+    text-align: center;
+    background-color: #cccccc;
+    text-shadow: 1px 1px 1px rgba(12, 12, 12, 0.6);
+    color: #1b1e21;
+    padding-bottom: 60px;
+}
+
+.footer-employee{
+    text-align: center;
+    background-color: #1b1e25;
+    text-shadow: 1px 1px 1px rgba(12, 12, 12, 0.6);
+    color: #ffffff;
+    padding-bottom: 60px;
 }
 
 .stilefucsia {
@@ -72,6 +176,10 @@
     background-image: url("../img/newcompany.jpg");
 }
 
+.admin_viewcompany {
+    background-image: url("../img/ours_company.jpg");
+}
+
 
 .admin_desc {
     background-image: url("../img/descrizione_aziendale.jpg");
@@ -81,10 +189,52 @@
     background-image: url("../img/contatti_aziendali.jpg");
 }
 
+.home_employee {
+    max-height: 1500px;
+    background-size: cover;
+    background-position: center center;
+    padding-top: 1%;
+    padding-bottom: 1%;
+}
+
+.home_img{
+    background-image: url("../img/home_employee.jpg");
+}
+
 .admin_home {
     padding-top: 10px; padding-bottom: 300px;
 }
 
+.page-link {
+    color: #ffffff;
+    background-color: rgb(180,28,89);
+}
+
+.page-link:hover {
+    color: #ffffff;
+    background-color: #17b44d;
+}
+
+.page-item.active .page-link {
+    background-color: #17b44d;
+    border-color: rgb(180,28,89);
+}
+
+.border-border-fucsia {
+    border: 7px solid rgb(180,28,89);
+    border-color: rgb(180, 28, 89);
+    border-radius: 80%;
+}
+.border-border-fucsia.doppio {
+    border: 14px solid rgb(180,28,89);
+    border-radius: 50%;
+}
+
+.border-border-verde {
+    border: 5px solid #91ce0f;
+    border-color: #91ce0f;
+    border-radius: 80%;
+}
 
 
 .stileverdesenza {
@@ -142,6 +292,16 @@
     background-color: rgba(255,255,255, 0.8);
     padding-top: 5px;
     padding-bottom: 5px;
+}
+
+.col-md-12.jumbotron.border.employee {
+    background-color: rgba(255,255,255, 0.9);
+    margin-top: 10px;
+    margin-bottom: 5%;
+    margin-left: 17%;
+    margin-right: 17%;
+    top: 10%;
+    padding: 1%;
 }
 
 .col-md-12.jumbotron {

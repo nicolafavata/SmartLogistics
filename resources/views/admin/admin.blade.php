@@ -100,7 +100,7 @@
                                     <div class="col-md-6 text-right shadow">
                                         <h6>Posta certificata:</h6>
                                     </div>
-                                    <div class="col-md-6 text-left text-uppercase fucsia shadow">
+                                    <div class="col-md-6 text-left text-lowercase fucsia shadow">
                                         {{$profile->pec}}
                                     </div>
                                 @endif
@@ -108,7 +108,7 @@
                                         <div class="col-md-6 text-right shadow">
                                             <h6>Web-site:</h6>
                                         </div>
-                                        <div class="col-md-6 text-left text-uppercase fucsia shadow">
+                                        <div class="col-md-6 text-left text-lowercase fucsia shadow">
                                             {{$profile->web}}
                                         </div>
                                     @endif

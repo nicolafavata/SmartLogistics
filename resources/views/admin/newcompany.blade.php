@@ -26,16 +26,13 @@
                             @endcomponent
                         @endif
                                 @foreach($busines as $business)
-                        <form onsubmit="showloader()" method="POST" action="{{ route('addnewcompany') }}">
+                        <form onsubmit="showloader()" method="POST" action="{{ route('addnewcompany') }}" enctype="multipart/form-data">
                             {{ csrf_field() }}
-                            <input type="hidden" name="default_azienda" value="{{$default_azienda}}">
-                            <input type="hidden" name="extra" value="{{$extra}}">
-                            <input type="hidden" name="default_admin" value="{{$default_admin}}">
                             <label class="h4 fucsia shadow font-weight-bold" for="">Sede</label><br>
                             <div class="form-row">
                                 <div class="form-check">
                                 <label for="">Ragione sociale</label>
-                                <input maxlength="50" placeholder="Ex: Your Business SPA" type="text" name="rag_soc_company" id="rag_soc_company" class="font-weight-bold text-uppercase form-group"
+                                <input required maxlength="50" placeholder="Ex: Your Business SPA" type="text" name="rag_soc_company" id="rag_soc_company" class="font-weight-bold text-uppercase form-group"
                                        @if (($default_azienda=='1'))
                                         value="{{old('rag_soc_company', $business->rag_soc)}}">
                                        @else
@@ -44,7 +41,7 @@
                                 </div>
                                 <div class="form-check">
                                 <label for="">Partita Iva</label>
-                                <input maxlength="11" placeholder="Partita Iva" type="text" name="partita_iva_company" id="partita_iva_company" class="font-weight-bold text-uppercase form-group"
+                                <input required maxlength="11" placeholder="Partita Iva" type="text" name="partita_iva_company" id="partita_iva_company" class="font-weight-bold text-uppercase form-group"
                                        @if ($default_azienda=='1')
                                         value="{{old('partita_iva_company', $business->partita_iva)}}">
                                         @else
@@ -62,6 +59,7 @@
                                 </div>
                             </div>
                                 @if ((($default_azienda=='1') and ($business->cap_busines=='8092')) or (($default_azienda=='0') and ($extra)=='1'))
+                                    <input type="hidden" name="cap_company" value="8092">
                                     <div class="input-group mb-3">
                                         <div class="input-group-prepend">
                                             <label class="h6 input-group-text" for="nazione_company">
@@ -84,7 +82,7 @@
                                     <div class="form-row">
                                         <div class="form-check">
                                         <label for="">Cap extra</label>
-                                        <input maxlength="8" placeholder="CAP" type="text" name="cap_company_office_extra" id="cap_company_office_extra" class="font-weight-bold text-uppercase form-group"
+                                        <input required maxlength="8" placeholder="CAP" type="text" name="cap_company_office_extra" id="cap_company_office_extra" class="font-weight-bold text-uppercase form-group"
                                                @if ($default_azienda=='1')
                                                     value="{{old('cap_company_office_extra', $business->cap_extra)}}">
                                                 @else
@@ -93,7 +91,7 @@
                                         </div>
                                         <div class="form-check">
                                         <label for="">City</label>
-                                        <input maxlength="30" placeholder="City" type="text" name="city_company_office_extra" id="city_company_office_extra" class="font-weight-bold text-uppercase form-group"
+                                        <input required maxlength="30" placeholder="City" type="text" name="city_company_office_extra" id="city_company_office_extra" class="font-weight-bold text-uppercase form-group"
                                                @if ($default_azienda=='1')
                                                     value="{{old('city_company_office_extra', $business->city)}}">
                                                 @else
@@ -102,7 +100,7 @@
                                         </div>
                                         <div class="form-check">
                                         <label for="">State</label>
-                                        <input maxlength="30" placeholder="State" type="text" name="state_company_office_extra" id="state_company_office_extra" class="font-weight-bold text-uppercase form-group"
+                                        <input required maxlength="30" placeholder="State" type="text" name="state_company_office_extra" id="state_company_office_extra" class="font-weight-bold text-uppercase form-group"
                                                @if ($default_azienda=='1')
                                                     value="{{old('state_company_office_extra', $business->state)}}">
                                                 @else
@@ -119,7 +117,7 @@
                                                 <div class="input-group-prepend">
                                                     <label class="h6 input-group-text" for="inputGroupSelect01">Provincia</label>
                                                 </div>
-                                                <select class="custom-select" name="provincia" id="provincia" onChange="ChangeById('provincia','comuni','../ajax/ajax-comuni-update-business.php?provincia=')">
+                                                <select class="custom-select" name="provincia" id="provincia" onChange="ChangeById('provincia','comuni','../ajax/ajax-comuni-new-company.php?provincia=')">
                                                     @foreach($province as $provincia)
                                                         @if($provincia->provincia!='')
                                                             <option value='{{$provincia->provincia}}'
@@ -137,7 +135,7 @@
                                                 <div class="h6input-group-prepend">
                                                     <label class="h6 input-group-text" for="inputGroupSelect01">Comune&nbsp</label>
                                                 </div>
-                                                <select class="custom-select" name="comune">
+                                                <select class="custom-select" name="cap_company">
                                                     @foreach($comune as $comuni)
                                                         <option value='{{$comuni->id_comune}}'
                                                                 @if ($default_azienda=='1' and $comuni->comune==$business->comune)
@@ -152,7 +150,7 @@
                                 <div class="form-row">
                                     <div class="form-check">
                                         <label for="">Indirizzo</label>
-                                        <input maxlength="30" placeholder="Via/Piazza" type="text" name="indirizzo_company" id="indirizzo_company" class="font-weight-bold text-uppercase form-group"
+                                        <input required maxlength="30" placeholder="Via/Piazza" type="text" name="indirizzo_company" id="indirizzo_company" class="font-weight-bold text-uppercase form-group"
                                                @if ($default_azienda=='1')
                                                value="{{old('indirizzo_company', $business->indirizzo)}}" >
                                         @else
@@ -161,7 +159,7 @@
                                     </div>
                                     <div class="form-check">
                                         <label for="">N° civico</label>
-                                        <input maxlength="6" placeholder="Numero civico" type="text" name="civico_company" id="civico_company" class="font-weight-bold text-uppercase form-group"
+                                        <input required maxlength="6" placeholder="Numero civico" type="text" name="civico_company" id="civico_company" class="font-weight-bold text-uppercase form-group"
                                                @if ($default_azienda=='1')
                                                value="{{old('civico_company', $business->civico)}}" >
                                         @else
@@ -198,7 +196,7 @@
                                     </div>
                                     <div class="form-check">
                                         <label for="">Email&nbsp&nbsp&nbsp&nbsp&nbsp</label>
-                                        <input maxlength="30" placeholder="example: info@email.it" type="email" name="email_company" id="email" class="font-weight-bold text-lowercase form-group"
+                                        <input required maxlength="30" placeholder="example: info@email.it" type="email" name="email_company" id="email" class="font-weight-bold text-lowercase form-group"
                                                @if ($default_azienda=='1')
                                                     value="{{old('email_company', $admin->email)}}" >
                                                 @else
@@ -221,10 +219,10 @@
                                                         <div class="input-group mb-3">
                                                             <div class="input-group-prepend">
                                                                 <div class="input-group-text">
-                                                                    <input type="checkbox" name="categoria[]" value="{{$categoria->Categoria}}" aria-label="Checkbox for following text input">
+                                                                    <input type="checkbox" name="categoria[]" value="{{$categoria->id_categoria}}" aria-label="Checkbox for following text input">
                                                                 </div>
                                                             </div>
-                                                            <label class="form-check">{{$categoria->Categoria}}</label>
+                                                            <label class="form-check">{{$categoria->categoria}}</label>
                                                         </div>
                                                     @endforeach
                                                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Continua</button>
@@ -238,7 +236,7 @@
                                 <div class="form-row">
                                     <div class="form-check">
                                         <label for="">Nome</label>
-                                        <input maxlength="255" placeholder="Nome del responsabile" type="text" name="name" id="name" class="font-weight-bold text-capitalize form-group"
+                                        <input required maxlength="255" placeholder="Nome del responsabile" type="text" name="name" id="name" class="font-weight-bold text-capitalize form-group"
                                                @if ($default_admin=='1')
                                                value="{{old('name', $admin->name)}}" >
                                         @else
@@ -247,7 +245,7 @@
                                     </div>
                                     <div class="form-check">
                                         <label for="">Cognome</label>
-                                        <input maxlength="255" placeholder="Cognome del responsabile" type="text" name="cognome" id="cognome" class="font-weight-bold text-capitalize form-group"
+                                        <input required maxlength="255" placeholder="Cognome del responsabile" type="text" name="cognome" id="cognome" class="font-weight-bold text-capitalize form-group"
                                                @if ($default_admin=='1')
                                                value="{{old('cognome', $admin->cognome)}}" >
                                         @else
@@ -279,7 +277,7 @@
                                 <div class="form-row">
                                     <div class="form-check{{ $errors->has('email') ? ' has-error' : '' }}">
                                         <label for="email">E-Mail</label>
-                                        <input maxlength="255" id="email" type="email" class="form-control" name="email" value="{{ old('email') }}"  placeholder="example: info@email.it">
+                                        <input required maxlength="255" id="email" type="email" class="form-control" name="email" value="{{ old('email') }}"  placeholder="example: info@email.it">
                                         @if ($errors->has('email'))
                                             @component('components.alert-info')
                                                 {{$errors->first('email')}}
