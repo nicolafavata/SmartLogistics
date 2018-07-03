@@ -208,8 +208,13 @@ ul#menu_a_2livelli li li {
 .company_img{
     background-image: url("../img/company.jpg");
 }
+
 .employee_img {
     background-image: url("../img/employees.jpg");
+}
+
+.crudemployee_img {
+    background-image: url("../img/crud-employee.jpg");
 }
 
 .picture_img{
@@ -336,6 +341,10 @@ ul#menu_a_2livelli li li {
 
 .carousel-item {
     height: 437;
+}
+
+.margin-top {
+    margin-top: 5%;
 }
 
 .carousel-inner.register {

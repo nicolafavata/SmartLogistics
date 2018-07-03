@@ -6,6 +6,7 @@ use App\Http\Requests\Employee\NewEmployee;
 use App\Http\Requests\Employee\PictureUpdate;
 use App\Http\Requests\Employee\ProfileUpdate;
 use App\Http\Requests\Employee\UpdateCompany;
+use App\Http\Requests\Employee\UpEmployee;
 use App\Models\CompanyOffice;
 use App\Models\CompanyOfficeExtraItalia;
 use App\Models\Employee;
@@ -327,7 +328,7 @@ class EmployeeController extends Controller
                         );
                         $messaggio = 'L\'impiegato è stato inserito con successo';
                         session()->flash('message', $messaggio);
-                        return redirect()->route('employee');
+                        return redirect()->route('viewemployees');
                     } else {
                         $messaggio = 'Problemi con il server riprova successivamente';
                         session()->flash('message', $messaggio);
@@ -342,6 +343,129 @@ class EmployeeController extends Controller
         }
     }
 
+    public function viewEmployees(){
+        $responsabile = $this->responsabileControl();
+        if($responsabile->responsabile=='1'){
+            $dato = $this->dataProfile();
+            $employee = User::join('employees','id','user_employee')->where('id','<>',Auth::id())->where('company_employee','=',$responsabile->company_employee)->select('name','cognome','email','users.created_at','matricola','tel_employee','cell_employee','img_employee','responsabile','acquisti','produzione','vendite')->orderBy('cognome')->paginate(env('PAGINATE_EMPLOYEE'));
+            return view('employee.view-employee',
+                [
+                    'dati' => $dato[0],
+                    'employee' =>$employee
+
+                ]);
+        } else {
+            return view('errors.500');
+        }
+
+    }
+
+    public function upEmployees(){
+        $responsabile = $this->responsabileControl();
+        if($responsabile->responsabile=='1'){
+            $dato = $this->dataProfile();
+            $employee = User::join('employees','id','user_employee')->where('id','<>',Auth::id())->where('company_employee','=',$responsabile->company_employee)->select('name','cognome','email','users.created_at','matricola','tel_employee','cell_employee','img_employee','user_employee','acquisti','produzione','vendite','responsabile')->orderBy('cognome')->paginate(env('PAGINATE_EMPLOYEE'));
+            return view('employee.up-employee',
+                [
+                    'dati' => $dato[0],
+                    'employee' =>$employee
+
+                ]);
+        } else {
+            return view('errors.500');
+        }
+    }
+
+    public function updateEmployee(UpEmployee $request){
+        $responsabile = $this->responsabileControl();
+        if($responsabile->responsabile=='1'){
+            $data=$request->all();
+            $up = Employee::where('user_employee',$data['user_employee'])->select('company_employee')->first();
+            if ($up['company_employee']==$responsabile->company_employee){
+                    $up_user = User::whereKey($data['user_employee'])->update(
+                        [
+                            'name' => $data['name'],
+                            'cognome' => $data['cognome']
+                        ]
+                    );
+                    if (isset($up_user) and ($up_user==true)){
+
+                        if(!isset($data['acquisti'])) $data['acquisti']='0';
+                        if(!isset($data['produzione'])) $data['produzione']='0';
+                        if(!isset($data['vendite'])) $data['vendite']='0';
+                        if(!isset($data['responsabile'])) $data['responsabile']='0'; else {
+                            $data['acquisti']='1';
+                            $data['produzione']='1';
+                            $data['vendite']='1';
+                        }
+                        $up_employee = Employee::where('user_employee',$data['user_employee'])->update(
+                          [
+                              'matricola' => $data['matricola'],
+                              'tel_employee' => $data['tel_employee'],
+                              'cell_employee' => $data['cell_employee'],
+                              'responsabile' => $data['responsabile'],
+                              'acquisti' => $data['acquisti'],
+                              'produzione' => $data['produzione'],
+                              'vendite' => $data['vendite']
+                          ]
+                        );
+                        if (isset($up_employee) and ($up_employee==true)) {
+                            $messaggio = 'Le informazioni sono state aggiornate';
+                            session()->flash('message', $messaggio);
+                            return redirect()->route('viewemployees');
+                        } else {
+                            $messaggio = 'Problemi con il server riprovare';
+                            session()->flash('message', $messaggio);
+                            return redirect()->route('upemployee');
+                        }
+                    } else {
+                        $messaggio = 'Problemi con il server riprovare';
+                        session()->flash('message', $messaggio);
+                        return redirect()->route('upemployee');
+                    }
+            } else {
+                $messaggio = 'Non hai i diritti per eseguire questa operazione';
+                session()->flash('message', $messaggio);
+                return redirect()->route('upemployee');
+            }
+        } else {
+            return view('errors.500');
+        }
+    }
+
+    public function delEmployees(){
+        $responsabile = $this->responsabileControl();
+        if($responsabile->responsabile=='1'){
+            $dato = $this->dataProfile();
+            $employee = User::join('employees','id','user_employee')->where('id','<>',Auth::id())->where('company_employee','=',$responsabile->company_employee)->select('name','cognome','email','users.created_at','matricola','tel_employee','cell_employee','img_employee','user_employee')->orderBy('cognome')->paginate(env('PAGINATE_EMPLOYEE'));
+            return view('employee.del-employee',
+                [
+                    'dati' => $dato[0],
+                    'employee' =>$employee
+
+                ]);
+        } else {
+            return view('errors.500');
+        }
+    }
+
+    public function delEmployee($id_employee){
+        $responsabile = $this->responsabileControl();
+        if($responsabile->responsabile=='1') {
+            $del = Employee::where('user_employee',$id_employee)->select('company_employee')->first();
+            if ($del->company_employee==$responsabile->company_employee){
+                $delete = User::whereKey($id_employee)->delete();
+                $messaggio = $delete ? 'Il dipendente è stato eliminato' : 'Problemi con il server riprovare';
+                session()->flash('message', $messaggio);
+                return redirect()->route('viewemployees');
+            } else {
+                return view('errors.500');
+            }
+        } else {
+            return view('errors.500');
+        }
+    }
+
     /**
      * @return \Illuminate\Support\Collection
      */
@@ -349,5 +473,20 @@ class EmployeeController extends Controller
     {
         $data = User::join('employees', 'id', '=', 'user_employee')->join('company_offices', 'employees.company_employee', '=', 'company_offices.id_company_office')->join('business_profiles', 'company_offices.id_admin_company', '=', 'business_profiles.id_admin')->join('comuni', 'comuni.id_comune', '=', 'company_offices.cap_company')->leftJoin('company_offices_extra_italia', 'company_offices_extra_italia.company_office', '=', 'company_offices.id_company_office')->where('id', Auth::id())->select('name', 'cognome', 'img_employee', 'responsabile', 'acquisti', 'produzione', 'vendite', 'rag_soc_company', 'cap_company', 'indirizzo_company', 'civico_company', 'logo', 'cap', 'comune', 'sigla_prov', 'cap_company_office_extra', 'city_company_office_extra', 'state_company_office_extra', 'nazione_company','id_company_office','provincia')->get();
         return $data;
+    }
+
+    public function responsabileControl(){
+        $controllo = $this->block();
+        if ($controllo){
+            return view('errors.500');
+        } else {
+            $responsabile = Employee::where('user_employee','=',Auth::id())->select('responsabile','company_employee')->first();
+            if($responsabile->responsabile=='1'){
+                return $responsabile;
+            }
+            else {
+                return view('errors.500');
+            }
+        }
     }
 }

@@ -48,6 +48,11 @@ Route::group(['middleware'=> 'auth'],
         Route::patch('/updatemycompany','EmployeeController@updateMyCompany')->name('changemycompany');
         Route::get('/addemployee','EmployeeController@addEmployee')->name('addemployee');
         Route::post('/addnewemployee','EmployeeController@addNewEmployee')->name('addnewemployee');
+        Route::get('/viewemployees','EmployeeController@viewEmployees')->name('viewemployees');
+        Route::get('/updateemployees','EmployeeController@upEmployees')->name('upemployee');
+        Route::patch('updateemployee','EmployeeController@updateEmployee')->name('update-employee');
+        Route::get('/deleteemployees','EmployeeController@delEmployees')->name('delemployee');
+        Route::post('/deleteemployees/{id}','EmployeeController@delEmployee')->where('id', '[0-9]+')->name('delete-employee');
 
 
 
