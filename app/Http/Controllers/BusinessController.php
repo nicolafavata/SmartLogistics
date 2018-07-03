@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\addCompany;
 use App\Http\Requests\NewCompany;
+use App\Http\Requests\UpdateCompany;
 use App\Http\Requests\BusinessContattiUpdate;
 use App\Http\Requests\BusinessDescUpdate;
 use App\Http\Requests\BusinessLogoUpdate;
@@ -493,6 +494,12 @@ class BusinessController extends Controller
         if ($province==null){
             $province =[
               '1' =>'1',
+            ];
+        }
+
+        if ($nazioni==null){
+            $nazioni =[
+                '1' =>'1',
             ];
         }
 

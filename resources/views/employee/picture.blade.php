@@ -2,68 +2,38 @@
 @section('title','Smartlogis per le aziende')
 
 @section('content_header')
-    <div class="codrops-links">
-        @if($dati->responsabile=='1')
-            <div class="row">
-                <a class="fa fa-eye" href="#"><span>&nbsp;Comuni di visibilità</span></a>
-                <a class="fa fa-link" href="#"><span>&nbsp;La nostra Supply Chain</span></a>
-            </div>
-        @endif
-        @if($dati->acquisti=='1')
-            <div class="row">
-                <a class="fa fa-cog" href="#"><span>&nbsp;Configurazione ordini d'acquisto</span></a>
-                <a class="fa fa-cog" href="#"><span>&nbsp;Elabora ordine d'acquisto</span></a>
-            </div>
-
-        @endif
-        @if($dati->produzione=='1')
-            <div class="row">
-                <a class="fa fa-building" href="#"><span>&nbsp;La nostra produzione</span></a>
-                <a class="fa fa-cog" href="#"><span>&nbsp;Associazione acquisti-produzione</span></a>
-            </div>
-        @endif
-        @if($dati->vendite=='1')
-            <div class="row">
-                <a class="fa fa-book" href="#"><span>&nbsp;Catalogo vendite</span></a>
-                <a class="fa fa-money" href="#"><span>&nbsp;Le nostre vendite</span></a>
-            </div>
-        @endif
-    </div>
+    <h2 class="shadow verdino center">{{$dati->name.' '.$dati->cognome.' da qui puoi modificare la foto del tuo profilo'}}</h2>
 @endsection
 
 @section('content_section')
-        <div class="container-fluid home_employee home_img">
+        <div class="container-fluid home_employee picture_img">
                 <div class="row">
                     <div class="col-md-12 jumbotron border employee">
                         <div class="row">
-                            @if(session()->has('message'))
-                                @component('components.alert-info')
-                                    {{session()->get('message')}}
-                                @endcomponent
-                            @endif
-                            @if(count($errors))
-                                @component('components.show-errors')
-                                    {{$errors}}
-                                @endcomponent
-                            @endif
-
-                                    <h1 class="shadow grigio uppercase center">{{$dati->rag_soc_company}}</h1>
-                                    <h2 class="shadow verdino capitalize center">{{$dati->indirizzo_company.' '.$dati->civico_company.' - '}}
-                                        @if ($dati->cap=='8092')
-                                            {{$dati->cap_company_office_extra.' '.$dati->city_company_office_extra.' ('.$dati->state_company_office_extra.' - '.$dati->nazione_company.')'}}
-                                        @else
-                                            {{$dati->cap.' '.$dati->comune.' ('.$dati->sigla_prov.')'}}
-                                        @endif
-                                    </h2>
+                                    <h1 class="shadow grigio center">Foto attuale di {{$dati->name.' '.$dati->cognome}}</h1>
                                     <div class="row form-check center">
-                                        <img class="border-border-fucsia doppio img-fluid image-responsive" title="{{$dati->rag_soc_company}}" alt="Logo {{$dati->rag_soc_company}}"
-                                             @if(($dati->logo)!=NULL)
-                                             src="{{'../storage/'.$dati->logo}}">
+                                        <img class="border-border-fucsia doppio img-fluid image-responsive" title="{{$dati->name.' '.$dati->cognome}}" alt="Profilo {{$dati->name.' '.$dati->cognome}}"
+                                             @if(($dati->img_employee)!=NULL)
+                                             src="{{'../storage/'.$dati->img_employee}}">
                                         @else
-                                            src="{{'../img/logo_business.jpg'}}">
+                                            src="{{'../img/profile.jpg'}}">
                                         @endif
                                     </div>
-                                    <h2 class="shadow verdino center">Clicca sul pulsante in alto a destra per accedere al menù principale</h2>
+                                <br />
+                                <form onsubmit="showloader()" method="POST" action="{{ route('changemypicture') }}" enctype="multipart/form-data">
+                                    {{ csrf_field() }}
+                                    <input type="hidden" name="_method" value="PATCH">
+                                    <div class="form-check center">
+                                        <label class="shadow grigio">Seleziona l'immagine dal tuo computer</label>
+                                        <input type="file"  name="img_employee" id="img_employee" class="form-control">
+                                    </div>
+
+                                    <div class="row destra">
+                                        <button type="submit" class="form-group text-center btn btn-primary pulsante" id="submit_picture">
+                                            Conferma
+                                        </button>
+                                    </div>
+                                </form>
 
 
                           

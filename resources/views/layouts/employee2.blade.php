@@ -17,7 +17,8 @@
 
 		<link rel="shortcut icon" href="../favicon.ico">
 		<link href="css/mystyle.css" rel="stylesheet">
-
+		<link href="css/bootstrap.min.css" rel="stylesheet">
+        
 		<link rel="stylesheet" type="text/css" href="css/profile/normalize.css" />
 		<link rel="stylesheet" type="text/css" href="css/profile/profile.css" />
 		<link rel="stylesheet" type="text/css" href="fonts/font-awesome-4.2.0/css/font-awesome.min.css" />
@@ -58,7 +59,7 @@
 							<span>Sede dell'azienda</span>
 							<ul>
 								<li><a href="{{ route('my_company') }}">Dati aziendali</a></li>
-								<li><a href="{{ route('upcompany') }}">Modifica dati</a></li>
+								<li><a href="#">Modifica dati</a></li>
 								<li><a href="#">Visibilità</a></li>
 							</ul>
 						</li>
@@ -66,7 +67,7 @@
 							<span>Dipendenti</span>
 							<ul>
 								<li><a href="#">Visualizza</a></li>
-								<li><a href="{{ route('addemployee') }}">Aggiungi</a></li>
+								<li><a href="#">Aggiungi</a></li>
 								<li><a href="#">Modifica</a></li>
 								<li><a href="#">Elimina</a></li>
 							</ul>
@@ -193,12 +194,12 @@
 		<script src="js/myjs.js"></script>
 		<script>
             $(document).ready(function () {
-                $('div.allerta').fadeOut(45000);
+                $('div.allerta').fadeOut(7000);
             });
 		</script>
 		<script>
             $(document).ready(function () {
-                $('div.successo').fadeOut(15000);
+                $('div.successo').fadeOut(7000);
             });
 		</script>
 

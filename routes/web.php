@@ -40,6 +40,14 @@ Route::group(['middleware'=> 'auth'],
         Route::get('/newpassword', 'EmployeeController@newPassword')->name('new_password');
         Route::get('/profile', 'EmployeeController@myProfile')->name('my_profile');
         Route::get('/mypicture', 'EmployeeController@picture')->name('picture');
+        Route::patch('/updatemypicture','EmployeeController@updatePicture')->name('changemypicture');
+        Route::get('/updateprofile','EmployeeController@upProfile')->name('upprofile');
+        Route::patch('/updatemyprofile','EmployeeController@updateMyProfile')->name('changemyprofile');
+        Route::get('/company','EmployeeController@myCompany')->name('my_company');
+        Route::get('/updatecompany','EmployeeController@upCompany')->name('upcompany');
+        Route::patch('/updatemycompany','EmployeeController@updateMyCompany')->name('changemycompany');
+        Route::get('/addemployee','EmployeeController@addEmployee')->name('addemployee');
+        Route::post('/addnewemployee','EmployeeController@addNewEmployee')->name('addnewemployee');
 
 
 
