@@ -28,12 +28,12 @@ class HomeController extends Controller
 
         $business = Auth::user()->business;
         $profile = Auth::user()->profile;
+        $admin = Auth::user()->admin;
         if ($profile=='1'){
             if($business=='0') {
                 return redirect()->route('geocode');
             }
             else {
-                $admin = Auth::user()->admin;
                 if ($admin=='0') {
                     return redirect()->route('employee');
                 }

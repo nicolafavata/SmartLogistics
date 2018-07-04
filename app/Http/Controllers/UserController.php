@@ -66,9 +66,7 @@ class UserController extends Controller
         if ($data['nazione_user_profile']=='Italia'){
            if ($data['comune']!='Seleziona prima la provincia'){
                 $comune = DB::table('comuni')->select('id_comune')->where('comune',$data['comune'])->first();
-                foreach ($comune as $com){
-                       $data['cap_user_profile'] = $com->id_comune;
-                }
+                $data['cap_user_profile'] = $comune->id_comune;
            } else{
                $data['cap_user_profile']=null;
                $data['indirizzo_user_profile']=null;

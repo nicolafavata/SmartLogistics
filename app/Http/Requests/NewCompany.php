@@ -26,7 +26,7 @@ class NewCompany extends FormRequest
      */
     public function rules()
     {
-        $BusinessProfile = DB::table('business_profiles')->select('id_business_profile')->where('id_business_profile',Auth::id())->first();
+        $BusinessProfile = DB::table('business_profiles')->select('id_business_profile')->where('id_admin',Auth::id())->first();
         return [
             'rag_soc_company' => 'required|string|between:3,50',
             'partita_iva_company' => 'required|string|digits:11|unique:business_profiles,partita_iva,'.$BusinessProfile->id_business_profile.',id_business_profile',

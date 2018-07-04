@@ -27,9 +27,11 @@ Route::get('user/verify{token}','Auth\RegisterController@verifyUser')->name('ver
 
 //Protezione routing
 Route::group(['middleware'=> 'auth'],
+
+
     function (){
         //Cittadini
-        Route::get('/user/{cap}/{comune}', 'UserController@geostore');
+        Route::get('/user/{cap}/{comune}', 'UserController@geostore')->name('smartcity');
         Route::get('/user', 'UserController@index')->name('user');
         Route::get('/geocode', 'UserController@geocode')->name('geocode');
 
@@ -68,8 +70,8 @@ Route::group(['middleware'=> 'auth'],
         Route::patch('/admin/updatedesc', 'BusinessController@updateDesc')->name('updatedesc');
         Route::get('/admin/contatti', 'BusinessController@viewContatti')->name('contattibusiness');
         Route::patch('/admin/updatecontatti', 'BusinessController@updateContatti')->name('updatecontatti');
-        Route::get('admin/our_companies', 'BusinessController@viewCompany')->name('viewcompany');
-        Route::post('admin/delete/companies/{id}', 'BusinessController@deleteCompany')->where('id', '[0-9]+')->name('deletecompany');
+        Route::get('/admin/our_companies', 'BusinessController@viewCompany')->name('viewcompany');
+        Route::post('/admin/delete/companies/{id}', 'BusinessController@deleteCompany')->where('id', '[0-9]+')->name('deletecompany');
 
         //Registrazione
         Route::get('/userprofile', 'UserController@registerProfile')->name('completeuser');
