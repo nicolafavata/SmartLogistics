@@ -57,10 +57,10 @@
                                     </h2>
                                     <div class="row form-check center">
                                         <img class="border-border-fucsia doppio img-fluid image-responsive" title="{{$dati->rag_soc_company}}" alt="Logo {{$dati->rag_soc_company}}"
-                                             @if(($dati->logo)!=NULL)
-                                             src="{{'../storage/'.$dati->logo}}">
+                                             @if(($dati->logo)!='0')
+                                             src="{{env('APP_URL').'/storage/'.$dati->logo}}">
                                         @else
-                                            src="{{'../img/logo_business.jpg'}}">
+                                            src="{{env('APP_URL').'/img/logo_business.jpg'}}">
                                         @endif
                                     </div>
                                     <h2 class="shadow verdino center">Clicca sul pulsante in alto a destra per accedere al menù principale</h2>

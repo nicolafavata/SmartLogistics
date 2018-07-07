@@ -77,7 +77,7 @@ class EmployeeController extends Controller
                     foreach ($rag_soc as $rag) {
                         $filename = 'employee' . $id_user .'-company'. $rag['rag_soc_company'] . '.' . $file->extension();
                         $up = $file->storeAs(env('IMG_PROFILE'), $filename);
-                        if ($rag['img_employee']==null){
+                        if ($rag['img_employee']=='0'){
                             $path = env('IMG_PROFILE') . '/' . $filename;
                             $up = Employee::where('user_employee','=',$id_user)->update(
                                 [

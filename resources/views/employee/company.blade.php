@@ -17,11 +17,11 @@
                                             rowspan="7">
                                         @endif
                                         <img class="border-border-fucsia doppio img-fluid image-responsive" title="{{$dati->name.' '.$dati->cognome}}" alt="Profilo {{$dati->name.' '.$dati->cognome}}"
-                                             @if(($dati->logo)!=NULL)
-                                             src="{{'../storage/'.$dati->logo}}">
-                                        @else
-                                            src="{{'../img/profile.jpg'}}">
-                                        @endif
+                                             @if(($dati->logo)!='0')
+                                             src="{{env('APP_URL').'/storage/'.$dati->logo}}">
+                                            @else
+                                                src="{{env('APP_URL').'/img/profile.jpg'}}">
+                                            @endif
                                     </td>
                                     <td class="grigio shadow destra">
                                         Ragione sociale:&nbsp

@@ -5,7 +5,7 @@
         <div class="container-fluid">
             <div class="col-xs-4">
                 <div class="text-left">
-                    <img src="../img/logo.gif" width="300" height="55" alt="logo_smartlogis">
+                    <img src="{{env('APP_URL')}}/img/logo.gif" width="300" height="55" alt="logo_smartlogis">
                 </div>
             </div>
             <div class="col-xs-5"></div>

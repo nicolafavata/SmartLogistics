@@ -32,10 +32,10 @@
 			<div class="menu-wrap">
 				<nav class="menu-top">
 					<div class="profile"><img class="border-border-verde"
-											@if ($dati->img_employee==null)
+											@if ($dati->img_employee=='0')
 											  src="img/profile.jpg"
 											  @else
-													  src="{{'../storage/'.$dati->img_employee}}"
+													  src="{{env('APP_URL').'/storage/'.$dati->img_employee}}"
 													  @endif
 											  width="50" height="50" alt="{{$dati->name.' '.$dati->cognome}}"/><span>{{$dati->name.' '.$dati->cognome}}</span></div>
 					<div class="icon-list">

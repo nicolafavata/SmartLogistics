@@ -31,7 +31,7 @@ class CreaTabellaProfiliBusiness extends Migration
             $table->string('cellulare',16)->nullable();
             $table->string('fax',16)->nullable();
             $table->string('pec',30)->nullable();
-            $table->string('logo',128)->nullable();
+            $table->string('logo',128)->default('0');
             $table->integer('id_admin')->unsigned();
             //Un profilo ha un solo amministratore, e un amministratore può avere un solo profilo
             $table->foreign('id_admin')->on('users')->references('id')->onDelete('cascade')->onUpdate('cascade');

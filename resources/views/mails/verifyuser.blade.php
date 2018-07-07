@@ -1,5 +1,5 @@
 @component('mail::message')
-    <img class="img" src="http://localhost:8000/img/logo.gif" alt="logo">
+    <img src="{{env('APP_URL')}}/img/logo.gif" width="300" height="55" alt="logo_smartlogis">
 # Benvenuto in Smartlogis
 
 Salve {{$user['name']}},

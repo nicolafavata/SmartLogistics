@@ -25,6 +25,15 @@ class HomeController extends Controller
      */
     public function index()
     {
+        //Scrittura accesso al sito
+           $accessdate=date("d-m-Y");
+           $accesstime=date("h:i:sa");
+           $accessip=$_SERVER['REMOTE_ADDR'];
+           $scrivifile="Accesso giorno: ".$accessdate." Alle ore: ".$accesstime." Indirizzo ip: ".$accessip;
+           $file = fopen("access.txt","a+");
+           fputs($file,$scrivifile."\n");
+           fclose($file);
+           //fine scrittura file access.txt
 
         $business = Auth::user()->business;
         $profile = Auth::user()->profile;

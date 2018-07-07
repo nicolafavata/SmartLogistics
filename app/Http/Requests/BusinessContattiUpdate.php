@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class BusinessContattiUpdate extends FormRequest
 {
@@ -25,12 +26,13 @@ class BusinessContattiUpdate extends FormRequest
      */
     public function rules()
     {
+        $BusinessProfile = DB::table('business_profiles')->select('id_business_profile')->where('id_admin',Auth::id())->first();
         return [
             'web' => 'nullable|string|max:30',
             'telefono' => 'nullable|digits_between:5,16',
             'cellulare' => 'nullable|digits_between:5,16',
             'fax' => 'nullable|digits_between:5,16',
-            'pec' => 'nullable|email|max:30|unique:business_profiles',
+            'pec' => 'nullable|email|max:30|unique:business_profiles,pec,'.$BusinessProfile->id_business_profile.',id_business_profile'
         ];
     }
 

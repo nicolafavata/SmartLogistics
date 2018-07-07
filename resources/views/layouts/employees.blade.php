@@ -31,10 +31,10 @@
     <div class="container-fluid">
 
         <div class="profile"><img class="border-border-verde"
-                                  @if ($dati->img_employee==null)
-                                  src="img/profile.jpg"
+                                  @if ($dati->img_employee=='0')
+                                  src="{{env('APP_URL')}}/img/profile.jpg"
                                   @else
-                                  src="{{'../storage/'.$dati->img_employee}}"
+                                  src="{{env('APP_URL').'/storage/'.$dati->img_employee}}"
                                   @endif
                                   width="50" height="50" alt="{{$dati->name.' '.$dati->cognome}}"/></div>
         <div class="collapse navbar-collapse" id="navbarNavDropdown">

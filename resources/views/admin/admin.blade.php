@@ -24,7 +24,7 @@
 
 
                                 <img class="border rounded" width="240" height="188" title="logo_azienda" alt="logo_azienda"
-                                     @if(($profile->logo)!=NULL)
+                                     @if(($profile->logo)!='0')
                                         src="{{asset($profile->path)}}">
                                      @else
                                         src="{{'img/logo_business.jpg'}}">

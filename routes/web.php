@@ -31,7 +31,7 @@ Route::group(['middleware'=> 'auth'],
 
     function (){
         //Cittadini
-        Route::get('/user/{cap}/{comune}', 'UserController@geostore')->name('smartcity');
+        Route::get('/user/{cap}/{comune}', 'UserController@geostore');
         Route::get('/user', 'UserController@index')->name('user');
         Route::get('/geocode', 'UserController@geocode')->name('geocode');
 

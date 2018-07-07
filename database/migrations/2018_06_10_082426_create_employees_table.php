@@ -21,7 +21,7 @@ class CreateEmployeesTable extends Migration
             $table->string('matricola',16)->nullable();
             $table->string('tel_employee',16)->nullable();
             $table->string('cell_employee',16)->nullable();
-            $table->string('img_employee',128)->nullable();
+            $table->string('img_employee',128)->default('0');
             $table->integer('company_employee')->unsigned();
             //Un impiegato corrisponde una sede aziendale, a una sede aziendale da 0 a + impiegati
             $table->foreign('company_employee')->on('company_offices')->references('id_company_office')->onDelete('cascade')->onUpdate('cascade');

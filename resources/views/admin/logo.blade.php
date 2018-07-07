@@ -31,7 +31,7 @@
                               <div class="form-group">
                                     <label class="display-3 fucsia shadow font-weight-bold" for="">Logo aziendale</label><br>
                                       <img class="border rounded" width="240" height="188" title="logo_azienda" alt="logo_azienda"
-                                           @if(($logo->logo)!=NULL)
+                                           @if(($logo->logo)!='0')
                                            src="{{'../storage/'.$logo->logo}}">
                                       @else
                                           src="{{'../img/logo_business.jpg'}}">

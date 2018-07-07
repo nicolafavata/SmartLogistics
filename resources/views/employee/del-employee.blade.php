@@ -25,7 +25,7 @@
                                         Matricola
                                     </th>
                                     <th>
-                                        Nome Cognome
+                                        Cognome Nome
                                     </th>
                                     <th>
                                         Email
@@ -45,12 +45,12 @@
                              <tr>
                                  <td>
                                      <div class="profile"><img class=" text-right"
-                                                               @if ($employees->img_employee==null)
-                                                                src="img/profile.jpg"
+                                                               @if ($employees->img_employee=='0')
+                                                               src="{{env('APP_URL')}}/img/profile.jpg"
                                                                @else
-                                                                src="{{'../storage/'.$employees->img_employee}}"
+                                                               src="{{env('APP_URL').'/storage/'.$employees->img_employee}}"
                                                                @endif
-                                                                width="50" height="50" alt="{{$dati->name.' '.$dati->cognome}}"/></div>
+                                                               width="50" height="50" alt="{{$dati->name.' '.$dati->cognome}}"/></div>
                                  </td>
                                  <td class="text-uppercase">
                                      {{$employees->matricola}}
