@@ -34,7 +34,7 @@
                             </tr>
                             <tr>
                                 <td>
-                                    <input required type="text" name="indirizzo" id="indirizzo" maxlength="30" placeholder="Via/Piazza">
+                                    <input required type="text" name="indirizzo" id="indirizzo" maxlength="50" placeholder="Via/Piazza">
                                 </td>
                                 <td>
                                     <input required type="text" name="civico" id="civico" maxlength="6" placeholder="Numero civico">

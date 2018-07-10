@@ -18,7 +18,7 @@ class CreaTabellaProfiliBusiness extends Migration
             $table->string('rag_soc',50)->nullable();
             $table->mediumText('descrizione')->nullable();
             $table->string('nazione',128)->nullable();
-            $table->string('indirizzo',30)->nullable();
+            $table->string('indirizzo',50)->nullable();
             $table->char('civico',6)->nullable();
             $table->integer('cap_busines')->nullable();
             //Un profilo ha un solo cap, un cap può avere più profili

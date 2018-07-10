@@ -77,7 +77,7 @@
                         </tr>
                         <tr>
                             <td>
-                                <input type="text" name="indirizzo_user_profile" id="indirizzo" maxlength="30" placeholder="Your adress">
+                                <input type="text" name="indirizzo_user_profile" id="indirizzo" maxlength="50" placeholder="Your adress">
                             </td>
                             <td colspan="2">
                                 <input type="text" name="civico_user_profile" id="civico" maxlength="6" placeholder="Street number">

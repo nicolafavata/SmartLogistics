@@ -7,9 +7,13 @@ use App\Http\Requests\Employee\PictureUpdate;
 use App\Http\Requests\Employee\ProfileUpdate;
 use App\Http\Requests\Employee\UpdateCompany;
 use App\Http\Requests\Employee\UpEmployee;
+use App\Http\Requests\Employee\Visible;
+use App\Http\Requests\Employee\Research;
 use App\Models\CompanyOffice;
 use App\Models\CompanyOfficeExtraItalia;
+use App\Models\Comune;
 use App\Models\Employee;
+use App\Models\VisibleComune;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -466,12 +470,87 @@ class EmployeeController extends Controller
         }
     }
 
+    public function visibleCompany(){
+        $responsabile = $this->responsabileControl();
+        if ($responsabile->responsabile=='1'){
+            $data = $this->dataProfile();
+            $employee = Employee::join('users','user_employee','=','id')->where('id',Auth::id())->select('matricola','tel_employee','cell_employee','employees.created_at','email')->get();
+            foreach ($data as $dato) {
+                if($dato->visible_user=='1'){
+                   $visible = VisibleComune::join('comuni','cap_visible','id_comune')->where('company_office_visible',$dato->id_company_office)->select('id_comune','cap','comune','sigla_prov')->get();
+                }
+            }
+            $comuni = Comune::select('id_comune','cap','comune')->where('sigla_prov',$dato->sigla_prov)->get();
+            if (!isset($visible)){
+                $visible = [
+                    '1' => '1'
+                ];
+            }
+            return view('employee.visible',[
+                'dati' => $data[0],
+                'employee' => $employee[0],
+                'comuni' => $comuni,
+                'visibili' => $visible,
+            ]);
+
+
+        } else {
+            return view('errors.500');
+        }
+    }
+
+    public function changeVisible(Visible $request){
+        $responsabile = $this->responsabileControl();
+        if ($responsabile->responsabile=='1') {
+            $data = $request->all();
+            if (isset($data['visible_user']) and ($data['visible_user']=='1') and (isset($data['cap_visible']))){
+                VisibleComune::where('company_office_visible','=',$responsabile->company_employee)->delete();
+                foreach ($data['cap_visible'] as $id){
+                    VisibleComune::create(
+                      [
+                          'cap_visible' => $id,
+                          'company_office_visible' => $responsabile->company_employee,
+                      ]
+                    );
+                }
+            }
+            if (!isset($data['visible_user'])) VisibleComune::where('company_office_visible','=',$responsabile->company_employee)->delete();
+            if (!isset($data['visible_user'])) $data['visible_user'] = '0';
+            if (!isset($data['visible_business'])) $data['visible_business'] = '0';
+            $up = CompanyOffice::whereKey($responsabile->company_employee)->update(
+              [
+                  'visible_user' => $data['visible_user'],
+                  'visible_business' => $data['visible_business'],
+              ]
+            );
+            $messaggio = $up ? 'Le informazini sulla visibilità sono state aggiornate' : 'Problemi con il server riprovare';
+            session()->flash('message', $messaggio);
+            return redirect()->route('visiblecompany');
+        } else  return view('errors.500');
+    }
+
+    public function researchCompany(){
+        $responsabile = $this->responsabileControl();
+        if ($responsabile->responsabile=='1') {
+            $data = $this->dataProfile();
+            $employee = Employee::join('users','user_employee','=','id')->where('id',Auth::id())->select('matricola','tel_employee','cell_employee','employees.created_at','email')->get();
+            return view('employee.research',[
+                'dati' => $data[0],
+                'employee' => $employee[0],
+            ]);
+        } else return view('errors.500');
+    }
+
+    public function findCompany(Research $request){
+
+    }
+
     /**
      * @return \Illuminate\Support\Collection
      */
     public function dataProfile(): \Illuminate\Support\Collection
     {
-        $data = User::join('employees', 'id', '=', 'user_employee')->join('company_offices', 'employees.company_employee', '=', 'company_offices.id_company_office')->join('business_profiles', 'company_offices.id_admin_company', '=', 'business_profiles.id_admin')->join('comuni', 'comuni.id_comune', '=', 'company_offices.cap_company')->leftJoin('company_offices_extra_italia', 'company_offices_extra_italia.company_office', '=', 'company_offices.id_company_office')->where('id', Auth::id())->select('name', 'cognome', 'img_employee', 'responsabile', 'acquisti', 'produzione', 'vendite', 'rag_soc_company', 'cap_company', 'indirizzo_company', 'civico_company', 'logo', 'cap', 'comune', 'sigla_prov', 'cap_company_office_extra', 'city_company_office_extra', 'state_company_office_extra', 'nazione_company','id_company_office','provincia')->get();
+        $data = User::join('employees', 'id', '=', 'user_employee')->join('company_offices', 'employees.company_employee', '=', 'company_offices.id_company_office')->join('business_profiles', 'company_offices.id_admin_company', '=', 'business_profiles.id_admin')->join('comuni', 'comuni.id_comune', '=', 'company_offices.cap_company')->leftJoin('company_offices_extra_italia', 'company_offices_extra_italia.company_office', '=', 'company_offices.id_company_office')->where('id', Auth::id())->select('name', 'cognome', 'img_employee', 'responsabile', 'acquisti', 'produzione', 'vendite', 'rag_soc_company', 'cap_company', 'indirizzo_company', 'civico_company', 'logo', 'cap', 'comune', 'sigla_prov', 'cap_company_office_extra', 'city_company_office_extra', 'state_company_office_extra', 'nazione_company','id_company_office','provincia','visible_user','visible_business')->get();
         return $data;
     }
 

@@ -40,7 +40,7 @@
 
                                 </td>
                                 <td>
-                                    <input type="text" name="indirizzo_user_profile" id="indirizzo" maxlength="30" placeholder="Via/Piazza">
+                                    <input type="text" name="indirizzo_user_profile" id="indirizzo" maxlength="50" placeholder="Via/Piazza">
                                 </td>
                                 <td>
                                     <input type="text" name="civico_user_profile" id="civico" maxlength="6" placeholder="Numero civico">

@@ -5,7 +5,7 @@
     <div class="codrops-links">
         @if($dati->responsabile=='1')
             <div class="row">
-                <a class="fa fa-eye" href="#"><span>&nbsp;Comuni di visibilità</span></a>
+                <a class="fa fa-eye" href="{{route('visiblecompany')}}"><span>&nbsp;Visibilità</span></a>
                 <a class="fa fa-link" href="#"><span>&nbsp;La nostra Supply Chain</span></a>
             </div>
         @endif

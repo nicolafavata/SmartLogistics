@@ -60,7 +60,7 @@
 							<ul>
 								<li><a href="{{ route('my_company') }}">Dati aziendali</a></li>
 								<li><a href="{{ route('upcompany') }}">Modifica dati</a></li>
-								<li><a href="#">Visibilità</a></li>
+								<li><a href="{{ route('visiblecompany') }}">Visibilità</a></li>
 							</ul>
 						</li>
 						<li>
@@ -75,7 +75,7 @@
 						<li>
 							<span>Supply chain</span>
 							<ul>
-								<li><a href="#">Ricerca azienda</a></li>
+								<li><a href="{{ route('supplyresearch') }}">Ricerca azienda</a></li>
 								<li><a href="#">Gestione aggregazioni</a></li>
 								<li><a href="#">Richieste</a></li>
 							</ul>
@@ -112,7 +112,6 @@
 								<li><a href="#">Listini</a></li>
 								<li><a href="#">Vendite effettuate</a></li>
 								<li><a href="#">Monitoraggio delle scadenze</a></li>
-								<li><a href="#">Registra ammanco</a></li>
 							</ul>
 						</li>
 						<li>

@@ -37,7 +37,7 @@ class NewCompany extends FormRequest
             'cap_company_office_extra' => 'nullable|string|max:8',
             'city_company_office_extra' => 'nullable|string|max:30',
             'state_company_office_extra' => 'nullable|string|max:30',
-            'indirizzo_company' => 'required|string|max:30',
+            'indirizzo_company' => 'required|string|max:50',
             'civico_company' => 'required|string|max:6',
             'telefono_company' => 'nullable|digits_between:5,16',
             'cellulare_company' => 'nullable|digits_between:5,16',

@@ -29,7 +29,7 @@ class BusinessRegisterProfile extends FormRequest
             'rag_soc' => 'required|string|between:3,50',
             'descrizione' => 'nullable|string|max:255',
             'nazione' => 'required|string|max:128',
-            'indirizzo' => 'required|string|max:30',
+            'indirizzo' => 'required|string|max:50',
             'civico' => 'required|string|max:6',
             'provincia' => 'nullable|string|max:45',
             'comune' => 'nullable|string|max:45',

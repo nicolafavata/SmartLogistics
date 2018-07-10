@@ -28,6 +28,8 @@ class CreateCompanyOfficesTable extends Migration
             $table->string('cellulare_company',16)->nullable();
             $table->string('fax_company',16)->nullable();
             $table->string('email_company',30)->nullable();
+            $table->boolean('visible_user')->default('0');
+            $table->boolean('visible_business')->default('0');
             $table->integer('id_admin_company')->unsigned();
             //Una sede ha un solo amministratore, e un amministratore può avere più sedi
             $table->foreign('id_admin_company')->on('users')->references('id')->onDelete('cascade')->onUpdate('cascade');

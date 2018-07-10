@@ -76,6 +76,26 @@ function showloader() {
 
 }
 
+function showid(master,show,litteral) {
+    var display = document.getElementById(master).checked;
+    if (display==false) {
+        document.getElementById(litteral).innerHTML = 'Rendi visibile la tua azienda ai cittadini e seleziona i comuni di visibilità';
+        document.getElementById(show).style.display = 'none';
+    }
+    else {
+        document.getElementById(litteral).innerHTML = 'La tua azienda è visibile ai cittadini';
+        document.getElementById(show).style.display = 'inline-block';
+    }
+}
+
+function showb2b() {
+    var display = document.getElementById('visibile_b2b').checked;
+    if(display==false)
+        document.getElementById('b2b').innerHTML = 'Rendi visibile la tua azienda alle altre aziende';
+    else
+        document.getElementById('b2b').innerHTML = 'La tua azienda è visibile alle altre aziende';
+}
+
 /* Classi javascript*/
 /*!
  * classie - class helper functions
