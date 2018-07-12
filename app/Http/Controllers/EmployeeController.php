@@ -9,10 +9,18 @@ use App\Http\Requests\Employee\UpdateCompany;
 use App\Http\Requests\Employee\UpEmployee;
 use App\Http\Requests\Employee\Visible;
 use App\Http\Requests\Employee\Research;
+use App\Mail\AggregationAccepted;
+use App\Mail\AggregationCancel;
+use App\Mail\AggregationRequest;
+use App\Mail\DeleteSupplyChain;
+use App\Mail\InformationSupply;
 use App\Models\CompanyOffice;
 use App\Models\CompanyOfficeExtraItalia;
 use App\Models\Comune;
 use App\Models\Employee;
+use App\Models\Provider;
+use App\Models\SupplyChain;
+use App\Models\SupplyRequest;
 use App\Models\VisibleComune;
 use App\User;
 use Illuminate\Http\Request;
@@ -542,7 +550,342 @@ class EmployeeController extends Controller
     }
 
     public function findCompany(Research $request){
+        $responsabile = $this->responsabileControl();
+        if ($responsabile->responsabile=='1') {
+            $data = $request->only('research');
+            $dati = $this->dataProfile();
+            $business = CompanyOffice::leftjoin('supply_requests','company_received','=','id_company_office')->where('visible_business','1')->where('partita_iva_company',$data['research'])->where('block',null)->where('supply',null)->join('comuni','id_comune','=','cap_company')->leftJoin('company_offices_extra_italia','id_company_office_extra','id_company_office')->join('employees','company_employee','=','id_company_office')->where('responsabile','=','1')->join('users','id','=','user_employee')->where('company_requested','=',null)->where('company_received','=',null)->select('rag_soc_company','nazione_company','indirizzo_company','civico_company','telefono_company','fax_company','email_company','cap','comune','sigla_prov','cap_company_office_extra','city_company_office_extra','state_company_office_extra','name','cognome','id_company_office')->get();
+            $employee = Employee::join('users','user_employee','=','id')->where('id',Auth::id())->select('matricola','tel_employee','cell_employee','employees.created_at','email')->get();
+            if(count($business)==0){
+                session()->flash('message', 'Non ci sono aziende da mostrare con questa partita iva');
+                return redirect()->route('supplyresearch');
+            } else {
+                if(count($business)==1){
+                    $company = Employee::where('user_employee',Auth::id())->select('company_employee')->first();
+                    foreach ($business as $azienda) $block = $azienda['id_company_office'];
+                    if ($block==$company->company_employee){
+                        session()->flash('message', 'Non ci sono aziende da mostrare con questa partita iva');
+                        return redirect()->route('supplyresearch');
+                    }
+                }
+                return view('employee.companiesfound', [
+                    'dati' => $dati[0],
+                    'employee' => $employee[0],
+                    'business' => $business,
+                ]);
+            }
+        } else return view('errors.500');
+    }
 
+    public function requestSupply($id){
+        $responsabile = $this->responsabileControl();
+        if ($responsabile->responsabile=='1') {
+            $company = Employee::where('user_employee',Auth::id())->select('company_employee')->first();
+            $up = SupplyRequest::create(
+                [
+                  'company_requested' =>  $company->company_employee,
+                  'company_received' => $id,
+                  'recipient' => '1',
+                ]
+            );
+            $up2 = SupplyRequest::create(
+                [
+                    'company_requested' =>  $id,
+                    'company_received' => $company->company_employee,
+                ]
+            );
+            if ($up and $up2){
+                $email = Employee::join('users','id','=','user_employee')->where('responsabile','1')->where('company_employee',$id)->select('name','cognome','email')->get();
+                foreach ($email as $em){
+                    Mail::to($em->email)->send(new AggregationRequest($em));
+                }
+                $messaggio = $up ? 'La richiesta di aggregazione è stata trasmessa' : 'Problemi con il server riprovare';
+                session()->flash('message', $messaggio);
+                return redirect()->route('employee');
+            }
+        } else return view('errors.500');
+    }
+
+    public function requestsTransmitted(){
+        $responsabile = $this->responsabileControl();
+        if ($responsabile->responsabile=='1'){
+            $company = Employee::where('user_employee',Auth::id())->select('company_employee')->first();
+            $trasmit = CompanyOffice::join('supply_requests','company_received','=','id_company_office')->where('company_requested',$company->company_employee)->where('block','0')->where('supply','0')->where('recipient','1')->join('comuni','id_comune','=','cap_company')->leftJoin('company_offices_extra_italia','id_company_office_extra','id_company_office')->select('company_received','rag_soc_company','partita_iva_company','nazione_company','indirizzo_company','civico_company','cap','comune','sigla_prov','cap_company_office_extra','city_company_office_extra','state_company_office_extra')->paginate(env('PAGINATE_COMPANY'));
+            if (count($trasmit)==0) {
+                session()->flash('message', 'Non ci sono richieste di aggregazione in corso');
+                return redirect()->route('employee');
+            }
+            $dato = $this->dataProfile();
+            return view('employee.supply-requests',
+                [
+                    'dati' => $dato[0],
+                    'company' =>$trasmit,
+
+                ]);
+        } else return ('errors.500');
+    }
+
+    public function cancelRequest($id){
+        $responsabile = $this->responsabileControl();
+        if ($responsabile->responsabile=='1') {
+            $company = Employee::where('user_employee',Auth::id())->select('company_employee')->first();
+            $del = SupplyRequest::where('company_requested',$company->company_employee)->where('company_received',$id)->delete();
+            $del = SupplyRequest::where('company_requested',$id)->where('company_received',$company->company_employee)->delete();
+            $email = Employee::join('users','id','=','user_employee')->where('responsabile','1')->where('company_employee',$id)->select('name','cognome','email')->get();
+            foreach ($email as $em){
+                Mail::to($em->email)->send(new AggregationCancel($em));
+            }
+            $messaggio = $del ? 'La richiesta di aggregazione è stata annullata' : 'Problemi con il server riprovare';
+            session()->flash('message', $messaggio);
+            return redirect()->route('employee');
+        } else return view('errors.500');
+    }
+
+    public function retransmitRequest($id){
+        $responsabile = $this->responsabileControl();
+        if ($responsabile->responsabile=='1'){
+            $email = Employee::join('users','id','=','user_employee')->where('responsabile','1')->where('company_employee',$id)->select('name','cognome','email')->get();
+            foreach ($email as $em){
+                Mail::to($em->email)->send(new AggregationRequest($em));
+            }
+            session()->flash('message', 'La richiesta di aggregazione è stata ritrasmessa');
+            return redirect()->route('employee');
+        } else return ('errors.500');
+    }
+
+    public function requestsReceived(){
+        $responsabile = $this->responsabileControl();
+        if ($responsabile->responsabile=='1'){
+            $company = Employee::where('user_employee',Auth::id())->select('company_employee')->first();
+            $trasmit = CompanyOffice::join('supply_requests','company_requested','=','id_company_office')->where('company_received',$company->company_employee)->where('block','0')->where('supply','0')->where('recipient','1')->join('comuni','id_comune','=','cap_company')->leftJoin('company_offices_extra_italia','id_company_office_extra','id_company_office')->select('company_requested','rag_soc_company','partita_iva_company','nazione_company','indirizzo_company','civico_company','cap','comune','sigla_prov','cap_company_office_extra','city_company_office_extra','state_company_office_extra')->paginate(env('PAGINATE_COMPANY'));
+            if (count($trasmit)==0) {
+                session()->flash('message', 'Non ci sono richieste di aggregazione in corso');
+                return redirect()->route('employee');
+            }
+            $dato = $this->dataProfile();
+            return view('employee.supply-received',
+                [
+                    'dati' => $dato[0],
+                    'company' =>$trasmit,
+
+                ]);
+        } else return ('errors.500');
+    }
+
+    public function blockRequest($id){
+        $responsabile = $this->responsabileControl();
+        if ($responsabile->responsabile=='1') {
+            $company = Employee::where('user_employee',Auth::id())->select('company_employee')->first();
+            SupplyRequest::where('company_requested',$id)->where('company_received',$company->company_employee)->update(
+                [
+                    'block' => 1,
+                ]
+            );
+            $up = SupplyRequest::where('company_requested',$company->company_employee)->where('company_received',$id)->update(
+                [
+                    'block' => 1,
+                ]
+            );
+            $messaggio = $up ? 'L\'azienda è stata bloccata' : 'Problemi con il server riprovare';
+            session()->flash('message', $messaggio);
+            return redirect()->route('employee');
+        }
+    }
+
+    public function cancelCompanyRequest($id){
+        $responsabile = $this->responsabileControl();
+        if ($responsabile->responsabile=='1') {
+            $company = Employee::where('user_employee',Auth::id())->select('company_employee')->first();
+            SupplyRequest::where('company_requested',$id)->where('company_received',$company->company_employee)->delete();
+            $up = SupplyRequest::where('company_requested',$company->company_employee)->where('company_received',$id)->delete();
+            $email = Employee::join('users','id','=','user_employee')->join('company_offices','id_company_office','company_employee')->where('responsabile','1')->where('company_employee',$id)->select('name','cognome','email','rag_soc_company')->get();
+            foreach ($email as $em){
+                Mail::to($em->email)->send(new AggregationCancel($em));
+            }
+            $messaggio = $up ? 'La richiesta di aggregazione è stata annullata' : 'Problemi con il server riprovare';
+            session()->flash('message', $messaggio);
+            return redirect()->route('employee');
+        }
+    }
+
+    public function AcceptRequest($id){
+        $responsabile = $this->responsabileControl();
+        if ($responsabile->responsabile=='1') {
+            $company = Employee::where('user_employee',Auth::id())->select('company_employee')->first();
+            $up = SupplyRequest::where('company_requested',$id)->where('company_received',$company->company_employee)->update(
+                [
+                    'supply' => 1,
+                ]
+            );
+            $up = SupplyRequest::where('company_requested',$company->company_employee)->where('company_received',$id)->update(
+                [
+                    'supply' => 1,
+                ]
+            );
+            SupplyChain::create(
+              [
+                  'company_supply_shares' => $id,
+                  'company_supply_received' => $company->company_employee,
+              ]
+            );
+            SupplyChain::create(
+                [
+                    'company_supply_shares' => $company->company_employee,
+                    'company_supply_received' => $id,
+                ]
+            );
+            $email = Employee::join('users','id','=','user_employee')->join('company_offices','id_company_office','company_employee')->where('responsabile','1')->where('company_employee',$id)->select('name','cognome','email','rag_soc_company')->get();
+            foreach ($email as $em){
+                Mail::to($em->email)->send(new AggregationAccepted($em));
+            }
+            $messaggio = $up ? 'L\'azienda è stata inserita nella tua Supply Chain' : 'Problemi con il server riprovare';
+            session()->flash('message', $messaggio);
+            return redirect()->route('employee');
+        }
+    }
+
+    public function supplyChainManagement(){
+        $responsabile = $this->responsabileControl();
+        if ($responsabile->responsabile=='1'){
+            $company = Employee::where('user_employee',Auth::id())->select('company_employee')->first();
+            $trasmit = CompanyOffice::join('supply_requests','company_received','=','id_company_office')->where('company_requested',$company->company_employee)->where('block','0')->where('supply','1')->join('comuni','id_comune','=','cap_company')->leftJoin('company_offices_extra_italia','id_company_office_extra','id_company_office')->select('company_received','rag_soc_company','partita_iva_company','nazione_company','indirizzo_company','civico_company','cap','comune','sigla_prov','cap_company_office_extra','city_company_office_extra','state_company_office_extra')->paginate(env('PAGINATE_COMPANY'));
+            if (count($trasmit)==0) {
+                session()->flash('message', 'Non ci sono aziende in aggregazione');
+                return redirect()->route('employee');
+            }
+            $dato = $this->dataProfile();
+            return view('employee.supplychainmanagement',
+                [
+                    'dati' => $dato[0],
+                    'company' =>$trasmit,
+
+                ]);
+        } else return ('errors.500');
+    }
+
+    public function deleteSupplyChain($id){
+        $responsabile = $this->responsabileControl();
+        if ($responsabile->responsabile=='1') {
+            $company = Employee::where('user_employee',Auth::id())->select('company_employee')->first();
+            $rag_soc = CompanyOffice::where('id_company_office',$company->company_employee)->select('rag_soc_company')->first();
+            $rag = strtoupper($rag_soc->rag_soc_company);
+            $up1 = SupplyRequest::where('company_requested',$id)->where('company_received',$company->company_employee)->delete();
+            $up2 = SupplyRequest::where('company_requested',$company->company_employee)->where('company_received',$id)->delete();
+            $up3 = SupplyChain::where('company_supply_shares',$id)->where('company_supply_received',$company->company_employee)->delete();
+            $up4 = SupplyChain::where('company_supply_shares',$company->company_employee)->where('company_supply_received',$id)->delete();
+            $email = Employee::join('users','id','=','user_employee')->join('company_offices','id_company_office','company_employee')->where('responsabile','1')->where('company_employee',$id)->select('name','cognome','email','rag_soc_company')->get();
+            foreach ($email as $em){
+                Mail::to($em->email)->send(new DeleteSupplyChain($em,$rag));
+            }
+            if ($up1 and $up2 and $up3 and $up4) $messaggio = 'L\'azienda è stata eliminata dalla tua Supply Chain'; else
+                $messaggio = 'Problemi con il server riprovare';
+            session()->flash('message', $messaggio);
+            return redirect()->route('employee');
+        } else return ('errors.500');
+    }
+
+    public function managerSupplyChain($id){
+        $responsabile = $this->responsabileControl();
+        if ($responsabile->responsabile=='1') {
+            $data = $this->dataProfile();
+            foreach ($data as $datum)
+                $company = $datum->id_company_office;
+            $rag_soc = CompanyOffice::where('id_company_office',$id)->select('rag_soc_company','id_company_office')->get();
+            $supply = SupplyChain::where('company_supply_received',$id)->where('company_supply_shares',$company)->select('forecast','availability','b2b','ean_mapping','created_at','updated_at')->get();
+            return view('employee.sharingmanagement',[
+                'dati' => $data[0],
+                'supply' => $supply[0],
+                'rag_soc' => $rag_soc[0],
+            ]);
+        } else return ('errors.500');
+    }
+
+    public function updateSupplyChain(Request $request){
+        $data = $request->all();
+        $responsabile = $this->responsabileControl();
+        if ($responsabile->responsabile=='1') {
+            $company = Employee::where('user_employee',Auth::id())->select('company_employee')->first();
+            $rag_soc = CompanyOffice::where('id_company_office',$company->company_employee)->select('rag_soc_company')->first();
+            $rag = strtoupper($rag_soc->rag_soc_company);
+            if (!isset($data['forecast'])) $data['forecast']='0';
+            if (!isset($data['ean_mapping'])) $data['ean_mapping']='0';
+            if (!isset($data['availability'])) $data['availability']='0';
+            if (!isset($data['b2b'])) $data['b2b']='0';
+            $up = SupplyChain::where('company_supply_shares',$company->company_employee)->where('company_supply_received',$data['company_supply_received'])->update(
+              [
+                  'forecast' => $data['forecast'],
+                  'availability' => $data['availability'],
+                  'b2b' => $data['b2b'],
+                  'ean_mapping' => $data['ean_mapping'],
+              ]
+            );
+            $messaggio = '';
+            if($data['forecast']=='1') $messaggio = $messaggio.'| La previsione sulle vendite ';
+            if($data['ean_mapping']=='1') $messaggio = $messaggio.'| La mappatura dei prodotti tramite codice a barre EAN ';
+            if($data['availability']=='1') $messaggio = $messaggio.'| La giacenza effettiva delle proprie merci ';
+            if($data['b2b']=='1') $messaggio = $messaggio.'| I prezzi riservati ai rivenditori';
+            $email = Employee::join('users','id','=','user_employee')->join('company_offices','id_company_office','company_employee')->where('responsabile','1')->where('company_employee',$data['company_supply_received'])->select('name','cognome','email')->get();
+            foreach ($email as $em){
+                Mail::to($em->email)->send(new InformationSupply($em,$messaggio,$rag));
+            }
+            if (($data['availability']=='1') or ($data['b2b']=='1')){
+                $find = Provider::where('company_provider',$data['company_supply_received'])->where('provider_supply',$company->company_employee)->select('id_provider')->get();
+                if (count($find)==0){
+                    $info = CompanyOffice::where('id_company_office',$company->company_employee)->join('comuni','id_comune','=','cap_company')->leftJoin('company_offices_extra_italia','company_office','=','id_company_office')->select('rag_soc_company','telefono_company','email_company','indirizzo_company','civico_company','cap','comune','sigla_prov','cap_company_office_extra','city_company_office_extra','state_company_office_extra')->first();
+                    if ($info->cap=='8092')
+                     $adress = $info->indirizzo_company.', '.$info->civico_company.' '.$info->cap_company_office_extra.' '.$info->city_company_office_extra.' '.$info->state_company_office_extra;
+                    else
+                        $adress = $info->indirizzo_company.', '.$info->civico_company.' '.$info->cap.' '.$info->comune.' ('.$info->sigla_prov.')';
+                    Provider::create(
+                        [
+                            'company_provider' => $data['company_supply_received'],
+                            'supply_provider' => '1',
+                            'provider_supply' => $company->company_employee,
+                            'provider_cod' => 'SUPPLY'.$company->company_employee,
+                            'rag_soc_provider' => $info->rag_soc_company,
+                            'telefono_provider' => $info->telefono_company,
+                            'email_provider' => $info->email_company,
+                            'address_provider' => $adress,
+                        ]
+                    );
+                }
+            }
+            $messaggio = $up ? 'La condivisione delle informazioni è stata aggiornata' : 'Problemi con il server riprovare';
+            session()->flash('message', $messaggio);
+            return redirect()->route('supplychainmanagement');
+        }
+    }
+
+    public function ViewBlockSupply(){
+        $responsabile = $this->responsabileControl();
+        if ($responsabile->responsabile=='1') {
+            $company = Employee::where('user_employee',Auth::id())->select('company_employee')->first();
+            $trasmit = CompanyOffice::join('supply_requests','company_requested','=','id_company_office')->where('company_received',$company->company_employee)->where('block','1')->where('supply','0')->where('recipient','1')->join('comuni','id_comune','=','cap_company')->leftJoin('company_offices_extra_italia','id_company_office_extra','id_company_office')->select('company_requested','rag_soc_company','partita_iva_company','nazione_company','indirizzo_company','civico_company','cap','comune','sigla_prov','cap_company_office_extra','city_company_office_extra','state_company_office_extra')->paginate(env('PAGINATE_COMPANY'));
+            if (count($trasmit)==0) {
+                session()->flash('message', 'Non ci sono aziende bloccate');
+                return redirect()->route('employee');
+            }
+            $dato = $this->dataProfile();
+            return view('employee.supply-block',
+                [
+                    'dati' => $dato[0],
+                    'company' =>$trasmit,
+
+                ]);
+        } else return ('errors.500');
+    }
+
+    public function sblockRequest($id){
+        $responsabile = $this->responsabileControl();
+        if ($responsabile->responsabile=='1') {
+            $company = Employee::where('user_employee',Auth::id())->select('company_employee')->first();
+            $rag = CompanyOffice::where('id_company_office', $id)->select('rag_soc_company')->first();
+            SupplyRequest::where('company_requested',$id)->where('company_received',$company->company_employee)->delete();
+            $up = SupplyRequest::where('company_requested',$company->company_employee)->where('company_received',$id)->delete();
+            $messaggio = $up ? 'L\'azienda '.strtoupper($rag->rag_soc_company).' è stata sbloccata' : 'Problemi con il server riprovare';
+            session()->flash('message', $messaggio);
+            return redirect()->route('employee');
+        }
     }
 
     /**
