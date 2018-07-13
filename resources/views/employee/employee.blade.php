@@ -6,7 +6,7 @@
         @if($dati->responsabile=='1')
             <div class="row">
                 <a class="fa fa-eye" href="{{route('visiblecompany')}}"><span>&nbsp;Visibilità</span></a>
-                <a class="fa fa-link" href="#"><span>&nbsp;La nostra Supply Chain</span></a>
+                <a class="fa fa-link" href="{{route('supplychainmanagement')}}"><span>&nbsp;Gestione Supply Chain</span></a>
             </div>
         @endif
         @if($dati->acquisti=='1')
@@ -36,17 +36,6 @@
                 <div class="row">
                     <div class="col-md-12 jumbotron border employee">
                         <div class="row">
-                            @if(session()->has('message'))
-                                @component('components.alert-info')
-                                    {{session()->get('message')}}
-                                @endcomponent
-                            @endif
-                            @if(count($errors))
-                                @component('components.show-errors')
-                                    {{$errors}}
-                                @endcomponent
-                            @endif
-
                                     <h1 class="shadow grigio uppercase center">{{$dati->rag_soc_company}}</h1>
                                     <h2 class="shadow verdino capitalize center">{{$dati->indirizzo_company.' '.$dati->civico_company.' - '}}
                                         @if ($dati->cap=='8092')

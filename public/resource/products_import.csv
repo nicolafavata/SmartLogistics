@@ -1,0 +1,8 @@
+cod_inventory, title_inventory,category_first,category_second,unit_inventory,stock,description_inventory,brand,ean_inventory,average_cost_inventory,last_cost_inventory,codice_iva_inventory,height_inventory,width_inventory,depth_inventory,weight_inventory,expire_inventory,sale_inventory,url_inventory
+1,iPod Nano,iPods,S3,NR,30, ipod,Apple,1234567890123,3,3,1,0.068357,0.4,160,"0,5",0,1,https://images.techhive.com/images/article/2015/07/ipod_nano_early_2015-100595185-large.jpg
+2,iPod shuffle,iPods,S3,NR,15, shuffle,Apple,1234567890123,2,2,1,0.027563,0.1,120,1,0,1,http://imperiastores.com/wp-content/uploads/2017/11/silver-ipod-shuffle.png
+3,MacBook Air,Laptops,Air,NR,12, Air,Apple,1234567890123,15,15,1,2.976846,1,400,"0,3",0,1,https://assets.pcmag.com/media/images/325753-apple-macbook-air-13-inch-mid-2013.jpg?width=1000&height=618
+4,MacBook,Laptops,Book,NR,11, Pro,Apple,1234567890123,15,15,1,4.454244,1,75,"0,4",0,1,https://cdn1.macworld.co.uk/cmsdata/reviews/3659566/macbook_pro_v_surface_pro_sp1_thumb800.jpg
+5,iPod touch,iPods,Touch,NR,78,Meta title-IpodTouch,Apple,1234567890123,18,18,1,0.194046,0.4,120,"0,5",0,1,https://www.shop.bt.com/images/product/uni2/DigitalContent/bh/BHZR_4510AE56-F527-4A2C-A160-60D3239C5625_large.jpg
+6,Belkin Leather Folio for iPod nano - Black / Chocolate,Accessories,Nano,NR,65, leather,Belkin,1234567890123,12,12,1,0.038588,0.4,25,"0,6",0,1,https://www.bhphotovideo.com/images/images500x500/Belkin_F8Z206_KR_Leather_Folio_Case_528879.jpg
+7,Shure SE210 Sound-Isolating Earphones for iPod and iPhone,Accessories,Ipod,NR,14,Meta title-ShureEarphones,Shure,1234567890123,12,12,1,0.040793,0.1,15,"0,7",0,1,http://sammicro.com/img/p/1/4/14-large_default.jpg

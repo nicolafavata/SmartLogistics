@@ -50,7 +50,7 @@
                                                                @else
                                                                src="{{env('APP_URL').'/storage/'.$employees->img_employee}}"
                                                                @endif
-                                                               width="50" height="50" alt="{{$dati->name.' '.$dati->cognome}}"/></div>
+                                                               width="50" height="50" alt="{{$employees->name.' '.$employees->cognome}}"/></div>
                                  </td>
                                  <td class="text-uppercase">
                                      {{$employees->matricola}}

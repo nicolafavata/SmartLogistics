@@ -22,6 +22,7 @@
     <!-- CSS di bootstrat + CSS stile personalizzato -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/mystyle.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="fonts/font-awesome-4.2.0/css/font-awesome.min.css" />
 
 
 </head>
@@ -44,25 +45,16 @@
                 </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle shadow" href="#" style="color: white;" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                        Dipendenti
+                        Gestione acquisti
                     </a>
                     <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                        <a class="dropdown-item" href="{{ route('viewemployees') }}">Visualizza</a>
-                        <a class="dropdown-item" href="{{ route('addemployee') }}">Aggiungi</a>
-                        <a class="dropdown-item" href="{{ route('upemployee') }}">Modifica</a>
-                        <a class="dropdown-item" href="{{ route('delemployee') }}">Elimina</a>
-                    </div>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle shadow" href="#" style="color: white;" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                        Supply Chain
-                    </a>
-                    <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                        <a class="dropdown-item" href="{{ route('supplyresearch') }}">Ricerca azienda</a>
-                        <a class="dropdown-item" href="{{ route('supplychainmanagement')}}">Gestione aggregazioni</a>
-                        <a class="dropdown-item" href="{{route('requests-received')}}">Richieste ricevute</a>
-                        <a class="dropdown-item" href="{{route('requests-transmitted')}}">Richieste trasmesse</a>
-                        <a class="dropdown-item" href="{{route('block-supply')}}">Aziende bloccate</a>
+                        <a class="dropdown-item" href="{{route('inventories')}}">Inventario</a>
+                        <a class="dropdown-item" href="{{route('providers')}}">Fornitori</a>
+                        <a class="dropdown-item" href="#">Mapping</a>
+                        <a class="dropdown-item" href="#">Scadenze</a>
+                        <a class="dropdown-item" href="#">Configurazione</a>
+                        <a class="dropdown-item" href="#">Genera ordine</a>
+                        <a class="dropdown-item" href="#">Ordini effettuati</a>
                     </div>
                 </li>
                 <li class="nav-item active">
@@ -122,7 +114,7 @@
         <script src="{{ asset('js/myjs.js') }}"></script>
         <script>
             $(document).ready(function () {
-                $('div.alert').fadeOut(5000);
+                $('div.alert').fadeOut(25000);
             });
         </script>
 </body>

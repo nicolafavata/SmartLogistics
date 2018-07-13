@@ -57,6 +57,16 @@ function unlock(el1, el2) {
             }
         }
 
+function showfile(el1,el2) {
+         document.getElementById(el1).hidden = false;
+         document.getElementById(el2).hidden = true;
+}
+
+function hiddenfile(el1,el2) {
+    document.getElementById(el1).hidden = true;
+    document.getElementById(el2).hidden = true;
+}
+
 function undisabled(el1, el2) {
     if(el1.checked) {
         document.getElementById(el2).disabled = false;
@@ -75,6 +85,10 @@ function showloader() {
     document.getElementById('loading').style.display = 'inline-block';
 
 }
+
+
+
+
 
 function showid(master,show,litteral) {
     var display = document.getElementById(master).checked;

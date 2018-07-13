@@ -209,6 +209,28 @@ ul#menu_a_2livelli li li {
     background-image: url("../img/find_supply.jpg");
 }
 
+.scm_img{
+    background-image: url("../img/managemente-supply.jpg");
+}
+
+.scm_img2{
+    background-image: url("../../img/managemente-supply.jpg");
+}
+
+
+
+.request-supply_img{
+    background-image: url("../img/request-supply.jpg");
+}
+
+.supplies_img{
+    background-image: url("../img/supplies.jpg");
+}
+
+.inventories_img{
+    background-image: url("../img/inventory.jpg");
+}
+
 .company_img{
     background-image: url("../img/company.jpg");
 }
@@ -303,6 +325,12 @@ ul#menu_a_2livelli li li {
     border-radius: 80%;
 }
 
+.border-inventory {
+    border: 2px solid #91ce0f;
+    border-color: #91ce0f;
+
+}
+
 
 .stileverdesenza {
     color: #17b44d;
@@ -379,6 +407,12 @@ ul#menu_a_2livelli li li {
 
 .col-md-12.jumbotron {
     background-color: rgba(255,255,255, 0.5);
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.col-md-12.jumbotron-inventory {
+    background-color: rgba(255,255,255, 0.8);
     padding-top: 5px;
     padding-bottom: 5px;
 }

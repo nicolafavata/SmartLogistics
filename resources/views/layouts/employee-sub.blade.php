@@ -16,13 +16,13 @@
 		<title>@yield('title','Home')</title>
 
 		<link rel="shortcut icon" href="../favicon.ico">
-		<link href="css/mystyle.css" rel="stylesheet">
+		<link href="../css/mystyle.css" rel="stylesheet">
 
 
-		<link rel="stylesheet" type="text/css" href="css/profile/normalize.css" />
-		<link rel="stylesheet" type="text/css" href="css/profile/profile.css" />
-		<link rel="stylesheet" type="text/css" href="fonts/font-awesome-4.2.0/css/font-awesome.min.css" />
-		<link rel="stylesheet" type="text/css" href="css/profile/menu_topside.css" />
+		<link rel="stylesheet" type="text/css" href="../css/profile/normalize.css" />
+		<link rel="stylesheet" type="text/css" href="../css/profile/profile.css" />
+		<link rel="stylesheet" type="text/css" href="../fonts/font-awesome-4.2.0/css/font-awesome.min.css" />
+		<link rel="stylesheet" type="text/css" href="../css/profile/menu_topside.css" />
 		<!--[if IE]>
   		<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
 		<![endif]-->
@@ -143,7 +143,7 @@
 			<div class="content-wrap">
 				<div class="content">
 					<header class="codrops-header">
-						<img class="img-fluid image-responsive" src="img/logo.gif"   alt="logo_smartlogis">
+						<img class="img-fluid image-responsive" src="../img/logo.gif"   alt="logo_smartlogis">
 						@yield('content_header')
 					</header>
 						@if(session()->has('message'))
@@ -187,12 +187,12 @@
 		</div><!-- /container -->
 
 		@section('script')
-		<script src="js/jquery-3.3.1.slim.min.js"></script>
+		<script src="../js/jquery-3.3.1.slim.min.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
-		<script src="js/bootstrap.js"></script>
-		<script src="js/app.js"></script>
-		<script src="js/myjs.js"></script>
+		<script src="../js/bootstrap.js"></script>
+		<script src="../js/app.js"></script>
+		<script src="../js/myjs.js"></script>
 		<script>
             $(document).ready(function () {
                 $('div.allerta').fadeOut(45000);

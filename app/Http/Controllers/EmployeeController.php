@@ -367,7 +367,8 @@ class EmployeeController extends Controller
 
                 ]);
         } else {
-            return view('errors.500');
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
         }
 
     }
@@ -384,7 +385,8 @@ class EmployeeController extends Controller
 
                 ]);
         } else {
-            return view('errors.500');
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
         }
     }
 
@@ -441,7 +443,8 @@ class EmployeeController extends Controller
                 return redirect()->route('upemployee');
             }
         } else {
-            return view('errors.500');
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
         }
     }
 
@@ -457,7 +460,8 @@ class EmployeeController extends Controller
 
                 ]);
         } else {
-            return view('errors.500');
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
         }
     }
 
@@ -474,7 +478,8 @@ class EmployeeController extends Controller
                 return view('errors.500');
             }
         } else {
-            return view('errors.500');
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
         }
     }
 
@@ -503,7 +508,8 @@ class EmployeeController extends Controller
 
 
         } else {
-            return view('errors.500');
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
         }
     }
 
@@ -534,7 +540,10 @@ class EmployeeController extends Controller
             $messaggio = $up ? 'Le informazini sulla visibilità sono state aggiornate' : 'Problemi con il server riprovare';
             session()->flash('message', $messaggio);
             return redirect()->route('visiblecompany');
-        } else  return view('errors.500');
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
+        }
     }
 
     public function researchCompany(){
@@ -546,7 +555,10 @@ class EmployeeController extends Controller
                 'dati' => $data[0],
                 'employee' => $employee[0],
             ]);
-        } else return view('errors.500');
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
+        }
     }
 
     public function findCompany(Research $request){
@@ -574,7 +586,10 @@ class EmployeeController extends Controller
                     'business' => $business,
                 ]);
             }
-        } else return view('errors.500');
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
+        }
     }
 
     public function requestSupply($id){
@@ -603,7 +618,10 @@ class EmployeeController extends Controller
                 session()->flash('message', $messaggio);
                 return redirect()->route('employee');
             }
-        } else return view('errors.500');
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
+        }
     }
 
     public function requestsTransmitted(){
@@ -622,7 +640,10 @@ class EmployeeController extends Controller
                     'company' =>$trasmit,
 
                 ]);
-        } else return ('errors.500');
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
+        }
     }
 
     public function cancelRequest($id){
@@ -638,7 +659,10 @@ class EmployeeController extends Controller
             $messaggio = $del ? 'La richiesta di aggregazione è stata annullata' : 'Problemi con il server riprovare';
             session()->flash('message', $messaggio);
             return redirect()->route('employee');
-        } else return view('errors.500');
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
+        }
     }
 
     public function retransmitRequest($id){
@@ -650,7 +674,10 @@ class EmployeeController extends Controller
             }
             session()->flash('message', 'La richiesta di aggregazione è stata ritrasmessa');
             return redirect()->route('employee');
-        } else return ('errors.500');
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
+        }
     }
 
     public function requestsReceived(){
@@ -669,7 +696,10 @@ class EmployeeController extends Controller
                     'company' =>$trasmit,
 
                 ]);
-        } else return ('errors.500');
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
+        }
     }
 
     public function blockRequest($id){
@@ -689,6 +719,9 @@ class EmployeeController extends Controller
             $messaggio = $up ? 'L\'azienda è stata bloccata' : 'Problemi con il server riprovare';
             session()->flash('message', $messaggio);
             return redirect()->route('employee');
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
         }
     }
 
@@ -705,6 +738,9 @@ class EmployeeController extends Controller
             $messaggio = $up ? 'La richiesta di aggregazione è stata annullata' : 'Problemi con il server riprovare';
             session()->flash('message', $messaggio);
             return redirect()->route('employee');
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
         }
     }
 
@@ -712,6 +748,8 @@ class EmployeeController extends Controller
         $responsabile = $this->responsabileControl();
         if ($responsabile->responsabile=='1') {
             $company = Employee::where('user_employee',Auth::id())->select('company_employee')->first();
+            $rag_soc = CompanyOffice::where('id_company_office',$company->company_employee)->select('rag_soc_company')->first();
+            $rag = strtoupper($rag_soc->rag_soc_company);
             $up = SupplyRequest::where('company_requested',$id)->where('company_received',$company->company_employee)->update(
                 [
                     'supply' => 1,
@@ -736,10 +774,13 @@ class EmployeeController extends Controller
             );
             $email = Employee::join('users','id','=','user_employee')->join('company_offices','id_company_office','company_employee')->where('responsabile','1')->where('company_employee',$id)->select('name','cognome','email','rag_soc_company')->get();
             foreach ($email as $em){
-                Mail::to($em->email)->send(new AggregationAccepted($em));
+                Mail::to($em->email)->send(new AggregationAccepted($em,$rag));
             }
             $messaggio = $up ? 'L\'azienda è stata inserita nella tua Supply Chain' : 'Problemi con il server riprovare';
             session()->flash('message', $messaggio);
+            return redirect()->route('employee');
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
             return redirect()->route('employee');
         }
     }
@@ -760,7 +801,10 @@ class EmployeeController extends Controller
                     'company' =>$trasmit,
 
                 ]);
-        } else return ('errors.500');
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
+        }
     }
 
     public function deleteSupplyChain($id){
@@ -773,6 +817,14 @@ class EmployeeController extends Controller
             $up2 = SupplyRequest::where('company_requested',$company->company_employee)->where('company_received',$id)->delete();
             $up3 = SupplyChain::where('company_supply_shares',$id)->where('company_supply_received',$company->company_employee)->delete();
             $up4 = SupplyChain::where('company_supply_shares',$company->company_employee)->where('company_supply_received',$id)->delete();
+            $find = Provider::where('company_provider',$id)->where('provider_supply',$company->company_employee)->select('supply_provider')->first();
+            $find2 = Provider::where('company_provider',$company->company_employee)->where('provider_supply',$id)->select('supply_provider')->first();
+            if (count($find)>0){
+                if ($find->supply_provider=='1') Provider::where('company_provider',$id)->where('provider_supply',$company->company_employee)->update(['supply_provider' => '0']);
+            }
+            if (count($find2)>0){
+                if ($find2->supply_provider=='1') Provider::where('company_provider',$company->company_employee)->where('provider_supply',$id)->update(['supply_provider' => '0']);
+            }
             $email = Employee::join('users','id','=','user_employee')->join('company_offices','id_company_office','company_employee')->where('responsabile','1')->where('company_employee',$id)->select('name','cognome','email','rag_soc_company')->get();
             foreach ($email as $em){
                 Mail::to($em->email)->send(new DeleteSupplyChain($em,$rag));
@@ -781,7 +833,10 @@ class EmployeeController extends Controller
                 $messaggio = 'Problemi con il server riprovare';
             session()->flash('message', $messaggio);
             return redirect()->route('employee');
-        } else return ('errors.500');
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
+        }
     }
 
     public function managerSupplyChain($id){
@@ -797,7 +852,10 @@ class EmployeeController extends Controller
                 'supply' => $supply[0],
                 'rag_soc' => $rag_soc[0],
             ]);
-        } else return ('errors.500');
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
+        }
     }
 
     public function updateSupplyChain(Request $request){
@@ -831,7 +889,7 @@ class EmployeeController extends Controller
             if (($data['availability']=='1') or ($data['b2b']=='1')){
                 $find = Provider::where('company_provider',$data['company_supply_received'])->where('provider_supply',$company->company_employee)->select('id_provider')->get();
                 if (count($find)==0){
-                    $info = CompanyOffice::where('id_company_office',$company->company_employee)->join('comuni','id_comune','=','cap_company')->leftJoin('company_offices_extra_italia','company_office','=','id_company_office')->select('rag_soc_company','telefono_company','email_company','indirizzo_company','civico_company','cap','comune','sigla_prov','cap_company_office_extra','city_company_office_extra','state_company_office_extra')->first();
+                    $info = CompanyOffice::where('id_company_office',$company->company_employee)->join('comuni','id_comune','=','cap_company')->leftJoin('company_offices_extra_italia','company_office','=','id_company_office')->select('rag_soc_company','partita_iva_company','telefono_company','email_company','indirizzo_company','civico_company','cap','comune','sigla_prov','cap_company_office_extra','city_company_office_extra','state_company_office_extra')->first();
                     if ($info->cap=='8092')
                      $adress = $info->indirizzo_company.', '.$info->civico_company.' '.$info->cap_company_office_extra.' '.$info->city_company_office_extra.' '.$info->state_company_office_extra;
                     else
@@ -843,6 +901,7 @@ class EmployeeController extends Controller
                             'provider_supply' => $company->company_employee,
                             'provider_cod' => 'SUPPLY'.$company->company_employee,
                             'rag_soc_provider' => $info->rag_soc_company,
+                            'iva_provider' => $info->partita_iva_company,
                             'telefono_provider' => $info->telefono_company,
                             'email_provider' => $info->email_company,
                             'address_provider' => $adress,
@@ -853,6 +912,9 @@ class EmployeeController extends Controller
             $messaggio = $up ? 'La condivisione delle informazioni è stata aggiornata' : 'Problemi con il server riprovare';
             session()->flash('message', $messaggio);
             return redirect()->route('supplychainmanagement');
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
         }
     }
 
@@ -872,7 +934,10 @@ class EmployeeController extends Controller
                     'company' =>$trasmit,
 
                 ]);
-        } else return ('errors.500');
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
+        }
     }
 
     public function sblockRequest($id){
@@ -884,6 +949,9 @@ class EmployeeController extends Controller
             $up = SupplyRequest::where('company_requested',$company->company_employee)->where('company_received',$id)->delete();
             $messaggio = $up ? 'L\'azienda '.strtoupper($rag->rag_soc_company).' è stata sbloccata' : 'Problemi con il server riprovare';
             session()->flash('message', $messaggio);
+            return redirect()->route('employee');
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
             return redirect()->route('employee');
         }
     }

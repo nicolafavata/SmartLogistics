@@ -38,7 +38,7 @@ Route::group(['middleware'=> 'auth'],
         //Impiegati
         Route::get('/employee', 'EmployeeController@index')->name('employee');
 
-        //Impiegati account
+        //Impiegati account e funzioni responsabile della sede
         Route::get('/newpassword', 'EmployeeController@newPassword')->name('new_password');
         Route::get('/profile', 'EmployeeController@myProfile')->name('my_profile');
         Route::get('/mypicture', 'EmployeeController@picture')->name('picture');
@@ -59,9 +59,36 @@ Route::group(['middleware'=> 'auth'],
         Route::post('/changemyvisible', 'EmployeeController@changeVisible')->name('changemyvisible');
         Route::get('/supplyresearch','EmployeeController@researchCompany')->name('supplyresearch');
         Route::post('/researchsupply', 'EmployeeController@findCompany')->name('supplyfind');
+        Route::post('/request-supply/{id}','EmployeeController@requestSupply')->where('id', '[0-9]+')->name('request-supply');
+        Route::get('/requeststransmitted','EmployeeController@requestsTransmitted')->name('requests-transmitted');
+        Route::post('/cancel-request/{id}','EmployeeController@cancelRequest')->where('id', '[0-9]+')->name('cancel-request');
+        Route::post('/retransmit-request/{id}','EmployeeController@retransmitRequest')->where('id', '[0-9]+')->name('retransmit-request');
+        Route::get('/requestsreceived','EmployeeController@requestsReceived')->name('requests-received');
+        Route::post('/block-company/{id}','EmployeeController@blockRequest')->where('id', '[0-9]+')->name('block-company');
+        Route::post('/cancel-company-request/{id}','EmployeeController@cancelCompanyRequest')->where('id', '[0-9]+')->name('cancel-company-request');
+        Route::post('/accept-request/{id}','EmployeeController@AcceptRequest')->where('id', '[0-9]+')->name('accept-request');
+        Route::get('supply-chain-management','EmployeeController@supplyChainManagement')->name('supplychainmanagement');
+        Route::post('delete-supply-chain-management/{id}','EmployeeController@deleteSupplyChain')->where('id', '[0-9]+')->name('delete-supply');
+        Route::get('manager-supply-chain/{id}','EmployeeController@managerSupplyChain')->where('id', '[0-9]+')->name('manage-supply');
+        Route::patch('updatesupplychain','EmployeeController@updateSupplyChain')->name('updatesupplychain');
+        Route::get('/block-supply-chain','EmployeeController@ViewBlockSupply')->name('block-supply');
+        Route::post('/sblock-company/{id}','EmployeeController@sblockRequest')->where('id', '[0-9]+')->name('sblock-company');
 
-
-
+        //Responsabile acquisti
+        Route::get('/providers', 'SuppliesController@ViewProvider')->name('providers');
+        Route::post('/delete-provider/{id}','SuppliesController@deleteProvider')->where('id', '[0-9]+')->name('delete-provider');
+        Route::get('/create-provider','SuppliesController@addProvider')->name('add_provider');
+        Route::post('/addnewprovider','SuppliesController@addNewProvider')->name('addnewprovider');
+        Route::get('/updateprovider/{id}','SuppliesController@upProvider')->name('update-provider');
+        Route::patch('/update-provider','SuppliesController@updateProvider')->name('update-provider-db');
+        //Inventario
+        Route::get('/inventories', 'SuppliesController@ViewInventories')->name('inventories');
+        Route::post('/delete-inventories','SuppliesController@deleteInventories')->name('delete-inventories');
+        Route::get('/add-inventories', 'SuppliesController@addInventories')->name('add_item');
+        Route::get('/store-inventories', 'SuppliesController@storeInventories')->name('store_item');
+        Route::get('/download-products-import', 'SuppliesController@downloadFile')->name('download-products-import');
+        Route::get('/download-historical-data', 'SuppliesController@downloadHistorical')->name('download-historical-data');
+        Route::post('/upload-inventories','SuppliesController@uploadInventories')->name('upload-inventories');
 
         //Amministratori
         Route::get('/admin', 'BusinessController@index')->name('admin');
