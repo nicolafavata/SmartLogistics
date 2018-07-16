@@ -1,6 +1,6 @@
 @component('mail::message')
     <img src="{{env('APP_URL')}}/img/logo.gif" width="300" height="55" alt="logo_smartlogis">
-# Una nuova azienda entra a far parte della tua rete Supply Chain
+# L'operazione di caricamento dell'inventario è stata eseguita
 
 Complimenti {{$user['name'].' '.$user['cognome']}},
 

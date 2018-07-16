@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\BatchHistoricalDataAnalysis;
 use App\Mail\BatchHistoricalData;
+use App\Models\BatchGenerationForecast;
 use App\Models\BatchHistoricalDataWork;
 use App\Mail\BatchInventories;
 use App\Models\HistoricalData;
@@ -23,7 +24,8 @@ class BatchController extends Controller
             $this->CreateInventoryFromFile();
             $this->HistoricalSeriesGeneration();
             $this->HistoricalSeriesAnalysis();
-            dd('dati storici analizzati');
+            $this->GenerationForecast();
+            dd('previsione generata');
         } else return view('errors.500');
     }
 
@@ -127,6 +129,50 @@ class BatchController extends Controller
                                                   ]
                                                 );
                                             }
+                                            if ($work->initial=="historical") {
+                                                //Prenotazione operazione analisi serie storica
+                                                $accessdate=date("Y-m-d");
+                                                BatchHistoricalDataAnalysis::create(
+                                                    [
+                                                        'CompanyDataAnalysis' => $work->company_batch_inventory,
+                                                        'productDataAnalysis' => $id,
+                                                        'booking_historical_data_analysi' => $accessdate
+                                                    ]
+                                                );
+                                            }
+                                            //---------------------------------------
+                                            // Attenzione aggiungere il modello di previsione se initial è uguale a forecast
+                                            //---------------------------------------
+                                            if ($work->initial=="new"){
+                                                $accessdate=date("Y-m-d");
+                                                $date_booking = strtotime('+13 month',strtotime($accessdate));
+                                                $date_booking = date ('Y-m-1', $date_booking);
+                                                //book operazione di analisi dati storici
+                                                BatchHistoricalDataAnalysis::create(
+                                                    [
+                                                        'CompanyDataAnalysis' => $work->company_batch_inventory,
+                                                        'productDataAnalysis' => $id,
+                                                        'booking_historical_data_analysi' => $date_booking
+                                                    ]);
+                                                $catalog = $this->FindCatalog($work->company_batch_inventory,$data['0']);
+                                                if ($catalog!=='0'){
+                                                    //Memorizziamo nella tabella 'sales_lists' e 'historical data' il mese iniziale
+                                                    $find_catalog = $this->TakeIdSalesList($catalog,$work->company_batch_inventory,$data['0']);
+                                                    $initial_month = substr($accessdate,5,2);
+                                                    DB::table('sales_lists')->where($catalog,$find_catalog)->where('company_sales_list',$work->company_batch_inventory)->update(
+                                                        [
+                                                            'initial_month_sales' => $initial_month,
+                                                            'forecast_model' => '00'
+                                                        ]
+                                                    );
+                                                    DB::table('historical_datas')->where('product_historical_data',$id)->where('company_historical_data',$work->company_batch_inventory)->update(
+                                                            [
+                                                                'initial_month' => $initial_month
+                                                            ]
+                                                    );
+                                                }
+
+                                            }
                                         } else $problem++;
                                     } else $problem++;
                                 } else $problem++;
@@ -224,22 +270,28 @@ class BatchController extends Controller
                         if ($this->Md==0) {
                             $initial_month = substr($sell->sale_date,5,2);
                             $initial_year = substr($sell->sale_date,0,4);
-                            $catalog = $this->FindCatalog($work->company_batchHisDat,$sell->cod_inventory);
-                            if ($catalog!=='0'){
-                                //Creiamo e memorizziamo nella tabella 'sales_lists' e 'historical data' il mese iniziale
-                                DB::table('sales_lists')->where('company_sales_list',$work->company_batchHisDat)->update(
-                                    [
-                                        'initial_month_sales' => $initial_month
-                                    ]
-                                );
-                                DB::table('historical_datas')->where('company_historical_data',$work->company_batchHisDat)->update(
-                                    [
-                                        'initial_month' => $initial_month
-                                    ]
-                                );
-                            }
                             $this->Mp=$initial_month;
                             $this->Md=1;
+                        }
+                        $catalog = $this->FindCatalog($work->company_batchHisDat,$sell->cod_inventory);
+                        if ($catalog!=='0'){
+                            //Creiamo e memorizziamo nella tabella 'sales_lists' e 'historical data' il mese iniziale
+                            $find_catalog = $this->TakeIdSalesList($catalog,$work->company_batchHisDat,$sell->cod_inventory);
+                            $push = DB::table('sales_lists')->where($catalog,$find_catalog)->where('initial_month_sales','1')->where('company_sales_list',$work->company_batchHisDat)->update(
+                                [
+                                    'initial_month_sales' => $initial_month,
+                                ]
+                            );
+                            if ($push){
+                                $id = DB::table('sales_lists')->where($catalog,$find_catalog)->where('company_sales_list',$work->company_batchHisDat)->select('id_sales_list')->first();
+                                if($id){
+                                    DB::table('historical_datas')->where('product_historical_data',$id->id_sales_list)->where('company_historical_data',$work->company_batchHisDat)->update(
+                                        [
+                                            'initial_month' => $initial_month
+                                        ]
+                                    );
+                                }
+                            }
                         }
                         $sell_month = substr($sell->sale_date,5,2);
                         $sell_year = substr($sell->sale_date,0,4);
@@ -261,16 +313,10 @@ class BatchController extends Controller
                             } else break;
                         }
                         if (($sell_year>$initial_year) and ($sell_month>=$initial_month)) break;
+
                     }
                     DB::table('batch_historical_data_works')->where('id_batchHisDat',$work->id_batchHisDat)->delete();
-                    //Prenotazione operazione analisi serie storica
-                    $accessdate=date("Y-m-d");
-                    BatchHistoricalDataAnalysis::create(
-                      [
-                          'HistoricalDataAnalysis' => $work->company_batchHisDat,
-                          'booking_historical_data_analysi' => $accessdate
-                      ]
-                    );
+
                 }
                 $array = explode("-", $work->created_at);
                 $array[2] = substr($array[2],0,2);
@@ -303,7 +349,8 @@ class BatchController extends Controller
         if ($catalog!=='0'){
             $find_catalog = $this->TakeIdSalesList($catalog,$company,$code);
             $id = DB::table('sales_lists')->where('company_sales_list',$company)->where($catalog,$find_catalog)->first();
-            $value = DB::table('historical_datas')->where('company_historical_data',$company)->where('product_historical_data',$id->id_sales_list)->select($mese)->first();
+            $id_sales_list = $id->id_sales_list;
+            $value = DB::table('historical_datas')->where('company_historical_data',$company)->where('product_historical_data',$id_sales_list)->select($mese)->first();
             foreach ($value as $val){
                     $add_value=$val+$quantity;
             }
@@ -312,7 +359,7 @@ class BatchController extends Controller
                     [
                         $mese => $add_value
                     ]);
-            if ($add) return $add->HistoricalDataAnalysis;
+            if ($add) return true;
         }
         return false;
     }
@@ -333,23 +380,315 @@ class BatchController extends Controller
         $works = DB::table('batch_historical_data_analyses')->where('executed','0')->where('booking_historical_data_analysi','<=',$system_time)->select('*')->get();
         if($works!=null){
             foreach ($works as $work){
-                $data = DB::table('historical_datas')->where('company_historical_data',$work->HistoricalDataAnalysis)->get();
+                $data = DB::table('historical_datas')->where('company_historical_data',$work->CompanyDataAnalysis)->where('product_historical_data',$work->productDataAnalysis)->get();
                 if ($data){
                      foreach ($data as $item){
-                         $tot_sell=0;
+                         $tot_sell = 0;
+                         $model = null;
                          $i=0;
                          while ($i<12){
                              $i++;
-                             $add = DB::table('historical_datas')->where('product_historical_data',$item->product_historical_data)->where('company_historical_data',$work->HistoricalDataAnalysis)->select($i)->first();
+                             $add = DB::table('historical_datas')->where('product_historical_data',$item->product_historical_data)->where('company_historical_data',$work->CompanyDataAnalysis)->select($i)->first();
                              foreach ($add as $val){
                                  $tot_sell=$tot_sell+$val;
                              }
                          }
-                         dd($tot_sell);
-
+                         if ($tot_sell==0) {
+                             $accessdate = date("Y-m-d");
+                             $date_booking = strtotime('+13 month', strtotime($accessdate));
+                             $date_booking = date('Y-m-1', $date_booking);
+                             //book operazione di analisi dati storici
+                             BatchHistoricalDataAnalysis::create(
+                                 [
+                                     'CompanyDataAnalysis' => $work->CompanyDataAnalysis,
+                                     'productDataAnalysis' => $item->product_historical_data,
+                                     'booking_historical_data_analysi' => $date_booking
+                                 ]);
+                             $initial_month = substr($accessdate, 5, 2);
+                                 DB::table('sales_lists')->where('id_sales_list', $item->product_historical_data)->where('company_sales_list', $work->CompanyDataAnalysis)->update(
+                                     [
+                                         'initial_month_sales' => $initial_month,
+                                         'forecast_model' => '00'
+                                     ]
+                                 );
+                                 DB::table('historical_datas')->where('product_historical_data',$item->product_historical_data)->where('company_historical_data', $work->CompanyDataAnalysis)->update(
+                                   [
+                                       'initial_month' => $initial_month,
+                                   ]
+                                 );
+                         } else {
+                             if ($tot_sell>10){
+                                 $semiseasonality = $this->CheckSemiAnnualSeasonality($item,$tot_sell);
+                                 if ($semiseasonality==0){
+                                     $quarterlyseasonality = $this->CheckQuarterlySeasonality($item,$tot_sell);
+                                     if ($quarterlyseasonality==0){
+                                         $model = '01'; // Modello di Holt
+                                         $index = 0;
+                                     } else {
+                                         $model = '11'; // Modello di Winter Trimestrale
+                                         $index = $quarterlyseasonality;
+                                     }
+                                 } else {
+                                     $model='10'; //Modello di Winter Semestrale
+                                     $index = $semiseasonality;
+                                 }
+                             } else {
+                                 $model = '01'; // Modello di Holt
+                                 $index = 0;
+                             }
+                             if ($model!==null){
+                                 BatchGenerationForecast::create(
+                                     [
+                                         'GenerationForecast' => $item->id_historical_data,
+                                         'GenerationForecastModel' => $model,
+                                         'booking_generation_forecast' => $system_time,
+                                         'index_forecast' => $index
+                                     ]
+                                 );
+                             }
+                         }
                      }
                 }
+                DB::table('batch_historical_data_analyses')->where('id_batch_historical_data_analysi',$work->id_batch_historical_data_analysi)->update(
+                    [
+                        'executed' => '1'
+                    ]
+                );
             } return true;
         } else return false;
+    }
+
+    public function CheckSemiAnnualSeasonality($series,$tot){
+        $i=0;
+        $k=0;
+        foreach ($series as $item){
+            $i++;
+            if (($i>2) and ($i<15)){
+                $k++;
+                $dati[$k]=$item;
+            }
+        }
+        $i=0;
+        while ($i<12){
+            $i++;
+            $ArrayPosCiclo[$i] = 0;
+        }
+        $i=0;
+        while ($i<6){
+            $i++;
+            $first = $this->TotalSemester($dati,$i);
+            $second = $this->TotalSemester($dati,$i+6);
+            $perc_first = ($first / $tot) * 100;
+            $perc_second = ($second / $tot) * 100;
+            if (($perc_first >= 75) and ($perc_first <=100)){
+                if ((($perc_second >= 0) and ($perc_second <= 25))){
+                    $ArrayPosCiclo[$i] = $perc_first;
+                }
+            }
+            if (($perc_second >= 75) and ($perc_second<=100)){
+                if (($perc_first >= 0) and ($perc_first <= 25)){
+                    $ArrayPosCiclo[$i+6] = $perc_second;
+                }
+            }
+        }
+        $index=0;
+        $value=0;
+        for ($i=0;$i<12;$i++){
+
+            if ($ArrayPosCiclo[$i+1]>$value){
+                $index=$i+1;
+                $value=$ArrayPosCiclo[$i+1];
+            }
+        }
+        return $index;
+    }
+
+    public function TotalSemester($series,$i){
+
+        $totale = 0;
+        if ($i<8){
+            $ciclo = $i+6;
+            for ($k=$i;$k<$ciclo;$k++){
+                $totale = $totale + $series[$k];
+            }
+        } else {
+
+            for ($k=$i;$k<13;$k++){
+                $totale = $totale + $series[$k];
+            }
+            $ciclo=$i-7;
+            for ($k=0;$k<$ciclo;$k++){
+                $g=$k+1;
+                $totale = $totale + $series[$g];
+            }
+        }
+        return $totale;
+    }
+
+    public function CheckQuarterlySeasonality($series,$tot){
+        $i=0;
+        $k=0;
+        foreach ($series as $item){
+            $i++;
+            if (($i>2) and ($i<15)){
+                $k++;
+                $dati[$k]=$item;
+            }
+        }
+        $i=0;
+        while ($i<12){
+            $i++;
+            $ArrayPosCiclo[$i] = 0;
+        }
+        $i=0;
+        while ($i<3){
+            $i++;
+            $first = $this->TotalQuarter($dati,$i);
+            $second = $this->TotalQuarter($dati,$i+3);
+            $third = $this->TotalQuarter($dati,$i+6);
+            $fourth = $this->TotalQuarter($dati,$i+9);
+            $perc_first = ($first / $tot) * 100;
+            $perc_second = ($second / $tot) * 100;
+            $perc_third = ($third / $tot) * 100;
+            $perc_fourth = ($fourth / $tot) * 100;
+            if (($perc_first >= 35) and ($perc_first <=65)){
+                if (($perc_second >= 0) and ($perc_second <= 20)){
+                    if (($perc_third >= 35) and ($perc_third <= 65)){
+                        if (($perc_fourth >= 0) and ($perc_fourth <=20)){
+                            $ArrayPosCiclo[$i] = $perc_first + $perc_third;
+                        }
+                    }
+                }
+            }
+            if (($perc_second >= 35) and ($perc_second <=65)){
+                if (($perc_first >= 0) and ($perc_first <= 20)){
+                    if (($perc_fourth >= 35) and ($perc_fourth <= 65)){
+                        if (($perc_third >= 0) and ($perc_third <=20)){
+                            $ArrayPosCiclo[$i+3] = $perc_second + $perc_fourth;
+                        }
+                    }
+                }
+            }
+        }
+        $index=0;
+        $value=0;
+        for ($i=0;$i<12;$i++){
+
+            if ($ArrayPosCiclo[$i+1]>$value){
+                $index=$i+1;
+                $value=$ArrayPosCiclo[$i+1];
+            }
+        }
+        return $index;
+    }
+
+    public function TotalQuarter($series,$i){
+        $totale = 0;
+        if ($i<11){
+            $ciclo = $i+3;
+            for ($k=$i;$k<$ciclo;$k++){
+                $totale = $totale + $series[$k];
+            }
+        } else {
+            for ($k=$i;$k<13;$k++){
+                $totale = $totale + $series[$k];
+            }
+            $ciclo=$i-10;
+            for ($k=0;$k<$ciclo;$k++){
+                $g=$k+1;
+                $totale = $totale + $series[$g];
+            }
+        }
+        return $totale;
+    }
+
+    public function GenerationForecast(){
+        $system_time = date('Y-m-d');
+        $works = DB::table('batch_generation_forecasts')->where('executed_generation_forecast','0')->where('booking_generation_forecast','<=',$system_time)->select('*')->get();
+        if($works!=null){
+            foreach ($works as $work) {
+                $data = DB::table('historical_datas')->where('id_historical_data',$work->GenerationForecast)->first();
+                if ($data) {
+                    $i=0;
+                    $k=0;
+                    foreach ($data as $item) {
+                        $i++;
+                        if (($i>2) and ($i<15)){
+                            $k++;
+                            $dati[$k]=$item;
+                        }
+                    }
+           //         if($work->GenerationForecastModel=='01'){
+                        //Se il modello è di Holt
+                  //      $regression = $this->Regression($dati,12);
+             //       }
+
+               //     if($work->GenerationForecastModel=='11'){
+                   //     $totali = $this->TotalPeriods($dati,4,$work->index_forecast);
+                        //Se il modello è di Winter trimestrale
+                  //      $regression = $this->Regression($totali,4);
+                 //   }
+
+                    if($work->GenerationForecastModel=='10'){
+                        $totali = $this->TotalPeriods($dati,2,$work->index_forecast);
+                        //Se il modello è di Winter semestrale
+                        $regression = $this->Regression($totali,2);
+                        dd($regression);
+                    }
+
+                }
+
+            }
+        }
+    }
+
+    public function TotalPeriods($serie,$n,$initial){
+        $k=12/$n;
+        $y=1;
+        $totali[$y]=0;
+        for ($i=0;$i<12;$i++){
+            if ($i==$k) {
+                $y++;
+                $totali[$y]=0;
+                $k = $k + (12/$n);
+            }
+            if ($initial+$i>12){
+                    $totali[$y] = $totali[$y] + $serie[($initial+$i) - 12];
+            } else {
+                    $totali[$y] = $totali[$y] + $serie[$initial+$i];
+            }
+        }
+        return $totali;
+    }
+
+    public function Regression($series,$n){
+        //Media di n
+        $total = 0;
+        for ($i=0;$i<$n;$i++) $total = $total + ($i+1);
+        $media_n = $total / $n;
+
+        //Media dei periodi
+        $total = 0;
+        for ($i=0;$i<$n;$i++) $total = $total + $series[$i+1];
+        $media_periodi = $total / $n;
+
+        //Calcolo trend
+        $total = 0;
+        for ($i=0;$i<$n;$i++) $total = $total + (($series[$i+1]) * ($i+1));
+        $numeratore = $total - ($n * $media_n * $media_periodi);
+
+        $total = 0;
+        for ($i=0;$i<$n;$i++) $total = $total + (($i+1) * ($i+1));
+        $denominatore = $total - ($n * ($media_n * $media_n));
+
+        if ($denominatore>0) $trend = $numeratore / $denominatore; else $trend = 0;
+
+        //Calcolo del livello
+        $level =  $media_periodi - ($trend * $media_n);
+
+        $regression['trend'] = $trend;
+        $regression['level'] = $level;
+        dd($regression);
+        return $regression;
     }
 }

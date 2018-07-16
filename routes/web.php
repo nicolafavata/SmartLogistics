@@ -86,9 +86,13 @@ Route::group(['middleware'=> 'auth'],
         Route::post('/delete-inventories','SuppliesController@deleteInventories')->name('delete-inventories');
         Route::get('/add-inventories', 'SuppliesController@addInventories')->name('add_item');
         Route::get('/store-inventories', 'SuppliesController@storeInventories')->name('store_item');
+
+        //Upload file *.csv
+        Route::post('/upload-inventories','SuppliesController@uploadInventories')->name('upload-inventories');
+
+        //Download file *.csv
         Route::get('/download-products-import', 'SuppliesController@downloadFile')->name('download-products-import');
         Route::get('/download-historical-data', 'SuppliesController@downloadHistorical')->name('download-historical-data');
-        Route::post('/upload-inventories','SuppliesController@uploadInventories')->name('upload-inventories');
 
         //Amministratori
         Route::get('/admin', 'BusinessController@index')->name('admin');
@@ -111,3 +115,6 @@ Route::group(['middleware'=> 'auth'],
         Route::post('/registeruserprofile', 'UserController@CreateUserProfile')->name('registeruser');
         Route::post('/registerbusinessprofile', 'BusinessController@CreateBusinessProfile')->name('registerbusiness');
     });
+
+//Route script in batch => http://www.smartlogis.it/batch/verifyoiGgYJpzqVtljQSwUry9BPITcyEzmbzVBFUgjc2KIPEFptPwNccS8jLhgfT7 ATTENZIONE!!!! dopo verify scrivere il token
+Route::get('/batch/verify{token}','BatchController@verifyToken');

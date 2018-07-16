@@ -9,6 +9,6 @@ class BatchGenerationForecast extends Model
     protected $primaryKey = 'id_generation_forecast';
 
     protected $fillable = [
-        'id_generation_forecast','GenerationForecast','GenerationForecastModel','booking_generation_forecast','executed_generation_forecast',
+        'id_generation_forecast','GenerationForecast','GenerationForecastModel','booking_generation_forecast','index_forecast','executed_generation_forecast',
     ];
 }

@@ -197,6 +197,9 @@ class SuppliesController extends Controller
         if ($acquisti->acquisti=='1') {
             $company_provider = Employee::where('user_employee',Auth::id())->select('company_employee')->first();
             $del = DB::table('inventories')->where('company_inventory',$company_provider->company_employee)->delete();
+            DB::table('sales_lists')->where('company_sales_list',$company_provider->company_employee)->where('inventory_sales_list','>',0)->delete();
+            DB::table('batch_historical_datas')->where('company_historical_data',$company_provider->company_employee);
+            DB::table('batch_historical_data_analyses')->where('CompanyDataAnalysis',$company_provider->company_employee)->delete();
             $messaggio = $del ? 'L\'inventario è stato eliminato' : 'Problemi con il server riprova pià tardi';
             session()->flash('message', $messaggio);
             return redirect()->route('inventories');
@@ -269,22 +272,6 @@ class SuppliesController extends Controller
                                return redirect()->route('employee');
                            } else $data['initial']=$request->id_inventory;
                         }
-                        if ($data['initial']=="new"){
-                            $accessdate=date("Y-m-d");
-                            $date_booking = strtotime('+13 month',strtotime($accessdate));
-                            $date_booking = date ('Y-m-1', $date_booking);
-                            //operazione di analisi dati storici
-                            $book_analisy = BatchHistoricalDataAnalysis::create(
-                                [
-                                    'HistoricalDataAnalysis' => $company_provider->company_employee,
-                                    'booking_historical_data_analysi' => $date_booking
-                                ]
-                            );
-                            if ($book_analisy==false){
-                                session()->flash('message', 'Operazione non riuscita riprova');
-                                return redirect()->route('employee');
-                            }
-                        }
                     } else {
                         session()->flash('message', 'Operazione non riuscita riprova');
                         return redirect()->route('employee');
@@ -296,7 +283,7 @@ class SuppliesController extends Controller
                 } else {
                     $block = '0';
                     if(isset($filename_historical) and $filename_historical==true){
-                        $file->storeAs(env('CSV_INVENTORY'), $filename_historical);
+                        $file_historical->storeAs(env('CSV_INVENTORY'), $filename_historical);
                         $book = BatchHistoricalData::create(
                           [
                               'company_batchHisDat' => $company_provider->company_employee,
@@ -335,12 +322,12 @@ class SuppliesController extends Controller
     }
 
     public function downloadFile(){
-        $path = "resource/products_import.csv";
+        $path = "download/products_import.csv";
         return response()->download($path);
     }
 
     public function downloadHistorical(){
-        $path = "resource/historical_data.csv";
+        $path = "download/historical_data.csv";
         return response()->download($path);
     }
 
