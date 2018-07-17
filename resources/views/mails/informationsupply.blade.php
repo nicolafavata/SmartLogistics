@@ -8,7 +8,7 @@ L'azienda {{$rag_soc}} ha modificato la condivisione delle informazioni della tu
     Ha deciso di condividere: # {{$messaggio}}<br />
 
 
-Grazie,<br>
+Grazie,
 {{ config('app.name') }}
 @endcomponent
 

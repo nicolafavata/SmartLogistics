@@ -8,6 +8,6 @@ L'azienda {{$rag}} ha accettato di far parte della tua rete Supply Chain.<br />
 
 
 
-Grazie,<br>
+Grazie,
 {{ config('app.name') }}
 @endcomponent

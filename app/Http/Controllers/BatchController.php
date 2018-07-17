@@ -4,11 +4,19 @@ namespace App\Http\Controllers;
 
 use App\BatchHistoricalDataAnalysis;
 use App\Mail\BatchHistoricalData;
+use App\Models\BatchForecastRevision;
 use App\Models\BatchGenerationForecast;
 use App\Models\BatchHistoricalDataWork;
 use App\Mail\BatchInventories;
+use App\Models\BatchSharingForecast;
+use App\Models\ForecastHoltModel;
+use App\Models\ForecastWinter2Model;
+use App\Models\ForecastWinter4Model;
 use App\Models\HistoricalData;
 use App\Models\Inventory;
+use App\Models\MeanSquareHoltError;
+use App\Models\MeanSquareWinter2Error;
+use App\Models\MeanSquareWinter4Error;
 use App\Models\SalesList;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -618,26 +626,184 @@ class BatchController extends Controller
                             $dati[$k]=$item;
                         }
                     }
-           //         if($work->GenerationForecastModel=='01'){
+                    if($work->GenerationForecastModel=='01'){
                         //Se il modello è di Holt
-                  //      $regression = $this->Regression($dati,12);
-             //       }
-
-               //     if($work->GenerationForecastModel=='11'){
-                   //     $totali = $this->TotalPeriods($dati,4,$work->index_forecast);
-                        //Se il modello è di Winter trimestrale
-                  //      $regression = $this->Regression($totali,4);
-                 //   }
-
-                    if($work->GenerationForecastModel=='10'){
-                        $totali = $this->TotalPeriods($dati,2,$work->index_forecast);
-                        //Se il modello è di Winter semestrale
-                        $regression = $this->Regression($totali,2);
-                        dd($regression);
+                        $regression = $this->Regression($dati,12);
+                        DB::table('sales_lists')->where('id_sales_list',$data->product_historical_data)->update(
+                            [
+                                'forecast_model' => '01'
+                            ]
+                        );
+                        $initial = DB::table('sales_lists')->where('id_sales_list',$data->product_historical_data)->select('initial_month_sales')->first();
+                        //Inizializziamo la tabella mean_square_holt_errors + forecast_holt_models
+                        MeanSquareHoltError::create(
+                          [
+                              'mean_square_holt' => $data->product_historical_data,
+                              'level_mean_square_holt' => $regression['level'],
+                              'trend_mean_square_holt' => $regression['trend'],
+                              'month_mean_square_holt' => 0
+                          ]
+                        );
+                        $forecast = $this->DevelopsForecast(1,12,$regression['level'],$regression['trend'],null);
+                        $unit = DB::table('sales_lists')->where('id_sales_list',$data->product_historical_data)->leftJoin('inventories','inventory_sales_list','=','id_inventory')->leftJoin('productions','production_sales_list','=','id_production')->select('unit_production','unit_inventory')->first();
+                        if ($unit->unit_production=='NR' or $unit->unit_inventory=='NR') $forecast = $this->RoundsUpForecast($forecast);
+                        $create = ForecastHoltModel::create(
+                          [
+                              'ForecastHoltProduct' => $data->product_historical_data,
+                              'level_holt' => $regression['level'],
+                              'trend_holt' => $regression['trend'],
+                              'initial_month_holt' => $initial->initial_month_sales,
+                              '1' => $forecast[1],
+                              '2' => $forecast[2],
+                              '3' => $forecast[3],
+                              '4' => $forecast[4],
+                              '5' => $forecast[5],
+                              '6' => $forecast[6],
+                              '7' => $forecast[7],
+                              '8' => $forecast[8],
+                              '9' => $forecast[9],
+                              '10' => $forecast[10],
+                              '11' => $forecast[11],
+                              '12' => $forecast[12],
+                          ]
+                        );
+                        if ($create){
+                            $accessdate=date("Y-m-d");
+                            $date_booking = strtotime('+1 month',strtotime($accessdate));
+                            $date_booking = date ('Y-m-1', $date_booking);
+                        }
                     }
 
-                }
+                    if($work->GenerationForecastModel=='11'){
+                        $totali = $this->TotalPeriods($dati,4,$work->index_forecast);
+                        //Se il modello è di Winter trimestrale
+                        $regression = $this->Regression($totali,4);
+                        $seasonal_factors = $this->GenerateSeasonalFactors($regression['trend'],$regression['level'],$totali,4);
+                        DB::table('sales_lists')->where('id_sales_list',$data->product_historical_data)->update(
+                            [
+                                'forecast_model' => '01',
+                                'initial_month_sales' => $work->index_forecast
+                            ]
+                        );
+                        $this->CreateMeanSquareWinter4Error($data->product_historical_data, $regression, 9, $seasonal_factors[1],'factor1_mean_square_winter4');
+                        $this->CreateMeanSquareWinter4Error($data->product_historical_data, $regression, 10, $seasonal_factors[2],'factor2_mean_square_winter4');
+                        $this->CreateMeanSquareWinter4Error($data->product_historical_data, $regression, 11, $seasonal_factors[3],'factor3_mean_square_winter4');
+                        $this->CreateMeanSquareWinter4Error($data->product_historical_data, $regression, 12, $seasonal_factors[4],'factor4_mean_square_winter4');
+                        $forecast = $this->DevelopsForecast(1,4,$regression['level'],$regression['trend'],$seasonal_factors);
+                        $unit = DB::table('sales_lists')->where('id_sales_list',$data->product_historical_data)->leftJoin('inventories','inventory_sales_list','=','id_inventory')->leftJoin('productions','production_sales_list','=','id_production')->select('unit_production','unit_inventory')->first();
+                        if ($unit->unit_production=='NR' or $unit->unit_inventory=='NR') $forecast = $this->RoundsUpForecast($forecast);
+                        $initial = DB::table('sales_lists')->where('id_sales_list',$data->product_historical_data)->select('initial_month_sales')->first();
+                        $create = ForecastWinter4Model::create(
+                          [
+                              'Forecastwinter4Product' => $data->product_historical_data,
+                              'level_winter4' => $regression['level'],
+                              'trend_winter4' => $regression['trend'],
+                              'factor1' => $seasonal_factors[1],
+                              'factor2' => $seasonal_factors[2],
+                              'factor3' => $seasonal_factors[3],
+                              'factor4' => $seasonal_factors[4],
+                              'initial_month_winter4' => $initial->initial_month_sales,
+                              '1' => $forecast[1],
+                              '2' => $forecast[2],
+                              '3' => $forecast[3],
+                              '4' => $forecast[4],
+                              '5' => $forecast[1],
+                              '6' => $forecast[2],
+                              '7' => $forecast[3],
+                              '8' => $forecast[4],
+                          ]
+                        );
+                        if ($create){
+                            $accessdate=date("Y-m-d");
+                            $initial_date=date("Y-$initial->initial_month_sales-d");
+                            $date_booking = strtotime('+3 month',strtotime($initial_date));
+                            $accessdate = strtotime($accessdate);
+                            while ($accessdate>=$date_booking) {
+                                $date_booking = strtotime('+3 month',$date_booking);
+                            }
+                            $date_booking = date ('Y-m-1', $date_booking);
+                        }
 
+                    }
+
+                   if($work->GenerationForecastModel=='10'){
+                       $totali = $this->TotalPeriods($dati,2,$work->index_forecast);
+                        //Se il modello è di Winter semestrale
+                       $regression = $this->Regression($totali,2);
+                       $seasonal_factors = $this->GenerateSeasonalFactors($regression['trend'],$regression['level'],$totali,2);
+                       DB::table('sales_lists')->where('id_sales_list',$data->product_historical_data)->update(
+                           [
+                               'forecast_model' => '01',
+                               'initial_month_sales' => $work->index_forecast
+                           ]
+                       );
+                       $this->CreateMeanSquareWinter2Error($data->product_historical_data, $regression, 5, $seasonal_factors[1],'factor1_mean_square_winter2');
+                       $this->CreateMeanSquareWinter2Error($data->product_historical_data, $regression, 6, $seasonal_factors[2],'factor2_mean_square_winter2');
+                       $forecast = $this->DevelopsForecast(1,2,$regression['level'],$regression['trend'],$seasonal_factors);
+                       $unit = DB::table('sales_lists')->where('id_sales_list',$data->product_historical_data)->leftJoin('inventories','inventory_sales_list','=','id_inventory')->leftJoin('productions','production_sales_list','=','id_production')->select('unit_production','unit_inventory')->first();
+                       if ($unit->unit_production=='NR' or $unit->unit_inventory=='NR') $forecast = $this->RoundsUpForecast($forecast);
+                       $initial = DB::table('sales_lists')->where('id_sales_list',$data->product_historical_data)->select('initial_month_sales')->first();
+                       $create = ForecastWinter2Model::create(
+                           [
+                               'Forecastwinter2Product' => $data->product_historical_data,
+                               'level_winter2' => $regression['level'],
+                               'trend_winter2' => $regression['trend'],
+                               'factor1_winter2' => $seasonal_factors[1],
+                               'factor2_winter2' => $seasonal_factors[2],
+                               'initial_month_winter2' => $initial->initial_month_sales,
+                               '1' => $forecast[1],
+                               '2' => $forecast[2],
+                               '3' => $forecast[1],
+                               '4' => $forecast[2],
+                           ]
+                       );
+                       if ($create){
+                           $accessdate=date("Y-m-d");
+                           $initial_date=date("Y-$initial->initial_month_sales-d");
+                           $date_booking = strtotime('+6 month',strtotime($initial_date));
+                           $accessdate = strtotime($accessdate);
+                           while ($accessdate>=$date_booking) {
+                               $date_booking = strtotime('+6 month',$date_booking);
+                           }
+                           $date_booking = date ('Y-m-1', $date_booking);
+                       }
+                   }
+
+                    if ($create){
+                        //Prenotazione operazione di Revisione previsione
+                        BatchForecastRevision::create(
+                          [
+                              'forecast_revision' => $data->product_historical_data,
+                              'RevisionForecastModel' => $work->GenerationForecastModel,
+                              'period' => 2,
+                              'booking_revision_forecast' => $date_booking
+                          ]
+                        );
+
+                        //Condivisione previsione con i fornitori
+                        $shares = DB::table('supply_chains')->where('company_supply_shares',$data->company_historical_data)->where('forecast','1')->get();
+                        if (count($shares)>0){
+                            $system_time = date('Y-m-d');
+                            foreach ($shares as $create){
+                                BatchSharingForecast::create(
+                                  [
+                                      'sharing_forecast' => $create->id_supply_chain,
+                                      'sharing_forecast_model' => $work->GenerationForecastModel,
+                                      'booking_sharing_forecast' => $system_time
+                                  ]
+                                );
+                            }
+                        }
+
+
+                        //Modifica dello stato dell'operazione di generazione previsione in eseguita
+                        DB::table('batch_generation_forecasts')->where('id_generation_forecast',$work->id_generation_forecast)->update(
+                          [
+                              'executed_generation_forecast' => '1'
+                          ]
+                        );
+                    }
+                }
             }
         }
     }
@@ -688,7 +854,74 @@ class BatchController extends Controller
 
         $regression['trend'] = $trend;
         $regression['level'] = $level;
-        dd($regression);
+
         return $regression;
+    }
+
+    public function GenerateSeasonalFactors($trend,$level,$sell,$n){
+        for ($i=0;$i<$n;$i++) {
+            if ((($trend*($i+1))+$level)>0)
+            $factor [$i+1] = $sell[$i+1] / (($trend*($i+1))+$level);
+            else $factor [$i+1]=0;
+        }
+        return $factor;
+    }
+
+    public function DevelopsForecast($k,$n,$level,$trend,$factors){
+        if ($factors!=null){
+            if ($n==2 and $k==3) $k=1;
+            if ($n==2 and $k==4) $k=2;
+            if ($n==4 and $k==5) $k=1;
+            if ($n==4 and $k==6) $k=2;
+            if ($n==4 and $k==7) $k=3;
+            if ($n==4 and $k==8) $k=4;
+        }
+        for ($i=$k;$i<($n+$k);$i++){
+            if($factors==null){
+                if($i<=12) $forecast[$i]=($trend * $i) + $level;
+                else $forecast[$i-12]=($trend * ($i-12)) + $level;
+            } else{
+                if($i>$n) $forecast[$i]=(($trend * $i) + $level) * $factors[$i-$n];
+                else $forecast[$i]=(($trend * $i) + $level) * $factors[$i];
+            }
+        }
+        return $forecast;
+    }
+
+    public function RoundsUpForecast($forecast){
+        for ($i=0;$i<count($forecast);$i++) $forecast[$i+1] = round($forecast[$i+1]);
+        return $forecast;
+    }
+
+    /**
+     * @param $data
+     * @param $regression
+     * @param $work
+     * @param $seasonal_factors
+     */
+    public function CreateMeanSquareWinter4Error($product, $regression, $index, $seasonal_factors, $factor)
+    {
+        MeanSquareWinter4Error::create(
+            [
+                'mean_square_winter4' => $product,
+                'level_mean_square_winter4' => $regression['level'],
+                'trend_mean_square_winter4' => $regression['trend'],
+                'month_mean_square_winter4' => $index,
+                $factor => $seasonal_factors
+            ]
+        );
+    }
+
+    public function CreateMeanSquareWinter2Error($product, $regression, $index, $seasonal_factors, $factor)
+    {
+        MeanSquareWinter2Error::create(
+            [
+                'mean_square_winter2' => $product,
+                'level_mean_square_winter2' => $regression['level'],
+                'trend_mean_square_winter2' => $regression['trend'],
+                'month_mean_square_winter2' => $index,
+                $factor => $seasonal_factors
+            ]
+        );
     }
 }

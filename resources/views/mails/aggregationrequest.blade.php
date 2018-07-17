@@ -11,6 +11,6 @@ Puoi utilizzare il pulsante sottostante per entrare nell'applicazione.
 Scopri
 @endcomponent
 
-Grazie,<br>
+Grazie,
 {{ config('app.name') }}
 @endcomponent

@@ -9,6 +9,6 @@
 
 
 
-    Grazie,<br>
+    Grazie,
     {{ config('app.name') }}
 @endcomponent

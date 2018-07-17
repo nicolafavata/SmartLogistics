@@ -20,12 +20,12 @@ class CreateMeanSquareWinter2ErrorsTable extends Migration
             $table->double('alfa_mean_square_winter2')->default(0.2);
             $table->double('beta_mean_square_winter2')->default(0.2);
             $table->double('gamma_mean_square_winter2')->default(0.2);
-            $table->double('level_mean_square_winter2')->default(0);
-            $table->double('trend_mean_square_winter2')->default(1);
-            $table->double('factor1_mean_square_winter2')->default(1);
-            $table->double('factor2_mean_square_winter2')->default(1);
-            $table->integer('month_mean_square_winter2')->default('1');
-            $table->double('mean_square_winter2_error')->default('0');
+            $table->double('level_mean_square_winter2')->nullable();
+            $table->double('trend_mean_square_winter2')->nullable();
+            $table->double('factor1_mean_square_winter2')->nullable();
+            $table->double('factor2_mean_square_winter2')->nullable();
+            $table->integer('month_mean_square_winter2')->nullable();
+            $table->double('mean_square_winter2_error')->nullable();
         });
     }
 

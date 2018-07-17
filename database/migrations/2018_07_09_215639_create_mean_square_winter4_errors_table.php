@@ -22,12 +22,12 @@ class CreateMeanSquareWinter4ErrorsTable extends Migration
             $table->double('gamma_mean_square_winter4')->default(0.2);
             $table->double('level_mean_square_winter4')->default(0);
             $table->double('trend_mean_square_winter4')->default(1);
-            $table->double('factor1_mean_square_winter4')->default(1);
-            $table->double('factor2_mean_square_winter4')->default(1);
-            $table->double('factor3_mean_square_winter4')->default(1);
-            $table->double('factor4_mean_square_winter4')->default(1);
-            $table->integer('month_mean_square_winter4')->default('1');
-            $table->double('mean_square_winter4_error')->default('0');
+            $table->double('factor1_mean_square_winter4')->nullable();
+            $table->double('factor2_mean_square_winter4')->nullable();
+            $table->double('factor3_mean_square_winter4')->nullable();
+            $table->double('factor4_mean_square_winter4')->nullable();
+            $table->integer('month_mean_square_winter4')->nullable();
+            $table->double('mean_square_winter4_error')->nullable();
         });
     }
 

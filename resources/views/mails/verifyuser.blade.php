@@ -11,6 +11,6 @@ Per utilizzare i nostri servizi clicca sul pulsante sottostante per verificare l
 Verifica
 @endcomponent
 
-Grazie,<br>
+Grazie,
 {{ config('app.name') }}
 @endcomponent

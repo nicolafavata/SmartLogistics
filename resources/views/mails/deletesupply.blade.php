@@ -8,6 +8,6 @@ L'azienda {{$rag}} ha deciso di interrompere la condivisione delle informazioni.
     Da questo momento non siete più in aggregazione Supply Chain.
 
 
-Grazie,<br>
+Grazie,
 {{ config('app.name') }}
 @endcomponent

@@ -19,10 +19,10 @@ class CreateMeanSquareHoltErrorsTable extends Migration
             $table->foreign('mean_square_holt')->on('sales_lists')->references('id_sales_list')->onDelete('cascade')->onUpdate('cascade');
             $table->double('alfa_mean_square_holt')->default(0.2);
             $table->double('beta_mean_square_holt')->default(0.2);
-            $table->double('level_mean_square_holt')->default(0);
-            $table->double('trend_mean_square_holt')->default(1);
-            $table->integer('month_mean_square_holt')->default('1');
-            $table->double('mean_square_holt_error')->default('0');
+            $table->double('level_mean_square_holt')->nullable();
+            $table->double('trend_mean_square_holt')->nullable();
+            $table->integer('month_mean_square_holt')->nullable();
+            $table->double('mean_square_holt_error')->nullable();
             $table->timestamps();
         });
     }

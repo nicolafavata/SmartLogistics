@@ -7,6 +7,6 @@ Salve {{$user['name'].' '.$user['cognome']}},
 L'azienda {{$user['rag_soc_company']}} ha annullato la tua richiesta di aggregazione supply chain.<br />
 
 
-Grazie,<br>
+Grazie,
 {{ config('app.name') }}
 @endcomponent
