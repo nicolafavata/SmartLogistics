@@ -8,6 +8,7 @@ use App\Models\BatchForecastRevision;
 use App\Models\BatchGenerationForecast;
 use App\Models\BatchHistoricalDataWork;
 use App\Mail\BatchInventories;
+use App\Models\BatchProcessParameter;
 use App\Models\BatchSharingForecast;
 use App\Models\ForecastHoltModel;
 use App\Models\ForecastWinter2Model;
@@ -33,6 +34,7 @@ class BatchController extends Controller
             $this->HistoricalSeriesGeneration();
             $this->HistoricalSeriesAnalysis();
             $this->GenerationForecast();
+            $this->RevisionForecast();
             dd('previsione generata');
         } else return view('errors.500');
     }
@@ -878,11 +880,23 @@ class BatchController extends Controller
         }
         for ($i=$k;$i<($n+$k);$i++){
             if($factors==null){
-                if($i<=12) $forecast[$i]=($trend * $i) + $level;
-                else $forecast[$i-12]=($trend * ($i-12)) + $level;
+                if($i<=12) {
+                    $forecast[$i]=($trend * $i) + $level;
+                    if ($forecast[$i]<=0) $forecast[$i]=0;
+                }
+                else {
+                    $forecast[$i-12]=($trend * ($i-12)) + $level;
+                    if ($forecast[$i-12]<=0) $forecast[$i-12]=0;
+                }
             } else{
-                if($i>$n) $forecast[$i]=(($trend * $i) + $level) * $factors[$i-$n];
-                else $forecast[$i]=(($trend * $i) + $level) * $factors[$i];
+                if($i>$n) {
+                    $forecast[$i]=(($trend * $i) + $level) * $factors[$i-$n];
+                    if ($forecast[$i]<=0) $forecast[$i]=0;
+                }
+                else {
+                    $forecast[$i]=(($trend * $i) + $level) * $factors[$i];
+                    if ($forecast[$i]<=0) $forecast[$i]=0;
+                }
             }
         }
         return $forecast;
@@ -924,4 +938,112 @@ class BatchController extends Controller
             ]
         );
     }
+
+    public function RevisionForecast(){
+        $system_time = date('Y-m-d');
+        $works = DB::table('batch_forecast_revisions')->where('executed_revision_forecast','0')->where('booking_revision_forecast','<=',$system_time)->select('*')->get();
+        if($works!=null) {
+            foreach ($works as $work) {
+                if ($work->RevisionForecastModel=='01') $this->RevisionHolt($work, $system_time);
+
+
+            }
+        }
+    }
+
+    public function CalculateLevel($period,$sales,$level,$trend,$alfa,$factor){
+        $level = ($alfa * ($sales / $factor)) + (((1 - $alfa) * $level) + ($trend * $period));
+        return $level;
+    }
+
+    public function CalculateTrend($level,$oldLevel,$trend,$beta){
+        $trend = ($beta * ($level - $oldLevel)) + ((1 - $beta) * $trend);
+        return $trend;
+    }
+
+    /**
+     * @param $work
+     * @param $system_time
+     */
+    public function RevisionHolt($work, $system_time): void
+    {
+        $query = DB::table('sales_lists')->where('id_sales_list', $work->forecast_revision)->select($work->period)->first();
+        if ($query) foreach ($query as $t) $sales = $t;
+        $query = DB::table('forecast_holt_models')->where('ForecastHoltProduct', $work->forecast_revision)->first();
+        if ($query) {
+            $level = $query->level_holt;
+            $trend = $query->trend_holt;
+            $alfa = $query->alfa_holt;
+            $beta = $query->beta_holt;
+            $id = $query->id_forecast_holt_model;
+        }
+        $query = DB::table('forecast_holt_models')->where('ForecastHoltProduct', $work->forecast_revision)->select($work->period)->first();
+        if ($query) foreach ($query as $t) $forecast = $t;
+        $error = $forecast - $sales;
+        $newLevel = $this->CalculateLevel($work->period, $sales, $level, $trend, $alfa, 1);
+        $newTrend = $this->CalculateTrend($newLevel, $level, $trend, $beta);
+        $update_error = 'error' . $work->period;
+        $revisione = $this->DevelopsForecast($work->period, 12, $newLevel, $newTrend, null);
+        $unit = DB::table('sales_lists')->where('id_sales_list', $work->forecast_revision)->leftJoin('inventories', 'inventory_sales_list', '=', 'id_inventory')->leftJoin('productions', 'production_sales_list', '=', 'id_production')->select('unit_production', 'unit_inventory')->first();
+        if ($unit->unit_production == 'NR' or $unit->unit_inventory == 'NR') $revisione = $this->RoundsUpForecast($revisione);
+        if ($revisione) {
+            $update = DB::table('forecast_holt_models')->where('id_forecast_holt_model', $id)->update(
+                [
+                    '1' => $revisione[1],
+                    '2' => $revisione[2],
+                    '3' => $revisione[3],
+                    '4' => $revisione[4],
+                    '5' => $revisione[5],
+                    '6' => $revisione[6],
+                    '7' => $revisione[7],
+                    '8' => $revisione[8],
+                    '9' => $revisione[9],
+                    '10' => $revisione[10],
+                    '11' => $revisione[11],
+                    '12' => $revisione[12],
+                    'level_holt' => $newLevel,
+                    'trend_holt' => $newTrend,
+                    $update_error => $error,
+                ]
+            );
+            if ($update) {
+                //Condivisione previsione con i fornitori
+                $company = DB::table('sales_lists')->where('id_sales_list', $work->forecast_revision)->select('company_sales_list')->first();
+                $shares = DB::table('supply_chains')->where('company_supply_shares', $company->company_sales_list)->where('forecast', '1')->get();
+                if (count($shares) > 0) {
+                    foreach ($shares as $create) {
+                        BatchSharingForecast::create(
+                            [
+                                'sharing_forecast' => $create->id_supply_chain,
+                                'sharing_forecast_model' => $work->RevisionForecastModel,
+                                'booking_sharing_forecast' => $system_time
+                            ]
+                        );
+                    }
+                }
+
+                //Aggiornamento operazione in eseguita
+                $up = DB::table('batch_forecast_revisions')->where('id_forecast_revision', $work->id_forecast_revision)->update(
+                    [
+                        'executed_revision_forecast' => '1'
+                    ]
+                );
+
+                //Prenotazione operazione di Elabora Parametri
+                if ($up) {
+                    BatchProcessParameter::create(
+                        [
+                            'process_parameter' => $work->forecast_revision,
+                            'process_parameter_forecast_model' => $work->RevisionForecastModel,
+                            'sales' => $sales,
+                            'booking_process_parameter' => $system_time,
+                            'period' => $work->period
+                        ]
+                    );
+                }
+            }
+        }
+    }
+
+    
 }
