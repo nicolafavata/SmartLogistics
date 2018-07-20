@@ -85,6 +85,7 @@
                                                 <li><span class="text-success">document_number</span>:&#09Il numero del documento, non è obbligatorio e non viene processato.</li>
                                                 <li><span class="fucsia">cod_inventory</span>:&#09Il codice del prodotto venduto.</li>
                                                 <li><span class="fucsia">quantity</span>:&#09La quantità venduta.</li>
+                                                <li><span class="fucsia">ATTENZIONE!</span>:&#09La possibilità di caricare i dati storici viene fornita dal sistema solo una volta, oppure dopo che è stato cancellato l'intero inventario.</li>
                                             </ul>
                                             <li class="text-success font-weight-bold">Associazione previsione di un altro prodotto.</li>
                                             <li class="text-success font-weight-bold">Lancio di un nuovo prodotto.</li>

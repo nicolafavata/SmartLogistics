@@ -39,15 +39,18 @@
                                         <div class="card-body">
                                             <h3 class="verde font-weight-bold shadow">Inizializzazione previsione</h3>
 
-                                                <div class="input-group-prepend">
-                                                    <div class="input-group-text">
-                                                        <input value="historical" onclick="showfile('file-historical','select-forecast')" type="radio" name="initial" id="historical" aria-label="Radio button for following text input">
+                                                @if($block=='0')
+                                                    <div class="input-group-prepend">
+                                                        <div class="input-group-text">
+                                                            <input value="historical" onclick="showfile('file-historical','select-forecast')" type="radio" name="initial" id="historical" aria-label="Radio button for following text input">
+                                                        </div>
+                                                        <label class="form-control"> Carica file dati storici</label>
                                                     </div>
-                                                    <label class="form-control"> Carica file dati storici</label>
-                                                </div>
-                                                <div id="file-historical" hidden>
-                                                    <input type="file"  name="file-historical" id="inventory" class="form-control">
-                                                </div>
+                                                    <div id="file-historical" hidden>
+                                                        <input type="file"  name="file-historical" id="inventory" class="form-control">
+                                                    </div>
+                                                @endif
+
                                                 <div class="input-group-prepend">
                                                     <div class="input-group-text">
                                                         <input value="forecast" onclick="showfile('select-forecast','file-historical')" type="radio" name="initial" id="forecast" aria-label="Radio button for following text input">
@@ -59,11 +62,11 @@
                                                         <div class="input-group-prepend">
                                                             <label class="input-group-text" for="inputGroupSelect01">Prodotto</label>
                                                         </div>
+                                                        <select name='id_inventory' class="custom-select" id="inputGroupSelect01">
                                                         @foreach($items as $item)
-                                                            <select name='id_inventory' class="custom-select" id="inputGroupSelect01">
-                                                                <option value="{{$item->id_inventory}}">{{$item->title_inventory}}</option>
-                                                            </select>
+                                                                <option value="{{$item->id_inventory}}">{{$item->cod_inventory.' - '.$item->title_inventory}}</option>
                                                         @endforeach
+                                                        </select>
                                                     </div>
                                                 </div>
 

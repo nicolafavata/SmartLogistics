@@ -198,8 +198,9 @@ class SuppliesController extends Controller
             $company_provider = Employee::where('user_employee',Auth::id())->select('company_employee')->first();
             $del = DB::table('inventories')->where('company_inventory',$company_provider->company_employee)->delete();
             DB::table('sales_lists')->where('company_sales_list',$company_provider->company_employee)->where('inventory_sales_list','>',0)->delete();
-            DB::table('batch_historical_datas')->where('company_historical_data',$company_provider->company_employee);
+            DB::table('batch_historical_datas')->where('company_batchHisDat',$company_provider->company_employee);
             DB::table('batch_historical_data_analyses')->where('CompanyDataAnalysis',$company_provider->company_employee)->delete();
+            DB::table('batch_inventories')->where('company_batch_inventory',$company_provider->company_employee)->delete();
             $messaggio = $del ? 'L\'inventario è stato eliminato' : 'Problemi con il server riprova pià tardi';
             session()->flash('message', $messaggio);
             return redirect()->route('inventories');
@@ -228,13 +229,17 @@ class SuppliesController extends Controller
     public function storeInventories(){
         $acquisti = $this->supplieControl();
         if ($acquisti->acquisti=='1') {
+
             $dato = $this->dataProfile();
             $company_provider = Employee::where('user_employee',Auth::id())->select('company_employee')->first();
-            $items = DB::table('inventories')->where('company_inventory', $company_provider->company_employee)->select('id_inventory','title_inventory')->get();
+            $block_historical = DB::table('batch_inventories')->where('initial','historical')->where('executed_batch_inventory','1')->where('company_batch_inventory',$company_provider->company_employee)->first();
+            if (count($block_historical)>0) $block = 1; else $block = 0;
+            $items = DB::table('inventories')->where('company_inventory', $company_provider->company_employee)->where('sale_inventory','=','1')->select('id_inventory','cod_inventory','title_inventory')->get();
             return view('supplies.store-inventories',
                 [
                     'dati' => $dato[0],
                     'items' => $items,
+                    'block' => $block,
                 ]);
         } else {
             session()->flash('message', 'Non hai il privilegio per effettuare questa operazione');

@@ -17,8 +17,8 @@ class CreateForecastHoltModelsTable extends Migration
             $table->increments('id_forecast_holt_model');
             $table->integer('ForecastHoltProduct')->unsigned();
             $table->foreign('ForecastHoltProduct')->on('sales_lists')->references('id_sales_list')->onDelete('cascade')->onUpdate('cascade');
-            $table->double('alfa_holt')->default(0.2);
-            $table->double('beta_holt')->default(0.2);
+            $table->double('alfa_holt')->default(0.5);
+            $table->double('beta_holt')->default(0.5);
             $table->double('level_holt')->default(0);
             $table->double('trend_holt')->default(1);
             $table->integer('initial_month_holt')->default(1);

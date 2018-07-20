@@ -17,8 +17,8 @@ class CreateForecastWinter4ModelsTable extends Migration
             $table->increments('id_forecast_winter4_model');
             $table->integer('Forecastwinter4Product')->unsigned();
             $table->foreign('Forecastwinter4Product')->on('sales_lists')->references('id_sales_list')->onDelete('cascade')->onUpdate('cascade');
-            $table->double('alfa_winter4')->default(0.2);
-            $table->double('beta_winter4')->default(0.2);
+            $table->double('alfa_winter4')->default(0.5);
+            $table->double('beta_winter4')->default(0.5);
             $table->double('gamma_winter4')->default(0.2);
             $table->double('level_winter4')->default(0);
             $table->double('trend_winter4')->default(1);
