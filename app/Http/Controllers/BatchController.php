@@ -9,6 +9,7 @@ use App\Models\BatchGenerationForecast;
 use App\Models\BatchHistoricalDataWork;
 use App\Mail\BatchInventories;
 use App\Models\BatchProcessParameter;
+use App\Models\BatchRevisionParameter;
 use App\Models\BatchSharingForecast;
 use App\Models\ForecastExponentialModel;
 use App\Models\ForecastHoltModel;
@@ -36,6 +37,7 @@ class BatchController extends Controller
             $this->HistoricalSeriesAnalysis();
             $this->GenerationForecast();
             $this->RevisionForecast();
+            $this->ProcessParameters();
             dd('previsione generata');
         } else return view('errors.500');
     }
@@ -1029,16 +1031,18 @@ class BatchController extends Controller
 
     public function DevelopsForecast($k,$n,$level,$trend,$factors){
         if ($factors!=null){
+            if ($k==1) $seasonality=$factors;
             for ($i=1;$i<($n+1);$i++) {
-                if ($k>2){
+                  if ($k>2){
                     if ($i<4) $seasonality = $factors[1];
                     if ($i>3 and $i<7) $seasonality = $factors[2];
                     if ($i>6 and $i<10) $seasonality = $factors[3];
                     if ($i>9 and $i<13) $seasonality = $factors[4];
-                } else {
+                  }
+                  if ($k==2) {
                     if ($i<7) $seasonality=$factors[1];
                     else $seasonality=$factors[2];
-                }
+                  }
                 $forecast[$i]=(($trend ) + $level) * ($seasonality); // <--- ATTENZIONE HO TOLTO $i L'INDICE DA MOLTIPLICARE AL TREND
                 if ($forecast[$i]<=0) $forecast[$i]=0;
             }
@@ -1665,13 +1669,291 @@ class BatchController extends Controller
         if ($newLevel>0) $factor = ((($sales/$newLevel) * $gamma) + ((1 - $gamma) * $factor));
         else $factor = ((1 - $gamma) * $factor);
         return $factor;
-}
 
-    /**
-     * @param $work
-     * @param $system_time
-     */
-   
+    }
+
+    public function ProcessParameters(){
+        $system_time = date('Y-m-d');
+        $works = DB::table('batch_process_parameters')->where('executed_process_parameter','0')->where('booking_process_parameter','<=',$system_time)->select('*')->get();
+        if($works!=null) {
+            foreach ($works as $work) {
+                if ($work->process_parameter_forecast_model=="01") $process = $this->ProcessParametersHolt($work->sales,$work->period-1,$work->process_parameter);
+                if ($work->process_parameter_forecast_model=="10") $process = $this->ProcessParametersWinter2($work->sales,$work->period-1,$work->process_parameter);
+                if ($work->process_parameter_forecast_model=="11") $process = $this->ProcessParametersWinter4($work->sales,$work->period-1,$work->process_parameter);
+             //   dd($process);
+                if ($process){
+                    DB::table('batch_process_parameters')->where('id_process_parameter',$work->id_process_parameter)->update(
+                      [
+                          'executed_process_parameter' => '1'
+                      ]
+                    );
+                }
+            } return true;
+        } else return false;
+    }
+
+    public function ProcessParametersHolt($sales,$period,$product){
+        if ($period==1) {
+            $query = DB::table('mean_square_holt_errors')->where('mean_square_holt',$product)->where('month_mean_square_holt','0')->select('level_mean_square_holt','trend_mean_square_holt')->first();
+            $index=0;
+            foreach ($query as $t){
+                if ($index==0) $level = $t;
+                if ($index==1) $trend = $t;
+                $index ++;
+            }
+       //     dd($level);
+        }
+        $alfa=0;
+        for ($i=1;$i<10;$i++){
+            $alfa = $alfa + 0.1;
+            $beta = 0;
+            for ($k=1;$k<10;$k++){
+                $beta = $beta + 0.1;
+            //    dd($alfa);
+                if ($period>1) {
+                        $query = DB::table('mean_square_holt_errors')->where('mean_square_holt',$product)->where('alfa_mean_square_holt',$alfa)->where('beta_mean_square_holt',$beta)->where('month_mean_square_holt',$period-1)->select('level_mean_square_holt','trend_mean_square_holt')->first();
+                   //     dd($query);
+                        $index=0;
+                        foreach ($query as $t){
+                            if ($index==0) $level = $t;
+                            if ($index==1) $trend = $t;
+                            $index ++;
+                        }
+                }
+             //   dd($level);
+             //   dd($sales);
+                $newLevel = $this->CalculateLevel($sales,$level,$trend,$alfa,1);
+             //   dd($newLevel);
+                $newTrend = $this->CalculateTrend($newLevel,$level,$trend,$beta);
+             //   dd($newTrend);
+                $forecast = ($newTrend * $period) + $newLevel;
+             //   dd($forecast);
+                if ($forecast<=0) $forecast = 0;
+                $unit = DB::table('sales_lists')->where('id_sales_list', $product)->leftJoin('inventories', 'inventory_sales_list', '=', 'id_inventory')->leftJoin('productions', 'production_sales_list', '=', 'id_production')->select('unit_production', 'unit_inventory')->first();
+                if ($unit->unit_production == 'NR' or $unit->unit_inventory == 'NR') $forecast = round($forecast);
+                $error = pow(abs($forecast - $sales),2); //Calcoliamo il quadrato dell'errore
+           //     dd($error);
+                MeanSquareHoltError::create(
+                        [
+                            'mean_square_holt' => $product,
+                            'alfa_mean_square_holt' => $alfa,
+                            'beta_mean_square_holt' => $beta,
+                            'level_mean_square_holt' => $newLevel,
+                            'trend_mean_square_holt' => $newTrend,
+                            'month_mean_square_holt' => $period,
+                            'mean_square_holt_error' => $error,
+                        ]
+                    );
+            }
+        }
+        if ($period<12) {
+            $accessdate=date("Y-m-d");
+            $date_booking = strtotime('+1 month',strtotime($accessdate));
+            $date_booking = date ('Y-m-1', $date_booking);
+            $create = BatchForecastRevision::create(
+                [
+                    'forecast_revision' => $product,
+                    'RevisionForecastModel' => '01',
+                    'period' => $period+2,
+                    'booking_revision_forecast' => $date_booking
+                ]);
+        } else {
+            $accessdate=date("Y-m-d");
+            $create = BatchRevisionParameter::create(
+                [
+                    'revision_parameter' => $product,
+                    'revision_parameter_forecast_model' => '01',
+                    'booking_revision_parameter' => $accessdate
+                ]
+            );
+        }
+        if ($create) return true;
+        else return false;
+    }
+
+    public function ProcessParametersWinter2($sales,$period,$product){
+        if ($period>2) $select = 'factor'.($period-2).'_mean_square_winter2';
+        else {
+            $select = 'factor'.($period).'_mean_square_winter2';
+            $query = DB::table('mean_square_winter2_errors')->where('month_mean_square_winter2',$period+4)->select($select)->first();
+            foreach ($query as $t) $factor = $t;
+        }
+        if ($period==1) {
+            $query = DB::table('mean_square_winter2_errors')->where('mean_square_winter2',$product)->where('month_mean_square_winter2','5')->select('level_mean_square_winter2','trend_mean_square_winter2')->first();
+            $index=0;
+            foreach ($query as $t){
+                if ($index==0) $level = $t;
+                if ($index==1) $trend = $t;
+                $index ++;
+            }
+        }
+        $alfa=0;
+        for ($i=1;$i<10;$i++){
+            $alfa = $alfa + 0.1;
+            $beta = 0;
+            for ($k=1;$k<10;$k++){
+                $beta = $beta + 0.1;
+                $gamma=0;
+                for ($z=1;$z<10;$z++){
+                    $gamma = $gamma + 0.1;
+                    if ($period>1) {
+                        $query = DB::table('mean_square_winter2_errors')->where('mean_square_winter2',$product)->where('alfa_mean_square_winter2',$alfa)->where('beta_mean_square_winter2',$beta)->where('gamma_mean_square_winter2',$gamma)->where('month_mean_square_winter2',$period-1)->select('level_mean_square_winter2','trend_mean_square_winter2')->first();
+                        $index=0;
+                        foreach ($query as $t){
+                            if ($index==0) $level = $t;
+                            if ($index==1) $trend = $t;
+                            $index ++;
+                        }
+                    }
+                    if ($period>2) {
+                        $query = DB::table('mean_square_winter2_errors')->where('mean_square_winter2',$product)->where('alfa_mean_square_winter2',$alfa)->where('beta_mean_square_winter2',$beta)->where('gamma_mean_square_winter2',$gamma)->where('month_mean_square_winter2',$period-2)->select($select)->first();
+                        foreach ($query as $t) $factor = $t;
+                    }
+                    $newLevel = $this->CalculateLevel($sales,$level,$trend,$alfa,$factor);
+                    //dd($newLevel);
+                    $newTrend = $this->CalculateTrend($newLevel,$level,$trend,$beta);
+                    //dd($newTrend);
+                    $newFactor = $this->CalculateFactor($sales,$newLevel,$gamma,$factor);
+                    //dd($newFactor);
+                    $forecast = $this->DevelopsForecast(1,6,$newLevel,$newTrend,$factor);
+                    $unit = DB::table('sales_lists')->where('id_sales_list', $product)->leftJoin('inventories', 'inventory_sales_list', '=', 'id_inventory')->leftJoin('productions', 'production_sales_list', '=', 'id_production')->select('unit_production', 'unit_inventory')->first();
+                    if ($unit->unit_production == 'NR' or $unit->unit_inventory == 'NR') $forecast = $this->RoundsUpForecast($forecast);
+                    $total = $forecast[1] * 6;
+                    $error = pow(abs($total - $sales),2); //Calcoliamo il quadrato dell'errore
+                    MeanSquareWinter2Error::create(
+                      [
+                          'mean_square_winter2' => $product,
+                          'alfa_mean_square_winter2' => $alfa,
+                          'beta_mean_square_winter2' => $beta,
+                          'gamma_mean_square_winter2' => $gamma,
+                          'level_mean_square_winter2' => $newLevel,
+                          'trend_mean_square_winter2' => $newTrend,
+                          $select => $newFactor,
+                          'month_mean_square_winter2' => $period,
+                          'mean_square_winter2_error' => $error,
+                      ]
+                    );
+                }
+            }
+        }
+        if ($period<4) {
+            $accessdate=date("Y-m-d");
+            $date_booking = strtotime('+6 month',strtotime($accessdate));
+            $date_booking = date ('Y-m-1', $date_booking);
+            $create = BatchForecastRevision::create(
+            [
+            'forecast_revision' => $product,
+            'RevisionForecastModel' => '10',
+            'period' => $period+2,
+            'booking_revision_forecast' => $date_booking
+            ]);
+        } else {
+            $accessdate=date("Y-m-d");
+            $create = BatchRevisionParameter::create(
+              [
+                  'revision_parameter' => $product,
+                  'revision_parameter_forecast_model' => '10',
+                  'booking_revision_parameter' => $accessdate
+              ]
+            );
+        }
+        if ($create){
+            if ($period<3) DB::table('mean_square_winter2_errors')->where('mean_square_winter2',$product)->where('month_mean_square_winter2',$period+4)->delete();
+            return true;
+        } else return false;
+    }
+
+    public function ProcessParametersWinter4($sales,$period,$product){
+        if ($period>4) $select = 'factor'.($period-4).'_mean_square_winter4';
+        else {
+            $select = 'factor'.($period).'_mean_square_winter4';
+            $query = DB::table('mean_square_winter4_errors')->where('month_mean_square_winter4',$period+4)->select($select)->first();
+            foreach ($query as $t) $factor = $t;
+        }
+        if ($period==1) {
+            $query = DB::table('mean_square_winter4_errors')->where('mean_square_winter4',$product)->where('month_mean_square_winter4','9')->select('level_mean_square_winter4','trend_mean_square_winter4')->first();
+            $index=0;
+            foreach ($query as $t){
+                if ($index==0) $level = $t;
+                if ($index==1) $trend = $t;
+                $index ++;
+            }
+        }
+        $alfa=0;
+        for ($i=1;$i<10;$i++){
+            $alfa = $alfa + 0.1;
+            $beta = 0;
+            for ($k=1;$k<10;$k++){
+                $beta = $beta + 0.1;
+                $gamma=0;
+                for ($z=1;$z<10;$z++){
+                    $gamma = $gamma + 0.1;
+                    if ($period>1) {
+                        $query = DB::table('mean_square_winter4_errors')->where('mean_square_winter4',$product)->where('alfa_mean_square_winter4',$alfa)->where('beta_mean_square_winter4',$beta)->where('gamma_mean_square_winter4',$gamma)->where('month_mean_square_winter4',$period-1)->select('level_mean_square_winter4','trend_mean_square_winter4')->first();
+                        $index=0;
+                        foreach ($query as $t){
+                            if ($index==0) $level = $t;
+                            if ($index==1) $trend = $t;
+                            $index ++;
+                        }
+                    }
+                    if ($period>4) {
+                        $query = DB::table('mean_square_winter4_errors')->where('mean_square_winter4',$product)->where('alfa_mean_square_winter4',$alfa)->where('beta_mean_square_winter4',$beta)->where('gamma_mean_square_winter4',$gamma)->where('month_mean_square_winter4',$period-4)->select($select)->first();
+                        foreach ($query as $t) $factor = $t;
+                    }
+                    $newLevel = $this->CalculateLevel($sales,$level,$trend,$alfa,$factor);
+                    //dd($newLevel);
+                    $newTrend = $this->CalculateTrend($newLevel,$level,$trend,$beta);
+                    //dd($newTrend);
+                    $newFactor = $this->CalculateFactor($sales,$newLevel,$gamma,$factor);
+                    //dd($newFactor);
+                    $forecast = $this->DevelopsForecast(1,3,$newLevel,$newTrend,$factor);
+                    $unit = DB::table('sales_lists')->where('id_sales_list', $product)->leftJoin('inventories', 'inventory_sales_list', '=', 'id_inventory')->leftJoin('productions', 'production_sales_list', '=', 'id_production')->select('unit_production', 'unit_inventory')->first();
+                    if ($unit->unit_production == 'NR' or $unit->unit_inventory == 'NR') $forecast = $this->RoundsUpForecast($forecast);
+                    $total = $forecast[1] * 3;
+                    $error = pow(abs($total - $sales),2); //Calcoliamo il quadrato dell'errore
+                    MeanSquareWinter4Error::create(
+                        [
+                            'mean_square_winter4' => $product,
+                            'alfa_mean_square_winter4' => $alfa,
+                            'beta_mean_square_winter4' => $beta,
+                            'gamma_mean_square_winter4' => $gamma,
+                            'level_mean_square_winter4' => $newLevel,
+                            'trend_mean_square_winter4' => $newTrend,
+                            $select => $newFactor,
+                            'month_mean_square_winter4' => $period,
+                            'mean_square_winter4_error' => $error,
+                        ]
+                    );
+                }
+            }
+        }
+        if ($period<8) {
+            $accessdate=date("Y-m-d");
+            $date_booking = strtotime('+3 month',strtotime($accessdate));
+            $date_booking = date ('Y-m-1', $date_booking);
+            $create = BatchForecastRevision::create(
+                [
+                    'forecast_revision' => $product,
+                    'RevisionForecastModel' => '11',
+                    'period' => $period+2,
+                    'booking_revision_forecast' => $date_booking
+                ]);
+        } else {
+            $accessdate=date("Y-m-d");
+            $create = BatchRevisionParameter::create(
+                [
+                    'revision_parameter' => $product,
+                    'revision_parameter_forecast_model' => '11',
+                    'booking_revision_parameter' => $accessdate
+                ]
+            );
+        }
+        if ($create){
+            if ($period<5) DB::table('mean_square_winter4_errors')->where('mean_square_winter4',$product)->where('month_mean_square_winter4',$period+8)->delete();
+            return true;
+        } else return false;
+    }
 
 
 }
