@@ -231,6 +231,10 @@ ul#menu_a_2livelli li li {
     background-image: url("../img/inventory.jpg");
 }
 
+.expires_img{
+    background-image: url("../img/expires.jpg");
+}
+
 .company_img{
     background-image: url("../img/company.jpg");
 }
@@ -413,6 +417,12 @@ ul#menu_a_2livelli li li {
 
 .col-md-12.jumbotron-inventory {
     background-color: rgba(255,255,255, 0.8);
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.col-md-12.jumbotron-expires {
+    background-color: rgba(235,235,235, 1);
     padding-top: 5px;
     padding-bottom: 5px;
 }

@@ -7,6 +7,7 @@ use App\Http\Requests\Supplies\NewProvider;
 use App\Http\Requests\Supplies\UploadInventory;
 use App\Models\Batch_inventory;
 use App\Models\BatchHistoricalData;
+use App\Models\Expiry;
 use App\Models\Provider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -368,5 +369,68 @@ class SuppliesController extends Controller
         else return true;
     }
 
+    public function ViewExpires(){
+        $acquisti = $this->supplieControl();
+        if ($acquisti->acquisti=='1') {
+            $company_provider = Employee::where('user_employee',Auth::id())->select('company_employee')->first();
+            $expires = DB::table('inventories')->select('*')->where('company_inventory',$company_provider->company_employee)->where('expire_inventory','1')->orderby('cod_inventory')->paginate(env('PAGINATE_ITEM'));
+            $dato = $this->dataProfile();
+            return view('supplies.view-expires',
+                [
+                    'dati' => $dato[0],
+                    'item' =>$expires,
+
+                ]);
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
+        }
+    }
+
+    public function addExpires(){
+
+    }
+
+    public function deleteExpires(){
+        $acquisti = $this->supplieControl();
+        if ($acquisti->acquisti=='1') {
+            $company_provider = Employee::where('user_employee',Auth::id())->select('company_employee')->first();
+            $up1 = DB::table('inventories')->where('company_inventory',$company_provider->company_employee)->update(
+              [
+                  'expire_inventory' => '0'
+              ]
+            );
+            $up2 = DB::table('expiries')->where('company_expiry',$company_provider->company_employee)->delete();
+            if($up1 and $up2) $messaggio = 'Operazione eseguita con successo'; else $messaggio = 'Problemi con il Server riprovare';
+            session()->flash('message', $messaggio);
+            return redirect()->route('expires');
+        } else {
+            session()->flash('message', 'Non puoi effettuare questa operazione');
+            return redirect()->route('employee');
+        }
+    }
+
+    public function upExpires($id){
+
+    }
+
+    public function delExpires($id){
+        $acquisti = $this->supplieControl();
+        if ($acquisti->acquisti=='1') {
+            $company_provider = Employee::where('user_employee', Auth::id())->select('company_employee')->first();
+            $check = DB::table('inventories')->where('id_inventory',$id)->where('company_inventory',$company_provider->company_employee)->first();
+            if (count($check)>0){
+                $del = DB::table('inventories')->where('id_inventory',$id)->update(
+                    [
+                        'expire_inventory' => '0'
+                    ]
+                );
+                return $del;
+            }
+        } else {
+            session()->flash('message', 'Non puoi effettuare questa operazione');
+            return redirect()->route('employee');
+        }
+    }
 
 }

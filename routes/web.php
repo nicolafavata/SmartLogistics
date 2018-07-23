@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\Session;
 |
 */
 
+//PROVA PDF -----------------------------------------------------------------------------------
+Route::get('pdfview',array('as'=>'pdfview','uses'=>'Itemcontroller@pdfview'));
+//PROVA PDF -----------------------------------------------------------------------------------
+
 Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
@@ -86,6 +90,13 @@ Route::group(['middleware'=> 'auth'],
         Route::post('/delete-inventories','SuppliesController@deleteInventories')->name('delete-inventories');
         Route::get('/add-inventories', 'SuppliesController@addInventories')->name('add_item');
         Route::get('/store-inventories', 'SuppliesController@storeInventories')->name('store_item');
+        //Scadenze
+        Route::get('/expires', 'SuppliesController@ViewExpires')->name('expires');
+        Route::post('/delete-expires','SuppliesController@deleteExpires')->name('delete-expires');
+        Route::get('/add-expires', 'SuppliesController@addExpires')->name('add_expires');
+        Route::get('/update-expires/{id}','SuppliesController@upExpires')->where('id', '[0-9]+')->name('update-expires');
+        Route::post('/delete-expires/{id}','SuppliesController@delExpires')->where('id', '[0-9]+')->name('del-expires');
+
 
         //Upload file *.csv
         Route::post('/upload-inventories','SuppliesController@uploadInventories')->name('upload-inventories');

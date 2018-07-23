@@ -22,10 +22,13 @@ use App\Models\MeanSquareWinter2Error;
 use App\Models\MeanSquareWinter4Error;
 use App\Models\SalesList;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use PhpParser\Node\Stmt\If_;
 use function Sodium\increment;
+use Barryvdh\DomPDF\PDF;
+use Barryvdh\DomPDF;
 
 class BatchController extends Controller
 {
@@ -39,6 +42,8 @@ class BatchController extends Controller
             $this->RevisionForecast();
             $this->ProcessParameters();
             $this->RevisionParameters();
+            $this->SharingForecast();
+
             dd('previsione generata');
         } else return view('errors.500');
     }
@@ -205,6 +210,22 @@ class BatchController extends Controller
                                                                   'error12' =>  $forecast->error12,
                                                               ]
                                                             );
+                                                            if ($create){
+                                                                $revision = DB::table('mean_square_holt_errors')->where('mean_square_holt',$id_sale->id_sales_list)->get();
+                                                                foreach ($revision as $t){
+                                                                    MeanSquareHoltError::create(
+                                                                      [
+                                                                          'mean_square_holt' => $id,
+                                                                          'alfa_mean_square_holt' => $t->alfa_mean_square_holt,
+                                                                          'beta_mean_square_holt' => $t->beta_mean_square_holt,
+                                                                          'level_mean_square_holt' => $t->level_mean_square_holt,
+                                                                          'trend_mean_square_holt' => $t->trend_mean_square_holt,
+                                                                          'month_mean_square_holt' => $t->month_mean_square_holt,
+                                                                          'mean_square_holt_error' => $t->mean_square_holt_error
+                                                                      ]
+                                                                    );
+                                                                }
+                                                            }
                                                         }
                                                         if ($id_sale->forecast_model=='11'){
                                                             $forecast = DB::table('forecast_winter4_models')->where('Forecastwinter4Product',$id_sale->id_sales_list)->select('*')->first();
@@ -248,6 +269,27 @@ class BatchController extends Controller
                                                                     'error8' =>  $forecast->error8,
                                                                 ]
                                                             );
+                                                            if ($create){
+                                                                $revision = DB::table('mean_square_winter4_errors')->where('mean_square_winter4',$id_sale->id_sales_list)->get();
+                                                                foreach ($revision as $t){
+                                                                    MeanSquareWinter4Error::create(
+                                                                        [
+                                                                            'mean_square_winter4' => $id,
+                                                                            'alfa_mean_square_winter4' => $t->alfa_mean_square_winter4,
+                                                                            'beta_mean_square_winter4' => $t->beta_mean_square_winter4,
+                                                                            'gamma_mean_square_winter4' => $t->gamma_mean_square_winter4,
+                                                                            'level_mean_square_winter4' => $t->level_mean_square_winter4,
+                                                                            'trend_mean_square_winter4' => $t->trend_mean_square_winter4,
+                                                                            'factor1_mean_square_winter4' => $t->factor1_mean_square_winter4,
+                                                                            'factor2_mean_square_winter4' => $t->factor2_mean_square_winter4,
+                                                                            'factor3_mean_square_winter4' => $t->factor3_mean_square_winter4,
+                                                                            'factor4_mean_square_winter4' => $t->factor4_mean_square_winter4,
+                                                                            'month_mean_square_winter4' => $t->month_mean_square_winter4,
+                                                                            'mean_square_winter4_error' => $t->mean_square_winter4_error
+                                                                        ]
+                                                                    );
+                                                                }
+                                                            }
                                                         }
                                                         if ($id_sale->forecast_model=='10'){
                                                             $forecast = DB::table('forecast_winter2_models')->where('Forecastwinter2Product',$id_sale->id_sales_list)->select('*')->first();
@@ -281,6 +323,25 @@ class BatchController extends Controller
                                                                     'error4' =>  $forecast->error4,
                                                                 ]
                                                             );
+                                                            if ($create){
+                                                                $revision = DB::table('mean_square_winter2_errors')->where('mean_square_winter2',$id_sale->id_sales_list)->get();
+                                                                foreach ($revision as $t){
+                                                                    MeanSquareWinter2Error::create(
+                                                                        [
+                                                                            'mean_square_winter2' => $id,
+                                                                            'alfa_mean_square_winter2' => $t->alfa_mean_square_winter2,
+                                                                            'beta_mean_square_winter2' => $t->beta_mean_square_winter2,
+                                                                            'gamma_mean_square_winter2' => $t->gamma_mean_square_winter2,
+                                                                            'level_mean_square_winter2' => $t->level_mean_square_winter2,
+                                                                            'trend_mean_square_winter2' => $t->trend_mean_square_winter2,
+                                                                            'factor1_mean_square_winter2' => $t->factor1_mean_square_winter2,
+                                                                            'factor2_mean_square_winter2' => $t->factor2_mean_square_winter2,
+                                                                            'month_mean_square_winter2' => $t->month_mean_square_winter2,
+                                                                            'mean_square_winter2_error' => $t->mean_square_winter2_error
+                                                                        ]
+                                                                    );
+                                                                }
+                                                            }
                                                         }
                                                     }
                                                     if ($create){
@@ -2431,6 +2492,22 @@ class BatchController extends Controller
             }
            return true;
         } else return false;
+     }
+
+     public function SharingForecast(){
+         $system_time = date('Y-m-d');
+         $works = DB::table('batch_sharing_forecasts')->where('executed_sharing_forecast','0')->where('booking_sharing_forecast','<=',$system_time)->select('sharing_forecast')->groupBy('sharing_forecast')->get();
+         if($works!=null) {
+                foreach ($works as $work){
+                    $query = DB::table('batch_sharing_forecasts')->where('executed_sharing_forecast','0')->where('booking_sharing_forecast','<=',$system_time)->where('sharing_forecast',$work->sharing_forecast)->select('*')->get();
+                    if ($query){
+                        foreach ($query as $item){
+                            dd($item);
+                        }
+                    }
+
+                }
+         } else return false;
      }
 
 }

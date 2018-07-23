@@ -90,7 +90,7 @@
 								<li><a href="{{route('inventories')}}">Inventario</a></li>
 								<li><a href="{{route('providers')}}">Fornitori</a></li>
 								<li><a href="#">Mapping</a></li>
-								<li><a href="#">Scadenze</a></li>
+								<li><a href="{{route('expires')}}">Scadenze</a></li>
 								<li><a href="#">Configurazione</a></li>
 								<li><a href="#">Genera ordine</a></li>
 								<li><a href="#">Ordini effettuati</a></li>
@@ -170,9 +170,9 @@
 							<div class="row">
 								<div class="col-sm-12">
 									<br />
-									<h3 class="card-text">Università degli studi "Guglielmo Marconi"</h5>
+									<h3 class="card-text">Università degli studi "Guglielmo Marconi"</h3>
 										<div class="card-body">
-											<h4 class="card-title">Facoltà di Scienze e Tecnologie Applicate</br>Corso di Laurea in Ingegneria Informatica</h5>
+											<h4 class="card-title">Facoltà di Scienze e Tecnologie Applicate</br>Corso di Laurea in Ingegneria Informatica</h4>
 												<h3 class="card-title">Sviluppo di un'applicazione web per la logistica nelle Smart City</h3>
 												<p class="card-text">Candidato: Nicola Favata - Matricola: 008272 - Relatore: Luca Regoli</p>
 										</div>
