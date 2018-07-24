@@ -96,14 +96,25 @@ Route::group(['middleware'=> 'auth'],
         Route::get('/add-expires', 'SuppliesController@addExpires')->name('add_expires');
         Route::get('/update-expires/{id}','SuppliesController@upExpires')->where('id', '[0-9]+')->name('update-expires');
         Route::post('/delete-expires/{id}','SuppliesController@delExpires')->where('id', '[0-9]+')->name('del-expires');
+        Route::get('/store-expires', 'SuppliesController@storeExpires')->name('store_expires');
+        //Mapping Inventario-Fornitori
+        Route::get('/mapping-providers/{id}','SuppliesController@mappingProviders')->name('mapping-providers');
+        Route::get('/add-mapping/{id}', 'SuppliesController@addMapping')->name('add_mapping');
+        Route::post('/delete-mapping/{id}','SuppliesController@deleteMapping')->where('id', '[0-9]+')->name('delete-mapping');
+        Route::post('/del-mapping/{id}','SuppliesController@delMapping')->where('id', '[0-9]+')->name('del-mapping');
+        Route::get('/store-mapping/{id}', 'SuppliesController@storeMapping')->name('store_mapping');
+
 
 
         //Upload file *.csv
         Route::post('/upload-inventories','SuppliesController@uploadInventories')->name('upload-inventories');
+        Route::post('/upload-expires','SuppliesController@uploadExpires')->name('upload-expires');
 
         //Download file *.csv
         Route::get('/download-products-import', 'SuppliesController@downloadFile')->name('download-products-import');
         Route::get('/download-historical-data', 'SuppliesController@downloadHistorical')->name('download-historical-data');
+        Route::get('/download-expires-data', 'SuppliesController@downloadExpires')->name('download-expires-import');
+        Route::get('/download-mapping-data', 'SuppliesController@downloadMapping')->name('download-mapping-import');
 
         //Amministratori
         Route::get('/admin', 'BusinessController@index')->name('admin');

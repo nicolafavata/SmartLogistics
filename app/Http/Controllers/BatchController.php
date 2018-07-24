@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\BatchHistoricalDataAnalysis;
+use App\Mail\BatchExpires;
 use App\Mail\BatchHistoricalData;
+use App\Models\BatchExpireDataWork;
 use App\Models\BatchForecastRevision;
 use App\Models\BatchGenerationForecast;
 use App\Models\BatchHistoricalDataWork;
@@ -11,6 +13,7 @@ use App\Mail\BatchInventories;
 use App\Models\BatchProcessParameter;
 use App\Models\BatchRevisionParameter;
 use App\Models\BatchSharingForecast;
+use App\Models\Expiry;
 use App\Models\ForecastExponentialModel;
 use App\Models\ForecastHoltModel;
 use App\Models\ForecastWinter2Model;
@@ -36,6 +39,7 @@ class BatchController extends Controller
         $adminToken = DB::table('users')->where('email','info@smartlogis.it')->select('remember_token')->first();
         if ($adminToken->remember_token==$token){
             $this->CreateInventoryFromFile();
+            $this->CreateExpiresFromFile();
             $this->HistoricalSeriesGeneration();
             $this->HistoricalSeriesAnalysis();
             $this->GenerationForecast();
@@ -400,12 +404,101 @@ class BatchController extends Controller
                 );
                 if ($up) Mail::to($work->email_batch_inventory)->send(new BatchInventories($work->email_batch_inventory,$store,$problem,$data_it));
                 unlink($path);
-            }
+            } return true;
+        } else return false;
+    }
+
+    public function CreateExpiresFromFile(){
+        $works = DB::table('batch_expiries')->where('executed_batch_expiries','0')->select('*')->get();
+        if ($works!=null){
+            foreach ($works as $work) {
+                $path = 'storage/'.$work->url_file_batch_expiries;
+                ini_set('auto_detect_line_endings',TRUE);
+                $csv = fopen($path,'r');
+                $i=1;
+                while ( ($data = fgetcsv($csv) ) !== FALSE ) {
+                    if ($i==1){
+                        $block=0;
+                        if (
+                            $data['0']!=='cod_inventory'
+                            or $data['1']!=='quantity'
+                            or $data['2']!=='expire_date'
+                        ) $block=1;
+                    }
+                    if ($i>1){
+                        if ($block==0){
+                            if (strlen($data['0']>50)) $data['0'] = substr($data['0'],0,50);
+                            $block_cod_inventory = $this->FindCodeExpireAndBlock('inventories','company_inventory',$work->company_batch_expiries,'cod_inventory',$data['0']);
+                            if ($block_cod_inventory==true){
+                                if ($data['1']>0){
+                                    $data_expire = explode("/",$data['2']);
+                                    $date = $data_expire[2].'-'.$data_expire[1].'-'.$data_expire[0];
+                                    if ((preg_match('^[0-9]{4}-[0-1][0-9]-[0-3][0-9]$^',$date))==true)
+                                    {
+                                        BatchExpireDataWork::create(
+                                            [
+                                                'id_batchExpDat' => $work->id_batch_expiries,
+                                                'date' => $date,
+                                                'cod_inventory' => $data['0'],
+                                                'quantity' => $data['1']
+                                            ]
+                                        );
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    $i++;
+                }
+                fclose($csv);
+                ini_set('auto_detect_line_endings',FALSE);
+                $item = DB::table('batch_expire_data_works')->where('id_batchExpDat',$work->id_batch_expiries)->select('cod_inventory')->groupBy('cod_inventory')->get();
+                $problem=0;
+                $create=0;
+                foreach ($item as $t){
+                    $sum = DB::table('batch_expire_data_works')->where('cod_inventory',$t->cod_inventory)->sum('quantity');
+                    $stock = DB::table('inventories')->where('company_inventory',$work->company_batch_expiries)->where('stock',$sum)->where('cod_inventory',$t->cod_inventory)->first();
+                    if (count($stock)==1){
+                        $create++;
+                       DB::table('expiries')->where('company_expiry',$work->company_batch_expiries)->where('inventory_expiry',$stock->id_inventory)->delete();
+                       $store = DB::table('batch_expire_data_works')->where('cod_inventory',$t->cod_inventory)->select('date','quantity')->orderBy('date')->get();
+                       DB::statement('SET FOREIGN_KEY_CHECKS=0');
+                       foreach ($store as $add){
+                           Expiry::create(
+                               [
+                                   'company_expiry' => $work->company_batch_expiries,
+                                   'inventory_expiry' => $stock->id_inventory,
+                                   'stock_expiry' => $add->quantity,
+                                   'date_expiry' => $add->date
+                               ]
+                           );
+                       }
+                    } else $problem++;
+                }
+                DB::table('batch_expire_data_works')->where('id_batchExpDat',$work->id_batch_expiries)->delete();
+                $array = explode("-", $work->created_at);
+                $array[2] = substr($array[2],0,2);
+                $data_it = $array[2]."/".$array[1]."/".$array[0];
+                $up = DB::table('batch_expiries')->where('id_batch_expiries',$work->id_batch_expiries)->update(
+                    [
+                        'executed_batch_expiries' => '1'
+                    ]
+                );
+                if ($up) {
+                    unlink($path);
+                    Mail::to($work->email_batch_expiries)->send(new BatchExpires($work->email_batch_expiries,$problem,$create,$data_it));
+                }
+            } return true;
         } else return false;
     }
 
     public function FindCodeAndBlock($table,$id_company,$company,$id_code,$code){
         $find = DB::table($table)->where($id_company,$company)->where($id_code,$code)->first();
+        if (count($find)>0) return true; else return false;
+    }
+
+    public function FindCodeExpireAndBlock($table,$id_company,$company,$id_code,$code){
+        $find = DB::table($table)->where($id_company,$company)->where($id_code,$code)->where('expire_inventory','1')->first();
         if (count($find)>0) return true; else return false;
     }
 

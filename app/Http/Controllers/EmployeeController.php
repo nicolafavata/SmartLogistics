@@ -879,7 +879,8 @@ class EmployeeController extends Controller
             );
             $messaggio = '';
             if($data['forecast']=='1') $messaggio = $messaggio.'| La previsione sulle vendite ';
-            if($data['ean_mapping']=='1') $messaggio = $messaggio.'| La mappatura dei prodotti tramite codice a barre EAN ';
+            if($data['ean_mapping']=='1')
+                $messaggio = $messaggio.'| La mappatura dei prodotti tramite codice a barre EAN ';
             if($data['availability']=='1') $messaggio = $messaggio.'| La giacenza effettiva delle proprie merci ';
             if($data['b2b']=='1') $messaggio = $messaggio.'| I prezzi riservati ai rivenditori';
             $email = Employee::join('users','id','=','user_employee')->join('company_offices','id_company_office','company_employee')->where('responsabile','1')->where('company_employee',$data['company_supply_received'])->select('name','cognome','email')->get();
@@ -887,7 +888,7 @@ class EmployeeController extends Controller
                 Mail::to($em->email)->send(new InformationSupply($em,$messaggio,$rag));
             }
             if (($data['availability']=='1') or ($data['b2b']=='1')){
-                $find = Provider::where('company_provider',$data['company_supply_received'])->where('provider_supply',$company->company_employee)->select('id_provider')->get();
+                $find = Provider::where('company_provider',$data['company_supply_received'])->where('provider_supply',$company->company_employee)->select('id_provider')->first();
                 if (count($find)==0){
                     $info = CompanyOffice::where('id_company_office',$company->company_employee)->join('comuni','id_comune','=','cap_company')->leftJoin('company_offices_extra_italia','company_office','=','id_company_office')->select('rag_soc_company','partita_iva_company','telefono_company','email_company','indirizzo_company','civico_company','cap','comune','sigla_prov','cap_company_office_extra','city_company_office_extra','state_company_office_extra')->first();
                     if ($info->cap=='8092')
@@ -906,6 +907,12 @@ class EmployeeController extends Controller
                             'email_provider' => $info->email_company,
                             'address_provider' => $adress,
                         ]
+                    );
+                } else {
+                    DB::table('providers')->where('id_provider',$find->id_provider)->update(
+                      [
+                          'supply_provider' => '1',
+                      ]
                     );
                 }
             }

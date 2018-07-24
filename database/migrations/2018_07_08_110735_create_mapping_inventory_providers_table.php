@@ -25,8 +25,7 @@ class CreateMappingInventoryProvidersTable extends Migration
             $table->integer('provider_mapping_provider')->unsigned();
             //Relazione fornitore
             $table->foreign('provider_mapping_provider')->on('providers')->references('id_provider')->onDelete('cascade')->onUpdate('cascade');
-            $table->boolean('ean_mapping_inventory_provider')->default('0');
-            $table->string('cod_mapping_inventory_provider',20)->nullable();
+            $table->string('cod_mapping_inventory_provider',50)->nullable();
             $table->timestamps();
         });
     }

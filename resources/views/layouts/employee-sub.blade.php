@@ -89,7 +89,6 @@
 							<ul>
 								<li><a href="{{route('inventories')}}">Inventario</a></li>
 								<li><a href="{{route('providers')}}">Fornitori</a></li>
-								<li><a href="#">Mapping</a></li>
 								<li><a href="{{route('expires')}}">Scadenze</a></li>
 								<li><a href="#">Configurazione</a></li>
 								<li><a href="#">Genera ordine</a></li>

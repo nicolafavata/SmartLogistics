@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\BatchHistoricalDataAnalysis;
 use App\Http\Requests\Supplies\NewProvider;
+use App\Http\Requests\Supplies\UploadExpires;
 use App\Http\Requests\Supplies\UploadInventory;
+use App\Models\Batch_Expiry;
 use App\Models\Batch_inventory;
 use App\Models\BatchHistoricalData;
 use App\Models\Expiry;
@@ -45,6 +47,7 @@ class SuppliesController extends Controller
             if (count($query)>0){
                 if($query->supply_provider=='0'){
                     $del = Provider::whereKey($id)->delete();
+                    if ($del) DB::table('mapping_inventory_providers')->where('company_mapping_provider',$company_provider->company_employee)->where('provider_mapping_provider',$id)->delete();
                     $messaggio = $del ? 'Il fornitore è stato cancellato' : 'Problemi con il Server riprovare l\'operazione';
                     session()->flash('message', $messaggio);
                     return redirect(route('providers'));
@@ -337,6 +340,11 @@ class SuppliesController extends Controller
         return response()->download($path);
     }
 
+    public function downloadExpires(){
+        $path = "download/expires_data.csv";
+        return response()->download($path);
+    }
+
     public function supplieControl(){
         $controllo = $this->block();
         if ($controllo){
@@ -388,12 +396,23 @@ class SuppliesController extends Controller
     }
 
     public function addExpires(){
-
+        $acquisti = $this->supplieControl();
+        if ($acquisti->acquisti=='1') {
+            $dato = $this->dataProfile();
+            return view('supplies.add-expires',
+                [
+                    'dati' => $dato[0],
+                ]);
+        } else {
+            session()->flash('message', 'Non hai il privilegio per effettuare questa operazione');
+            return redirect()->route('expires');
+        }
     }
 
     public function deleteExpires(){
         $acquisti = $this->supplieControl();
         if ($acquisti->acquisti=='1') {
+            DB::statement('SET FOREIGN_KEY_CHECKS=0');
             $company_provider = Employee::where('user_employee',Auth::id())->select('company_employee')->first();
             $up1 = DB::table('inventories')->where('company_inventory',$company_provider->company_employee)->update(
               [
@@ -411,15 +430,42 @@ class SuppliesController extends Controller
     }
 
     public function upExpires($id){
-
+        $acquisti = $this->supplieControl();
+        if ($acquisti->acquisti=='1') {
+            $dato = $this->dataProfile();
+            $company_provider = Employee::where('user_employee',Auth::id())->select('company_employee')->first();
+            $item = DB::table('inventories')->where('id_inventory',$id)->select('cod_inventory','title_inventory','category_first','category_second','unit_inventory','stock','url_inventory','brand','ean_inventory')->first();
+            if ($item){
+                $expire = DB::table('expiries')->where('company_expiry',$company_provider->company_employee)->where('inventory_expiry',$id)->select('stock_expiry','date_expiry')->get();
+                if (count($expire)>0){
+                    return view('supplies.item-expires',
+                        [
+                            'dati' => $dato[0],
+                            'item' => $item,
+                            'expire' => $expire,
+                        ]);
+                } else {
+                    session()->flash('message', 'Il prodotto non ha date di scadenza memorizzate');
+                    return redirect()->route('expires');
+                }
+            } else{
+                session()->flash('message', 'Non abbiamo trovato il prodotto richiesto');
+                return redirect()->route('expires');
+            }
+        } else {
+            session()->flash('message', 'Non hai il privilegio per effettuare questa operazione');
+            return redirect()->route('expires');
+        }
     }
 
     public function delExpires($id){
         $acquisti = $this->supplieControl();
         if ($acquisti->acquisti=='1') {
+            DB::statement('SET FOREIGN_KEY_CHECKS=0');
             $company_provider = Employee::where('user_employee', Auth::id())->select('company_employee')->first();
-            $check = DB::table('inventories')->where('id_inventory',$id)->where('company_inventory',$company_provider->company_employee)->first();
+            $check = DB::table('inventories')->where('id_inventory',$id)->where('company_inventory',$company_provider->company_employee)->select('*')->first();
             if (count($check)>0){
+                DB::table('expiries')->where('company_expiry',$company_provider->company_employee)->where('inventory_expiry',$id)->delete();
                 $del = DB::table('inventories')->where('id_inventory',$id)->update(
                     [
                         'expire_inventory' => '0'
@@ -433,4 +479,125 @@ class SuppliesController extends Controller
         }
     }
 
+    public function storeExpires(){
+        $acquisti = $this->supplieControl();
+        if ($acquisti->acquisti=='1') {
+            $dato = $this->dataProfile();
+            return view('supplies.store-expires',
+                [
+                    'dati' => $dato[0],
+                ]);
+        } else {
+            session()->flash('message', 'Non hai il privilegio per effettuare questa operazione');
+            return redirect()->route('expires');
+        }
+    }
+
+    public function uploadExpires(UploadExpires $request){
+        $acquisti = $this->supplieControl();
+        if ($acquisti->acquisti=='1') {
+            $file = $request->file('expires');
+            if($file->isValid() and $file->extension()=='txt'){
+                $company_provider = Employee::where('user_employee',Auth::id())->join('company_offices','id_company_office','=','company_employee')->select('company_employee','rag_soc_company','email_company')->first();
+                $filename = 'expires_' . $company_provider->company_employee.'-'.$company_provider->rag_soc_company . '.' . $file->extension();
+                $file->storeAs(env('CSV_EXPIRES'), $filename);
+                $booking = Batch_Expiry::create(
+                            [
+                                'company_batch_expiries' => $company_provider->company_employee,
+                                'url_file_batch_expiries' => env('CSV_EXPIRES') . '/' . $filename,
+                                'email_batch_expiries' => $company_provider->email_company,
+                            ]
+                        );
+                $messaggio = $booking ? 'Prenotazione riuscita riceverai un\'email quando l\'operazione sarà completata' : 'Problemi con il Server riprova di nuovo';
+                session()->flash('message', $messaggio);
+                return redirect()->route('employee');
+            } else {
+                session()->flash('message', 'Non hai caricato un file valido');
+                return redirect()->route('employee');
+            }
+        } else {
+            session()->flash('message', 'Non hai il privilegio per effettuare questa operazione');
+            return redirect()->route('expires');
+        }
+    }
+
+    public function mappingProviders($id){
+        $acquisti = $this->supplieControl();
+        if ($acquisti->acquisti=='1') {
+            $dato = $this->dataProfile();
+            foreach ($dato as $dati) $id_company = $dati->id_company_office;
+            $providers = DB::table('providers')->where('company_provider',$id_company)->where('id_provider',$id)->first();
+            if ($providers->supply_provider==1){
+                $ean = DB::table('supply_chains')->where('company_supply_shares',$id_company)->where('company_supply_received',$providers->provider_supply)->select('ean_mapping')->first();
+                if ($ean->ean_mapping=='1'){
+                    session()->flash('message', 'La mappatura dei prodotti con questo fornitore avviene tramite codice a barre');
+                    return redirect()->route('providers');
+                }
+            }
+            $mapping = DB::table('mapping_inventory_providers')->join('inventories','id_inventory','=','inventory_mapping_provider')->where('company_mapping_provider',$id_company)->where('provider_mapping_provider',$id)->select('cod_inventory','cod_mapping_inventory_provider','url_inventory','title_inventory','price_provider','unit_inventory','id_mapping_inventory_provider')->paginate(env('PAGINATE_ITEM'));
+            return view('supplies.view-mapping',
+                    [
+                        'dati' => $dato[0],
+                        'providers' => $providers,
+                        'mapping' => $mapping,
+
+                    ]);
+        } else {
+            session()->flash('message', 'Non hai il privilegio per effettuare questa operazione');
+            return redirect()->route('expires');
+        }
+    }
+
+    public function addMapping($id){
+        $acquisti = $this->supplieControl();
+        if ($acquisti->acquisti=='1') {
+            $dato = $this->dataProfile();
+            foreach ($dato as $dati) $id_company = $dati->id_company_office;
+            $provider = DB::table('providers')->where('company_provider',$id_company)->where('id_provider',$id)->first();
+            return view('supplies.add-mapping',
+                [
+                    'dati' => $dato[0],
+                    'providers' => $provider
+                ]);
+        } else {
+            session()->flash('message', 'Non hai il privilegio per effettuare questa operazione');
+            return redirect()->route('expires');
+        }
+    }
+
+    public function deleteMapping($id){
+        $acquisti = $this->supplieControl();
+        if ($acquisti->acquisti=='1') {
+            DB::statement('SET FOREIGN_KEY_CHECKS=0');
+            $company_provider = Employee::where('user_employee', Auth::id())->select('company_employee')->first();
+            $del = DB::table('mapping_inventory_providers')->where('company_mapping_provider',$company_provider->company_employee)->where('provider_mapping_provider',$id)->delete();
+            $messaggio = $del ? 'Il mapping è stato eliminato' : 'Problemi con il server riprova';
+            session()->flash('message', $messaggio);
+            return redirect()->route('mapping-providers',$id);
+        } else {
+            session()->flash('message', 'Non puoi effettuare questa operazione');
+            return redirect()->route('employee');
+        }
+    }
+
+    public function delMapping($id){
+        $acquisti = $this->supplieControl();
+        if ($acquisti->acquisti=='1') {
+            DB::statement('SET FOREIGN_KEY_CHECKS=0');
+            $company_provider = Employee::where('user_employee', Auth::id())->select('company_employee')->first();
+            $del = DB::table('mapping_inventory_providers')->where('id_mapping_inventory_provider',$id)->where('company_mapping_provider',$company_provider->company_employee)->delete();
+            return $del;
+        } else {
+            session()->flash('message', 'Non puoi effettuare questa operazione');
+            return redirect()->route('employee');
+        }
+    }
+
+    public function downloadMapping(){
+
+    }
+
+    public function storeMapping($id){
+
+    }
 }
