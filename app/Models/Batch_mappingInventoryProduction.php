@@ -11,6 +11,6 @@ class Batch_mappingInventoryProduction extends Model
     protected $primaryKey = 'id_batch_mapping_production';
 
     protected $fillable = [
-        'id_batch_mapping_production','company_batch_map-pro','url_file_batch_map-pro','email_batch_map-pro','executed_batch_map-pro',
+        'id_batch_mapping_production','company_batch_map_pro','url_file_batch_map_pro','email_batch_map_pro','executed_batch_map_pro',
     ];
 }

@@ -6,8 +6,10 @@ use App\BatchHistoricalDataAnalysis;
 use App\Http\Requests\Supplies\NewProvider;
 use App\Http\Requests\Supplies\UploadExpires;
 use App\Http\Requests\Supplies\UploadInventory;
+use App\Http\Requests\Supplies\UploadMapProvider;
 use App\Models\Batch_Expiry;
 use App\Models\Batch_inventory;
+use App\Models\Batch_MappingInventoryProvider;
 use App\Models\BatchHistoricalData;
 use App\Models\Expiry;
 use App\Models\Provider;
@@ -233,7 +235,6 @@ class SuppliesController extends Controller
     public function storeInventories(){
         $acquisti = $this->supplieControl();
         if ($acquisti->acquisti=='1') {
-
             $dato = $this->dataProfile();
             $company_provider = Employee::where('user_employee',Auth::id())->select('company_employee')->first();
             $block_historical = DB::table('batch_inventories')->where('initial','historical')->where('executed_batch_inventory','1')->where('company_batch_inventory',$company_provider->company_employee)->first();
@@ -266,7 +267,8 @@ class SuppliesController extends Controller
             if($file->isValid() and $file->extension()=='txt'){
                 DB::statement('SET FOREIGN_KEY_CHECKS=0');
                 $company_provider = Employee::where('user_employee',Auth::id())->join('company_offices','id_company_office','=','company_employee')->select('company_employee','rag_soc_company','email_company')->first();
-                $filename = 'inventory_' . $company_provider->company_employee.'-'.$company_provider->rag_soc_company . '.' . $file->extension();
+                $access =  date('d-m-Y g-i-s');
+                $filename = 'inventory_' . $company_provider->company_employee.'-'.$company_provider->rag_soc_company .$access. '.' . $file->extension();
                 if (isset($file_historical) and $request->initial=="historical"){
                     $filename_historical = 'historical_' . $company_provider->company_employee.'-'.$company_provider->rag_soc_company . '.' . $file->extension();
                     $data['initial'] = 'historical';
@@ -342,6 +344,11 @@ class SuppliesController extends Controller
 
     public function downloadExpires(){
         $path = "download/expires_data.csv";
+        return response()->download($path);
+    }
+
+    public function downloadMapping(){
+        $path = "download/mappingprovider.csv";
         return response()->download($path);
     }
 
@@ -499,7 +506,8 @@ class SuppliesController extends Controller
             $file = $request->file('expires');
             if($file->isValid() and $file->extension()=='txt'){
                 $company_provider = Employee::where('user_employee',Auth::id())->join('company_offices','id_company_office','=','company_employee')->select('company_employee','rag_soc_company','email_company')->first();
-                $filename = 'expires_' . $company_provider->company_employee.'-'.$company_provider->rag_soc_company . '.' . $file->extension();
+                $access =  date('d-m-Y g-i-s');
+                $filename = 'expires_' . $company_provider->company_employee.'-'.$company_provider->rag_soc_company.$access. '.' . $file->extension();
                 $file->storeAs(env('CSV_EXPIRES'), $filename);
                 $booking = Batch_Expiry::create(
                             [
@@ -593,11 +601,64 @@ class SuppliesController extends Controller
         }
     }
 
-    public function downloadMapping(){
 
-    }
 
     public function storeMapping($id){
+        $acquisti = $this->supplieControl();
+        if ($acquisti->acquisti=='1') {
+            $dato = $this->dataProfile();
+            foreach ($dato as $dati) $id_company = $dati->id_company_office;
+            $provider = DB::table('providers')->where('company_provider',$id_company)->where('id_provider',$id)->first();
+            if (count($provider)>0){
+                return view('supplies.store-mapping',
+                    [
+                        'dati' => $dato[0],
+                        'providers' => $provider
+                    ]);
+            } else {
+                session()->flash('message', 'Il fornitore non è presente nella tua lista');
+                return redirect()->route('providers');
+            }
+        } else {
+            session()->flash('message', 'Non hai il privilegio per effettuare questa operazione');
+            return redirect()->route('providers');
+        }
+    }
 
+    public function uploadMapping(UploadMapProvider $request){
+        $acquisti = $this->supplieControl();
+        if ($acquisti->acquisti=='1') {
+            $id= $request->id;
+            $company_provider = Employee::where('user_employee',Auth::id())->join('company_offices','id_company_office','=','company_employee')->select('company_employee','rag_soc_company','email_company')->first();
+            $find = DB::table('providers')->where('company_provider',$company_provider->company_employee)->where('id_provider',$id)->first();
+            if (count($find)>0){
+                $file = $request->file('mapping');
+                if($file->isValid() and $file->extension()=='txt'){
+                    $access =  date('d-m-Y g-i-s');
+                    $filename = 'map-provider_' . $company_provider->company_employee.'-'.$company_provider->rag_soc_company .'-'.$find->provider_supply .$access.'.' . $file->extension();
+                    $file->storeAs(env('CSV_MAP_PROVIDER'), $filename);
+                    $booking = Batch_MappingInventoryProvider::create(
+                        [
+                            'company_batchMapPro' => $company_provider->company_employee,
+                            'url_file_batch_mapping_provider' => env('CSV_MAP_PROVIDER') . '/' . $filename,
+                            'email_batch_mapping_provider' => $company_provider->email_company,
+                            'provider_batchMapPro' => $id
+                        ]
+                    );
+                    $messaggio = $booking ? 'Prenotazione riuscita riceverai un\'email quando l\'operazione sarà completata' : 'Problemi con il Server riprova di nuovo';
+                    session()->flash('message', $messaggio);
+                    return redirect()->route('providers');
+                } else {
+                    session()->flash('message', 'Non hai caricato un file valido');
+                    return redirect()->route('store_mapping',$id);
+                }
+            } else {
+                session()->flash('message', 'Il fornitore non è presente nella tua lista');
+                return redirect()->route('providers');
+            }
+        } else {
+            session()->flash('message', 'Non hai il privilegio per effettuare questa operazione');
+            return redirect()->route('providers');
+        }
     }
 }

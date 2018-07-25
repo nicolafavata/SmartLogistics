@@ -78,7 +78,8 @@ Route::group(['middleware'=> 'auth'],
         Route::get('/block-supply-chain','EmployeeController@ViewBlockSupply')->name('block-supply');
         Route::post('/sblock-company/{id}','EmployeeController@sblockRequest')->where('id', '[0-9]+')->name('sblock-company');
 
-        //Responsabile acquisti
+        //-------------------------------------------------------------------------------------------------------------------------------------------------------------
+        //R E S P O N S A B I L E   A C Q U I S T I
         Route::get('/providers', 'SuppliesController@ViewProvider')->name('providers');
         Route::post('/delete-provider/{id}','SuppliesController@deleteProvider')->where('id', '[0-9]+')->name('delete-provider');
         Route::get('/create-provider','SuppliesController@addProvider')->name('add_provider');
@@ -104,17 +105,27 @@ Route::group(['middleware'=> 'auth'],
         Route::post('/del-mapping/{id}','SuppliesController@delMapping')->where('id', '[0-9]+')->name('del-mapping');
         Route::get('/store-mapping/{id}', 'SuppliesController@storeMapping')->name('store_mapping');
 
+        //-------------------------------------------------------------------------------------------------------------------------------------------------------------
+        //R E S P O N S A B I L E   P R O D U Z I O N E
+        Route::get('/production', 'ProductionController@ViewProduction')->name('production');
+        Route::get('/add-production', 'ProductionController@addProduction')->name('add_production');
+        Route::post('/delete-production','ProductionController@deleteProduction')->name('delete-production');
+        Route::post('/delete-production/{id}','ProductionController@delProduction')->where('id', '[0-9]+')->name('del-production');
+        Route::get('/store-production', 'ProductionController@storeProduction')->name('store_production');
 
 
         //Upload file *.csv
         Route::post('/upload-inventories','SuppliesController@uploadInventories')->name('upload-inventories');
         Route::post('/upload-expires','SuppliesController@uploadExpires')->name('upload-expires');
+        Route::post('/upload-mapping/{id}','SuppliesController@uploadMapping')->where('id', '[0-9]+')->name('upload-mapping');
+        Route::post('/upload-production','ProductionController@uploadProduction')->name('upload-production');
 
         //Download file *.csv
         Route::get('/download-products-import', 'SuppliesController@downloadFile')->name('download-products-import');
         Route::get('/download-historical-data', 'SuppliesController@downloadHistorical')->name('download-historical-data');
         Route::get('/download-expires-data', 'SuppliesController@downloadExpires')->name('download-expires-import');
-        Route::get('/download-mapping-data', 'SuppliesController@downloadMapping')->name('download-mapping-import');
+        Route::get('/download-mapping-import', 'SuppliesController@downloadMapping')->name('download-mapping-import');
+        Route::get('/download-production-import', 'ProductionController@downloadProduction')->name('download-production-import');
 
         //Amministratori
         Route::get('/admin', 'BusinessController@index')->name('admin');

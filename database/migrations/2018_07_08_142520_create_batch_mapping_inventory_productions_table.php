@@ -15,11 +15,11 @@ class CreateBatchMappingInventoryProductionsTable extends Migration
     {
         Schema::create('batch_mapping_productions', function (Blueprint $table) {
             $table->increments('id_batch_mapping_production');
-            $table->integer('company_batch_map-pro')->unsigned();
-            $table->foreign('company_batch_map-pro')->on('company_offices')->references('id_company_office')->onDelete('cascade')->onUpdate('cascade');
-            $table->string('url_file_batch_map-pro',128)->default('0');
-            $table->string('email_batch_map-pro')->nullable();
-            $table->boolean('executed_batch_map-pro')->default('0');
+            $table->integer('company_batch_map_pro')->unsigned();
+            $table->foreign('company_batch_map_pro')->on('company_offices')->references('id_company_office')->onDelete('cascade')->onUpdate('cascade');
+            $table->string('url_file_batch_map_pro',128)->default('0');
+            $table->string('email_batch_map_pro')->nullable();
+            $table->boolean('executed_batch_map_pro')->default('0');
             $table->timestamps();
         });
     }

@@ -10,6 +10,6 @@ class Batch_production extends Model
     protected $primaryKey = 'id_batch_production';
 
     protected $fillable = [
-        'id_batch_production','company_batch_production','url_file_batch_production','email_batch_production','executed_batch_production',
+        'id_batch_production','company_batch_production','url_file_batch_production','email_batch_production','initial','executed_batch_production',
     ];
 }

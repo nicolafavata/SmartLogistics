@@ -18,7 +18,7 @@
         @endif
         @if($dati->produzione=='1')
             <div class="row">
-                <a class="fa fa-building" href="#"><span>&nbsp;La nostra produzione</span></a>
+                <a class="fa fa-building" href="{{route('production')}}"><span>&nbsp;La nostra produzione</span></a>
                 <a class="fa fa-cog" href="#"><span>&nbsp;Associazione acquisti-produzione</span></a>
             </div>
         @endif

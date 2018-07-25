@@ -227,6 +227,10 @@ ul#menu_a_2livelli li li {
     background-image: url("../img/supplies.jpg");
 }
 
+.production_img{
+    background-image: url("../img/production.jpg");
+}
+
 .inventories_img{
     background-image: url("../img/inventory.jpg");
 }

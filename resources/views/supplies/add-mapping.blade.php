@@ -18,67 +18,30 @@
                         @endcomponent
                     @endif
                 </div>
-                <div class="col-md-12 jumbotron-expires border">
+                <div class="col-md-12 jumbotron-inventory border">
                     <div class="row">
                         <div class="col-md-8 text-center">
                             <h3 class="font-weight-bold text-dark shadow">Specifica il mapping con {{$providers->rag_soc_provider}}</h3>
                         </div>
                         <div class="col-md-4 text-right">
                             <div class="icon-list">
-                                <a href="{{route('store_mapping',$providers->id_provider)}}" title="Aggiungi le scadenze dei prodotti"><i class="text-success shadow fa fa-forward fa-3x"></i></a>
+                                <a href="{{route('store_mapping',$providers->id_provider)}}" title="Aggiungi il mapping dei prodotti con {{$providers->rag_soc_provider}}"><i class="text-success shadow fa fa-forward fa-3x"></i></a>
                             </div>
                         </div>
                         <div class="col-md-12 text-left">
                             <div class="card pre-scrollable">
                                 <div class="card-body">
-                                    <p>Per caricare le scadenze dei prodotti puoi scaricare e compilare il file <a href="{{route('download-mapping-import')}}" class="text-success">expires_data.csv</a>.</p>
+                                    <p>Per caricare il mapping dei prodotti puoi scaricare e compilare il file <a href="{{route('download-mapping-import')}}" class="text-success">mapping_provider.csv</a>.</p>
 
                                         <p>Compila il file con le informazioni dei tuoi prodotti. Le colonne sono tutte obbligatorie: </p>
                                         <ul>
-                                            <li><span class="fucsia">cod_inventory</span>:&#09Il codice del prodotto deve essere presente nell'inventario ed essere univoco.</li>
-                                            <li><span class="fucsia">quantity</span>:&#09Il quantitativo con una determinata scadenza.</li>
-                                            <li><span class="fucsia">expire_date</span>:&#09La data di scadenza della quantità specificata per quel determinato prodotto.</li>
+                                            <li><span class="fucsia">cod_inventory</span>:&#09Il codice del tuo prodotto presente nell'inventario.</li>
+                                            <li><span class="fucsia">title_inventory</span>:&#09Il titolo descrittivo del prodotto (si può lasciare anche vuoto non è obbligatorio compilarlo). </li>
+                                            <li><span class="fucsia">cod_provider</span>:&#09Il codice del prodotto utilizzato dal fornitore.</li>
+                                            <li><span class="fucsia">price_provider</span>:&#09Il prezzo d'acquisto applicato dal tuo fornitore.</li>
+                                            <li><span class="fucsia">first</span>:&#09Per indicare se relativamente al prodotto il fornitore è principale o secondario. <br />Può assumere due valori <span class="text-success font-weight-bold">'1'-></span>Fornitore principale, oppure <span class="text-success font-weight-bold">'0'-></span>Fornitore secondario.</li>
                                         </ul>
-                                    <p>Ad esempio per il codice prodotto: 7 - Se la giacenza è di 20 prodotti dovrò specificare nel file: </p>
-                                    <table class="table border">
-                                        <thead>
-                                            <tr>
-                                                <td>
-                                                    cod_inventory
-                                                </td>
-                                                <td>
-                                                    quantity
-                                                </td>
-                                                <td>
-                                                    expire_date
-                                                </td>
-                                            </tr>
-                                        </thead>
-                                        <tr>
-                                            <td>
-                                                7
-                                            </td>
-                                            <td>
-                                                10
-                                            </td>
-                                            <td>
-                                                12/10/2018
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                7
-                                            </td>
-                                            <td>
-                                                10
-                                            </td>
-                                            <td>
-                                                12/01/2019
-                                            </td>
-                                        </tr>
-                                    </table>
-
-                                </div>
+                                    </div>
                             </div>
                         </div>
                         <hr>
@@ -86,7 +49,7 @@
                             <div class="card pre-scrollable">
                                 <div class="card-body">
                                 <ul>
-                                    <li><span class="fucsia">ATTENZIONE!!!</span>:&#09Ogni codice inserito nel file deve rispettare il vincolo sulla quantità. Il totale delle quantità inserite deve essere uguale al totale della giacenza in magazzino, altrimenti l'operazione non va a buon fine. Ogni codice processato sostituisce le informazioni attuali, con quelle presenti nel file.</li>
+                                    <li><span class="fucsia">ATTENZIONE!!!</span>:&#09Se un codice viene inserito due volte nel file, il sistema memorizza l'ultimo processato.</li>
                                     <li>Una volta caricato il file, viene prenotata un operazione di caricamento massivo che sarà processata entro 24 ore.</li>
                                     <li>Puoi prenotare anche più operazioni nella stessa giornata.</li>
                                 </ul>
@@ -99,7 +62,7 @@
                                 </div>
                                 <div class="col-md-4 text-right">
                                     <div class="icon-list">
-                                        <a href="{{route('store_mapping',$providers->id_provider)}}" title="Aggiungi le scadenze dei prodotti"><i class="text-success shadow fa fa-forward fa-3x"></i></a>
+                                        <a href="{{route('store_mapping',$providers->id_provider)}}" title="Aggiungi il mapping dei prodotti con {{$providers->rag_soc_provider}}"><i class="text-success shadow fa fa-forward fa-3x"></i></a>
                                     </div>
                                 </div>
                             </div>
