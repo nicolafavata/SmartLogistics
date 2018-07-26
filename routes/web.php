@@ -112,6 +112,9 @@ Route::group(['middleware'=> 'auth'],
         Route::post('/delete-production','ProductionController@deleteProduction')->name('delete-production');
         Route::post('/delete-production/{id}','ProductionController@delProduction')->where('id', '[0-9]+')->name('del-production');
         Route::get('/store-production', 'ProductionController@storeProduction')->name('store_production');
+        Route::get('/mapping-production', 'ProductionController@ViewMappingProduction')->name('mapping-production');
+        Route::post('/delete-mapping-production/{id}','ProductionController@deleteMapping')->where('id', '[0-9]+')->name('delete-mapping-production');
+        Route::get('/add-mapping-production', 'ProductionController@addMapping')->name('add-mapping-production');
 
 
         //Upload file *.csv

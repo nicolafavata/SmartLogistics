@@ -101,7 +101,7 @@
 							<span>Produzione</span>
 							<ul>
 								<li><a href="{{route('production')}}">Catalogo</a></li>
-								<li><a href="#">Associazione acquisti produzione</a></li>
+								<li><a href="{{route('mapping-production')}}">Associazione acquisti produzione</a></li>
 							</ul>
 						</li>
 							@endif

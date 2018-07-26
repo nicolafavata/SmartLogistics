@@ -49,7 +49,7 @@
                     </a>
                     <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                         <a class="dropdown-item" href="{{route('production')}}">Catalogo</a>
-                        <a class="dropdown-item" href="#">Associazione acquisti-produzione</a>
+                        <a class="dropdown-item" href="{{route('mapping-production')}}">Associazione acquisti-produzione</a>
                     </div>
                 </li>
                 <li class="nav-item active">
