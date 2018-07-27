@@ -115,6 +115,16 @@ Route::group(['middleware'=> 'auth'],
         Route::get('/mapping-production', 'ProductionController@ViewMappingProduction')->name('mapping-production');
         Route::post('/delete-mapping-production/{id}','ProductionController@deleteMapping')->where('id', '[0-9]+')->name('delete-mapping-production');
         Route::get('/add-mapping-production', 'ProductionController@addMapping')->name('add-mapping-production');
+        Route::post('/del-mapping-production/{id}','ProductionController@delMappingProduction')->where('id', '[0-9]+')->name('del-mapping-production');
+        Route::get('/store-mapping-production', 'ProductionController@storeMappingProduction')->name('store-mapping-production');
+
+        //-------------------------------------------------------------------------------------------------------------------------------------------------------------
+        //R E S P O N S A B I L E   V E N D I T E
+        Route::get('/catalogue','SalesController@ViewCatalogue')->name('catalogue');
+        Route::get('/add-catalogue', 'SalesController@addCatalogue')->name('add_catalogue');
+        Route::post('/setting-sales/{id}','SalesController@Setting')->where('id', '[0-9]+')->name('setting-sales');
+        Route::post('/del-catalogue/{id}','SuppliesController@delCatalogue')->where('id', '[0-9]+')->name('del-catalogue');
+        Route::post('/delete-catalogue/{id}','SuppliesController@deleteCatalogue')->where('id', '[0-9]+')->name('delete-catalogue');
 
 
         //Upload file *.csv
@@ -122,6 +132,7 @@ Route::group(['middleware'=> 'auth'],
         Route::post('/upload-expires','SuppliesController@uploadExpires')->name('upload-expires');
         Route::post('/upload-mapping/{id}','SuppliesController@uploadMapping')->where('id', '[0-9]+')->name('upload-mapping');
         Route::post('/upload-production','ProductionController@uploadProduction')->name('upload-production');
+        Route::post('/upload-mapping-production','ProductionController@uploadMappingProduction')->name('upload-mapping-production');
 
         //Download file *.csv
         Route::get('/download-products-import', 'SuppliesController@downloadFile')->name('download-products-import');
@@ -129,6 +140,7 @@ Route::group(['middleware'=> 'auth'],
         Route::get('/download-expires-data', 'SuppliesController@downloadExpires')->name('download-expires-import');
         Route::get('/download-mapping-import', 'SuppliesController@downloadMapping')->name('download-mapping-import');
         Route::get('/download-production-import', 'ProductionController@downloadProduction')->name('download-production-import');
+        Route::get('/download-mapping-production-import', 'ProductionController@downloadMappingProduction')->name('download-mapping-production-import');
 
         //Amministratori
         Route::get('/admin', 'BusinessController@index')->name('admin');

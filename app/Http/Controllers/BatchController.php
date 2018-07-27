@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\BatchHistoricalDataAnalysis;
 use App\Mail\BatchExpires;
 use App\Mail\BatchHistoricalData;
+use App\Mail\BatchMappingProduction;
 use App\Mail\BatchMappingProvider;
 use App\Models\BatchExpireDataWork;
 use App\Models\BatchForecastRevision;
@@ -21,6 +22,7 @@ use App\Models\ForecastWinter2Model;
 use App\Models\ForecastWinter4Model;
 use App\Models\HistoricalData;
 use App\Models\Inventory;
+use App\Models\MappingInventoryProduction;
 use App\Models\MappingInventoryProvider;
 use App\Models\MeanSquareHoltError;
 use App\Models\MeanSquareWinter2Error;
@@ -46,6 +48,7 @@ class BatchController extends Controller
             $this->CreateExpiresFromFile();
             $this->CreateMappingInventoryProviders();
             $this->CreateProductionFromFile();
+            $this->CreateMappingInventoryProduction();
             $this->HistoricalSeriesGeneration();
             $this->HistoricalSeriesAnalysis();
             $this->GenerationForecast();
@@ -933,9 +936,80 @@ class BatchController extends Controller
         } else return false;
     }
 
+    public function CreateMappingInventoryProduction(){
+        $works = DB::table('batch_mapping_productions')->where('executed_batch_map_pro','0')->select('*')->get();
+        if ($works!=null) {
+            foreach ($works as $work) {
+                $path = 'storage/'.$work->url_file_batch_map_pro;
+                ini_set('auto_detect_line_endings',TRUE);
+                $csv = fopen($path,'r');
+                $i=1;
+                $problem=0;
+                $store=0;
+                while ( ($data = fgetcsv($csv) ) !== FALSE ) {
+                    if ($i==1){
+                        $block=0;
+                        if(
+                            $data['0']!=='cod_production'
+                            or $data['1']!='title_production'
+                            or $data['2']!='cod_inventory'
+                            or $data['3']!='title_inventory'
+                            or $data['4']!='quantity'
+                        )   $block=1;
+                    }
+                    if ($i>1){
+                        if ($block==0){
+                            if (strlen($data['0']>50)) $data['0'] = substr($data['0'],0,50);
+                            $block_cod_production = $this->FindCodeAndBlock('productions','company_production',$work->company_batch_map_pro,'cod_production',$data['0']);
+                            if($block_cod_production){
+                                $id_production = $this->FindCode('productions','company_production',$work->company_batch_map_pro,'cod_production',$data['0'],'id_production');
+                                if (strlen($data['2']>50)) $data['2'] = substr($data['2'],0,50);
+                                $block_cod_inventory = $this->FindCodeAndBlock('inventories','company_inventory',$work->company_batch_map_pro,'cod_inventory',$data['2']);
+                                if($block_cod_inventory){
+                                    $id_inventory = $this->FindCode('inventories','company_inventory',$work->company_batch_map_pro,'cod_inventory',$data['2'],'id_inventory');
+                                    $array = explode(",", $data['4']);
+                                    if (!isset($array[1])) $array[1]='0';
+                                    $data['4'] = $array[0].'.'.$array[1];
+                                    DB::statement('SET FOREIGN_KEY_CHECKS=0');
+                                    $create = MappingInventoryProduction::create(
+                                      [
+                                          'company_mapping_production' => $work->company_batch_map_pro,
+                                          'inventory_map_pro' => $id_inventory,
+                                          'production_map_pro' => $id_production,
+                                          'quantity_mapping_production' => $data['4'],
+                                      ]
+                                    );
+                                    if ($create) $store++; else $problem++;
+                                } else $problem++;
+                            } else $problem++;
+                        } else $problem++;
+                    } $i++;
+                }
+                fclose($csv);
+                ini_set('auto_detect_line_endings',FALSE);
+                $array = explode("-", $work->created_at);
+                $array[2] = substr($array[2],0,2);
+                $data_it = $array[2]."/".$array[1]."/".$array[0];
+                $up = DB::table('batch_mapping_productions')->where('id_batch_mapping_production',$work->id_batch_mapping_production)->update(
+                    [
+                        'executed_batch_map_pro' => '1'
+                    ]
+                );
+                if ($up) Mail::to($work->email_batch_map_pro)->send(new BatchMappingProduction($work->email_batch_map_pro,$store,$problem,$data_it));
+                unlink($path);
+            } return true;
+        } else return false;
+    }
+
     public function FindCodeAndBlock($table,$id_company,$company,$id_code,$code){
         $find = DB::table($table)->where($id_company,$company)->where($id_code,$code)->first();
         if (count($find)>0) return true; else return false;
+    }
+
+    public function FindCode($table,$id_company,$company,$id_code,$code,$id){
+        $find = DB::table($table)->where($id_company,$company)->where($id_code,$code)->select($id)->first();
+        foreach ($find as $value) $id_find = $value;
+        return $id_find;
     }
 
     public function FindCodeExpireAndBlock($table,$id_company,$company,$id_code,$code){

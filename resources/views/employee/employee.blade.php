@@ -24,7 +24,7 @@
         @endif
         @if($dati->vendite=='1')
             <div class="row">
-                <a class="fa fa-book" href="#"><span>&nbsp;Catalogo vendite</span></a>
+                <a class="fa fa-book" href="{{route('catalogue')}}"><span>&nbsp;Catalogo vendite</span></a>
                 <a class="fa fa-money" href="#"><span>&nbsp;Le nostre vendite</span></a>
             </div>
         @endif

@@ -21,7 +21,7 @@
                 <div class="col-md-12 jumbotron-expires border">
                     <div class="row">
                         <div class="col-md-8 text-left">
-                            <h4 class="font-weight-bold text-dark shadow">La tua produzione</h4>
+                            <h4 class="font-weight-bold text-dark shadow">Le composizioni della produzione</h4>
                         </div>
                         <div class="col-md-4 text-right">
                             @if(count($item)>0)
@@ -113,11 +113,11 @@
                                         {{$found->quantity}}
                                     </td>
                                     <td class="font-weight-bold text-center text-dark text-center"><a  data-toggle="modal" data-target="#composer{{$found->id_production}}"  title="Visualizza la composizione di {{$found->title_production}}"><i class="text-success fa fa-eye fa-3x"></i></a></td>
-                                    <td class="font-weight-bold text-center text-dark text-center"><a  href="{{route('del-production',$found->id_production)}}" title="Elimina la produzione di {{$found->title_production}}"><i class="fucsia fa fa-trash-o fa-3x"></i></a></td>
+                                    <td class="font-weight-bold text-center text-dark text-center"><a  href="{{route('del-mapping-production',$found->id_production)}}" title="Elimina la produzione di {{$found->title_production}}"><i class="fucsia fa fa-trash-o fa-3x"></i></a></td>
                                 </tr>
 
                             @empty
-                                <h6 class="fucsia font-weight-bold shadow">Non hai caricato la tua produzione</h6>
+                                <h6 class="fucsia font-weight-bold shadow">Non hai caricato le composizioni della produzione</h6>
                             @endforelse
                             <div class="row">
                                 <div class="col-md-8 push-2">

@@ -109,7 +109,7 @@
 						<li>
 							<span>Vendite</span>
 							<ul>
-								<li><a href="#">Catalogo</a></li>
+								<li><a href="{{route('catalogue')}}">Catalogo</a></li>
 								<li><a href="#">Listini</a></li>
 								<li><a href="#">Vendite effettuate</a></li>
 								<li><a href="#">Monitoraggio delle scadenze</a></li>

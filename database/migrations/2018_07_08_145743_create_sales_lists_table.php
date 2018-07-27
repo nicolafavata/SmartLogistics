@@ -24,7 +24,7 @@ class CreateSalesListsTable extends Migration
             $table->boolean('visible_sales_list')->default('0');
             $table->double('price_user')->default('0');
             $table->double('price_b2b')->default('0');
-            $table->double('quantity_sales_list')->default('0');
+            $table->boolean('quantity_sales_list')->default('0');
             $table->string('forecast_model',2)->nullable();
             $table->timestamps();
         });

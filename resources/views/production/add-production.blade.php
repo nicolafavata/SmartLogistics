@@ -31,7 +31,7 @@
                         <div class="col-md-12 text-left">
                             <div class="card pre-scrollable">
                                 <div class="card-body">
-                                    <p>Per caricare nuovi prodotti nell'inventario puoi scaricare e compilare il file <a href="{{route('download-production-import')}}" class="text-success">production_import.csv</a>.</p>
+                                    <p>Per caricare nuovi prodotti nel catalogo di produzione puoi scaricare e compilare il file <a href="{{route('download-production-import')}}" class="text-success">production_import.csv</a>.</p>
 
                                         <p>Compila il file con le informazioni dei tuoi prodotti. Le colonne obbligatorie sono: </p>
                                         <ul>
