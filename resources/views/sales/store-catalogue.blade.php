@@ -1,4 +1,4 @@
-@extends('layouts.productions')
+@extends('layouts.sales')
 @section('title','Smartlogis per le aziende')
 @section('content')
     <div class="carousel-inner production_img">
@@ -21,16 +21,16 @@
                 <div class="col-md-12 jumbotron-inventory border">
                     <div class="row">
                         <div class="col-md-12 text-left">
-                            <h4 class="font-weight-bold text-dark shadow capitalize">Aggiungi le composizioni della produzione</h4>
+                            <h4 class="font-weight-bold text-dark shadow capitalize">Aggiungi i listini di vendita e la visibilità</h4>
                         </div>
-                        <form onsubmit="showloader()" method="POST" action="{{ route('upload-mapping-production') }}" enctype="multipart/form-data">
+                        <form onsubmit="showloader()" method="POST" action="{{ route('upload-catalogue') }}" enctype="multipart/form-data">
                                 {{ csrf_field() }}
                                 <div class="col-md-12 text-center">
                                     <div class="card">
                                         <div class="card-body">
-                                            <h3 class="verde font-weight-bold shadow">Carica il file delle composizioni di produzione</h3>
+                                            <h3 class="verde font-weight-bold shadow">Carica il file con i listini</h3>
                                         </div>
-                                        <input type="file"  name="production" id="production" class="form-control">
+                                        <input type="file"  name="catalogue" id="catalogue" class="form-control">
                                     </div>
                                 </div>
                                 <hr>

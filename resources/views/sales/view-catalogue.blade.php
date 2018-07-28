@@ -26,11 +26,11 @@
                         <div class="col-md-4 text-right">
                             @if(count($item)>0)
                                 <div class="icon-list">
-                                    <a type="button" data-toggle="modal" data-target="#exampleModal{{$dati->id_company_office}}" title="Elimina l'intero listino vendite"><i class="text-danger shadow fa fa-minus-square-o fa-4x"></i></a>
+                                    <a type="button" data-toggle="modal" data-target="#exampleModal{{$dati->id_company_office}}" title="Elimina l'intero listino di vendita"><i class="text-danger shadow fa fa-minus-square-o fa-4x"></i></a>
                                 </div>
                             @endif
                                 <div class="icon-list">
-                                    <a href="{{route('add_catalogue')}}" title="Aggiungi file con il listino vendite"><i class="text-success shadow fa fa-plus-square-o fa-4x"></i></a>
+                                    <a href="{{route('add_catalogue')}}" title="Aggiungi file con il listino prezzi di vendita"><i class="text-success shadow fa fa-plus-square-o fa-4x"></i></a>
                                 </div>
                         </div>
                     </div>
@@ -59,8 +59,9 @@
                     <div class="modal fade bd-example-modal-sm hide" id="deleteModal{{$dati->id_company_office}}" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
                         <div class="modal-dialog modal-sm">
                             <div class="modal-content form-check">
-                                <form onsubmit="showloader()" method="POST" action="{{ route('delete-catalogue', $dati->id_company_office)}}">
+                                <form onsubmit="showloader()" method="POST" action="{{ route('delete-catalogue')}}">
                                     {{ csrf_field() }}
+                                    <input type="hidden" name="_method" value="PATCH">
                                     {{'Premi conferma per proseguire con l\'eliminazione'}}
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Annulla</button>
@@ -125,8 +126,8 @@
                                         <td class="font-weight-bold text-center text-dark text-uppercase" >{{$found->unit_inventory}}</td>
                                         <td class="font-weight-bold text-dark">{{$found->imposta_desc_inventory}}</td>
                                     @endif
-                                        <td id={{'prezzo'.$found->id_sales_list}} class="font-weight-bold text-dark text-center">{{$found->price_user." €"}}</td>
-                                        <td class="font-weight-bold text-center text-dark text-center"><a  href="{{route('del-catalogue',$found->id_sales_list)}}" title="Elimina il prezzo del prodotto"><i class="fucsia fa fa-trash-o fa-3x"></i></a></td>
+                                        <td class="font-weight-bold text-dark text-center">{{$found->price_user." €"}}</td>
+                                        <td class="font-weight-bold text-center text-dark text-center"><a  href="{{route('del-catalogue',$found->id_sales_list)}}" title="Azzera i prezzi del prodotto"><i class="fucsia fa fa-trash-o fa-3x"></i></a></td>
                                 </tr>
                             @empty
                                 <h6 class="fucsia font-weight-bold shadow">Non hai caricato prodotti</h6>
@@ -157,13 +158,14 @@
                                             <div class="modal-body">
                                                 <form onsubmit="showloader()" method="POST" action="{{ route('setting-sales',$found->id_sales_list) }}">
                                                     {{ csrf_field() }}
+                                                    <input type="hidden" name="_method" value="PATCH">
                                                     <div class="form-check">
                                                         <label class="grigio">Prezzo utente finale:&nbsp</label>
-                                                        <input required placeholder="Prezzo utente" type="number" name="price_user" id="price_user" class="font-weight-bold" value="{{old('price_user',$found->price_user)}}" >
+                                                        <input required placeholder="Prezzo utente" type="number" step="0.01" name="price_user" id="price_user" class="font-weight-bold" value="{{old('price_user',$found->price_user)}}" >
                                                     </div><br />
                                                     <div class="form-check">
                                                         <label class="grigio">Prezzo b2b:&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</label>
-                                                        <input required placeholder="Prezzo b2b" type="number" name="price_b2b" id="price_b2b" class="font-weight-bold" value="{{old('price_b2b',$found->price_b2b)}}" >
+                                                        <input required placeholder="Prezzo b2b" type="number" step="0.01" name="price_b2b" id="price_b2b" class="font-weight-bold" value="{{old('price_b2b',$found->price_b2b)}}" >
                                                     </div><br />
                                                     <div class="form-check">
                                                         <label class="fucsia">Seleziona la visibilità</label>
@@ -176,9 +178,9 @@
                                                     </div><br />
                                                     <br />
                                                     <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
                                                         <button type="submit" class="btn btn-primary pulsante" id="submit_profile">
-                                                            Conferma
+                                                            Aggiorna
                                                         </button>
                                                     </div>
                                                 </form>
@@ -209,7 +211,10 @@
                 $('table').on('click','i.fa-trash-o', function (ele) {
                     ele.preventDefault();
                     var urldel = ele.target.parentNode;
-                    var tr = ele.target.parentNode.parentNode.parentNode;
+                  //  alert(urldel);
+                    var tr = ele.target.parentNode.parentNode.parentNode.cells[6];
+
+                //    alert(tr);
                     $.ajax(
                         {
                             url: urldel,
@@ -218,9 +223,9 @@
                             complete : function (resp) {
                                 console.log(resp);
                                 if (resp.responseText == 1){
-                                tr.parentNode.removeChild(tr);
+                                  tr.innerHTML = "0 €";
                                 } else {
-                                    alert('Problemi con il Server, riprovare tra un pò')
+                                    alert('Il prodotto è già azzerato')
                                 }
                             }
                         }

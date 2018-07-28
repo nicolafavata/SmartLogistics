@@ -1,4 +1,4 @@
-@extends('layouts.supplies')
+@extends('layouts.productions')
 @section('title','Smartlogis per le aziende')
 @section('content')
     <div class="carousel-inner production_img">
