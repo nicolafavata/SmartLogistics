@@ -39,7 +39,7 @@ class SettingConfig extends FormRequest
             'transmission_config' => 'required|boolean',
             'level_config' => 'nullable|boolean',
             'execute_config' => 'required|boolean',
-            'days_number_config' => 'nullable|numeric|between:1,365',
+            'days_number_config' => 'nullable|numeric|between:0,365',
         ];
     }
 

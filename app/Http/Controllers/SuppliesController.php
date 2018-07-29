@@ -11,6 +11,7 @@ use App\Http\Requests\Supplies\UploadMapProvider;
 use App\Models\Batch_Expiry;
 use App\Models\Batch_inventory;
 use App\Models\Batch_MappingInventoryProvider;
+use App\Models\Batch_monitoringOrder;
 use App\Models\BatchHistoricalData;
 use App\Models\ConfigOrder;
 use App\Models\Expiry;
@@ -724,7 +725,7 @@ class SuppliesController extends Controller
                                     $data['days_number_config']=0;
                                     $data['execute_config']='0';
                                 }
-                                $up = DB::table('config_orders')->where('company_config_order',$company_provider->company_employee)->where('provider_config_order',$data['provider_config_order'])->update(
+                                DB::table('config_orders')->where('company_config_order',$company_provider->company_employee)->where('provider_config_order',$data['provider_config_order'])->update(
                                   [
                                       'lead_time_config' => $data['lead_time_config'],
                                       'window_first_config' => $data['window_first_config'],
@@ -738,14 +739,51 @@ class SuppliesController extends Controller
                                       'level_config' => $data['level_config'],
                                   ]
                                 );
-                                if ($up){
-                                    $batch = DB::table('batch_monitoring_orders')->where('company_batchMonOrder',$company_provider->company_employee)->where('configOrder_batchMonOrder',$check->id_config_order)->first();
-                                    if ($batch==null){
-
+                                $date_booking = date('Y-m-d');
+                                $limit_day = date('Y-m-'.$data['window_last_config']);
+                                $first_day = date('Y-m-'.$data['window_first_config']);
+                                if ($data['level_config']=='0'){
+                                    if ($data['days_number_config']>0) {
+                                        $date_booking = strtotime('+'.$data['days_number_config'].' days',strtotime($date_booking));
+                                        $limit_day = date('Y-m-'.$data['window_last_config'],$date_booking);
+                                        $first_day = date('Y-m-'.$data['window_first_config'],$date_booking);
+                                        $date_booking = date ('Y-m-d', $date_booking);
                                     } else {
-                                        
+                                        $date_booking = strtotime('+1 month',strtotime($date_booking));
+                                        $limit_day = date('Y-m-'.$data['window_last_config'],$date_booking);
+                                        $first_day = date('Y-m-'.$data['window_first_config'],$date_booking);
+                                        $date_booking = date ('Y-m-01', $date_booking);
                                     }
                                 }
+                                if ($data['transmission_config']=='1'){
+                                    $email_provider = DB::table('providers')->where('id_provider',$data['provider_config_order'])->select('email_provider')->first();
+                                    $email = $email_provider->email_provider;
+                                } else $email = null;
+                                $batch = DB::table('batch_monitoring_orders')->where('company_batchMonOrder',$company_provider->company_employee)->where('configOrder_batchMonOrder',$check->id_config_order)->update(
+                                        [
+                                            'level_control' => $data['level_config'],
+                                            'date_batch_monitoring_order' => $date_booking,
+                                            'limit_day_batch_monitoring_order' => $limit_day,
+                                            'first_day_batch_monitoring_order' => $first_day,
+                                            'email_monitoring_order' => $email
+                                        ]
+                                    );
+                                if($batch==null){
+                                    $batch = Batch_monitoringOrder::create(
+                                        [
+                                            'company_batchMonOrder' => $company_provider->company_employee,
+                                            'configOrder_batchMonOrder' => $check->id_config_order,
+                                            'level_control' => $data['level_config'],
+                                            'date_batch_monitoring_order' => $date_booking,
+                                            'limit_day_batch_monitoring_order' => $limit_day,
+                                            'first_day_batch_monitoring_order' => $first_day,
+                                            'email_monitoring_order' => $email
+                                        ]
+                                    );
+                                }
+                                $messaggio = $batch ? 'Le informazioni sono state aggiornate' : 'Problemi con il Server riprovare più tardi';
+                                session()->flash('message', $messaggio);
+                                return redirect()->route('config-order',$data['provider_config_order']);
                             }
                         }
                     }

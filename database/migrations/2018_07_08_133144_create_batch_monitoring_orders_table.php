@@ -20,8 +20,8 @@ class CreateBatchMonitoringOrdersTable extends Migration
             $table->integer('configOrder_batchMonOrder')->unsigned();
             $table->foreign('configOrder_batchMonOrder')->on('config_orders')->references('id_config_order')->onDelete('cascade')->onUpdate('cascade');
             $table->dateTime('limit_day_batch_monitoring_order')->nullable();
-            $table->integer('window_first_batch_monitoring_order')->default(0);
-            $table->integer('windows_last_batch_monitoring_order')->default(0);
+            $table->dateTime('first_day_batch_monitoring_order 	')->nullable();
+            $table->boolean('level_control')->default(0);
             $table->dateTime('date_batch_monitoring_order')->nullable();
             $table->timestamps();
         });

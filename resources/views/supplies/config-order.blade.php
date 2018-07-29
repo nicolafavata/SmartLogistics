@@ -4,7 +4,7 @@
 @section('content_header')
     <div class="content">
         <h2>{{$provider->rag_soc_provider}}</h2>
-        <h3 class="grigio">{{$provider->address_provider.' - tel. '.$provider->telefono_provider.' - email. '.$provider->email_provider}}</h3>
+        <h3 class="grigio">{{$provider->address_provider}}<br />{{'tel. '.$provider->telefono_provider.' - email. '.$provider->email_provider}}</h3>
     </div>
 @endsection
 
@@ -28,7 +28,7 @@
                                         </div>
                                      <hr>
                                         <div class="form-check">
-                                             <label class="verde">Finestra mensile di esecuzione ordini</label><br />
+                                             <label class="verde">Finestra mensile di esecuzione dell'ordine</label><br />
                                             <table>
                                                 <tr>
                                                     <td>
@@ -101,10 +101,10 @@
                                          <input type="checkbox"  name="level_config" value="1"
                                                 @if($config->level_config=='1') checked @endif
                                          ><label class="grigio">La disponibilità è al di sotto del livello di sicurezza</label><br />
-                                         <input type="radio"  name="execute_config" value="0" checked onclick="NoShowId('days_number')"><label class="grigio" >&nbsp;Dall'inizio del mese</label><br />
+                                         <input type="radio"  name="execute_config" value="0" checked onclick="NoShowId('days_number')"><label class="grigio" >&nbsp;Ordina dall'inizio del mese</label><br />
                                          <input type="radio"  name="execute_config" value="1"
                                                 @if($config->execute_config=="1") checked @endif
-                                         onclick="showId('days_number')"><label class="grigio">&nbsp;Specifica numero di giorni</label>
+                                         onclick="showId('days_number')"><label class="grigio">&nbsp;Specifica il numero di giorni fra un ordine e il successivo</label>
                                          <div id="days_number" @if($config->days_number_config==0)
                                              hidden
                                             @endif>
