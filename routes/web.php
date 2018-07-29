@@ -104,6 +104,9 @@ Route::group(['middleware'=> 'auth'],
         Route::post('/delete-mapping/{id}','SuppliesController@deleteMapping')->where('id', '[0-9]+')->name('delete-mapping');
         Route::post('/del-mapping/{id}','SuppliesController@delMapping')->where('id', '[0-9]+')->name('del-mapping');
         Route::get('/store-mapping/{id}', 'SuppliesController@storeMapping')->name('store_mapping');
+        //Configurazione ordini
+        Route::get('/config-order/{id}','SuppliesController@configOrder')->where('id', '[0-9]+')->name('config-order');
+        Route::patch('/setting-config-order','SuppliesController@settingConfig')->name('setting-config-order');
 
         //-------------------------------------------------------------------------------------------------------------------------------------------------------------
         //R E S P O N S A B I L E   P R O D U Z I O N E
@@ -126,6 +129,8 @@ Route::group(['middleware'=> 'auth'],
         Route::post('/del-catalogue/{id}','SalesController@delCatalogue')->where('id', '[0-9]+')->name('del-catalogue');
         Route::patch('/delete-catalogue','SalesController@deleteCatalogue')->where('id', '[0-9]+')->name('delete-catalogue');
         Route::get('/store-catalogue', 'SalesController@storeCatalogue')->name('store-catalogue');
+        Route::get('/expire-monitor','SalesController@expireMonitor')->name('expire-monitor');
+        Route::patch('/setting-expire','SalesController@settingExpire')->name('setting-expire');
 
         //Upload file *.csv
         Route::post('/upload-inventories','SuppliesController@uploadInventories')->name('upload-inventories');

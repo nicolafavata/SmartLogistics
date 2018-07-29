@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\BatchHistoricalDataAnalysis;
 use App\Http\Requests\Supplies\NewProvider;
+use App\Http\Requests\Supplies\SettingConfig;
 use App\Http\Requests\Supplies\UploadExpires;
 use App\Http\Requests\Supplies\UploadInventory;
 use App\Http\Requests\Supplies\UploadMapProvider;
@@ -11,6 +12,7 @@ use App\Models\Batch_Expiry;
 use App\Models\Batch_inventory;
 use App\Models\Batch_MappingInventoryProvider;
 use App\Models\BatchHistoricalData;
+use App\Models\ConfigOrder;
 use App\Models\Expiry;
 use App\Models\Provider;
 use Illuminate\Http\Request;
@@ -659,6 +661,101 @@ class SuppliesController extends Controller
         } else {
             session()->flash('message', 'Non hai il privilegio per effettuare questa operazione');
             return redirect()->route('providers');
+        }
+    }
+
+    public function configOrder($id){
+        $acquisti = $this->supplieControl();
+        if ($acquisti->acquisti=='1') {
+            $company_provider = Employee::where('user_employee',Auth::id())->join('company_offices','id_company_office','=','company_employee')->select('company_employee','rag_soc_company','email_company')->first();
+            $check = DB::table('providers')->where('id_provider',$id)->where('company_provider',$company_provider->company_employee)->select('*')->first();
+            if($check){
+                $config = DB::table('config_orders')->where('company_config_order',$company_provider->company_employee)->where('provider_config_order',$id)->first();
+                if($config==null){
+                 $config = ConfigOrder::create(
+                   [
+                       'company_config_order' => $company_provider->company_employee,
+                       'provider_config_order' => $id
+                   ]
+                 );
+                }
+                $provider = Provider::select('*')->where('company_provider',$company_provider->company_employee)->where('id_provider',$id)->select('rag_soc_provider','address_provider','telefono_provider','email_provider')->first();
+                $data = $this->dataProfile();
+                $employee = Employee::join('users','user_employee','=','id')->where('id',Auth::id())->select('matricola','tel_employee','cell_employee','employees.created_at','email','id_employee')->first();
+                return view('supplies.config-order',[
+                    'dati' => $data[0],
+                    'employee' => $employee,
+                    'provider' => $provider,
+                    'config' => $config
+                ]);
+            } else {
+                session()->flash('message', 'Questo fornitore non è presente nella tua lista');
+                return redirect()->route('providers');
+            }
+        } else {
+            session()->flash('message', 'Non hai il privilegio per effettuare questa operazione');
+            return redirect()->route('providers');
+        }
+    }
+
+    public function settingConfig(SettingConfig $request){
+        $acquisti = $this->supplieControl();
+        if ($acquisti->acquisti=='1') {
+                $data = $request->all();
+                $company_provider = Employee::where('user_employee',Auth::id())->join('company_offices','id_company_office','=','company_employee')->select('company_employee')->first();
+                $check = DB::table('config_orders')->where('company_config_order',$company_provider->company_employee)->where('provider_config_order',$data['provider_config_order'])->first();
+                if($check){
+                    if ($data['window_first_config']>$data['window_last_config']) {
+                        session()->flash('message', 'Controlla la finestra temporale di esecuzione dell\'ordine');
+                        return redirect()->route('config-order',$data['provider_config_order']);
+                    } else {
+                        if ($data['min_import_config']>$data['max_import_config']){
+                            session()->flash('message', 'L\'importo minimo dell\'ordine non può superare l\'importo massimo');
+                            return redirect()->route('config-order',$data['provider_config_order']);
+                        } else {
+                            if ($data['max_import_config']==0){
+                                session()->flash('message', 'L\'importo massimo dell\'ordine non può essere uguale a zero');
+                                return redirect()->route('config-order',$data['provider_config_order']);
+                            } else {
+                                if (!isset($data['level_config'])) $data['level_config']="0";
+                                if ($data['mapping_config']!=="10" or $data['mapping_config']!=="11") $data['mapping_config']="01";
+                                if ($data['transmission_config']!=="1") $data['transmission_config'] = "0";
+                                if ($data['execute_config']!=="1"){
+                                    $data['days_number_config']=0;
+                                    $data['execute_config']='0';
+                                }
+                                $up = DB::table('config_orders')->where('company_config_order',$company_provider->company_employee)->where('provider_config_order',$data['provider_config_order'])->update(
+                                  [
+                                      'lead_time_config' => $data['lead_time_config'],
+                                      'window_first_config' => $data['window_first_config'],
+                                      'window_last_config' => $data['window_last_config'],
+                                      'min_import_config' => $data['min_import_config'],
+                                      'max_import_config' => $data['max_import_config'],
+                                      'mapping_config' => $data['mapping_config'],
+                                      'transmission_config' => $data['transmission_config'],
+                                      'execute_config' => $data['execute_config'],
+                                      'days_number_config' => $data['days_number_config'],
+                                      'level_config' => $data['level_config'],
+                                  ]
+                                );
+                                if ($up){
+                                    $batch = DB::table('batch_monitoring_orders')->where('company_batchMonOrder',$company_provider->company_employee)->where('configOrder_batchMonOrder',$check->id_config_order)->first();
+                                    if ($batch==null){
+
+                                    } else {
+                                        
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    session()->flash('message', 'Il fornitore non appartiene alla tua lista');
+                    return redirect()->route('config-order',$data['provider_config_order']);
+                }
+        } else {
+            session()->flash('message', 'Non puoi effettuare questa operazione');
+            return redirect()->route('employee');
         }
     }
 }

@@ -51,7 +51,7 @@
                         <a class="dropdown-item" href="{{route('catalogue')}}">Catalogo</a>
                         <a class="dropdown-item" href="{{route('mapping-production')}}">Listini di vendita</a>
                         <a class="dropdown-item" href="#">Vendite effettuate</a>
-                        <a class="dropdown-item" href="#">Monitoraggio delle scadenze</a>
+                        <a class="dropdown-item" href="{{route('expire-monitor')}}">Monitoraggio delle scadenze</a>
                     </div>
                 </li>
                 <li class="nav-item active">

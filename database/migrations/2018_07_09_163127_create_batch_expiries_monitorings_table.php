@@ -15,7 +15,7 @@ class CreateBatchExpiriesMonitoringsTable extends Migration
     {
         Schema::create('batch_expiries_monitorings', function (Blueprint $table) {
             $table->increments('id_batchExpMon');
-            $table->integer('days_batchExpMon');
+            $table->integer('days_batchExpMon')->default(0);
             $table->integer('employee_batchExpMon')->unsigned();
             $table->foreign('employee_batchExpMon')->on('employees')->references('id_employee')->onDelete('cascade')->onUpdate('cascade');
             $table->boolean('warned')->default('0');

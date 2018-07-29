@@ -90,8 +90,7 @@
 								<li><a href="{{route('inventories')}}">Inventario</a></li>
 								<li><a href="{{route('providers')}}">Fornitori</a></li>
 								<li><a href="{{route('expires')}}">Scadenze</a></li>
-								<li><a href="#">Configurazione</a></li>
-								<li><a href="#">Genera ordine</a></li>
+								<li><a href="{{route('providers')}}">Genera ordine</a></li>
 								<li><a href="#">Ordini effettuati</a></li>
 							</ul>
 						</li>
@@ -112,7 +111,7 @@
 								<li><a href="{{route('catalogue')}}">Catalogo</a></li>
 								<li><a href="{{route('add_catalogue')}}">Listini</a></li>
 								<li><a href="#">Vendite effettuate</a></li>
-								<li><a href="#">Monitoraggio delle scadenze</a></li>
+								<li><a href="{{route('expire-monitor')}}">Monitoraggio delle scadenze</a></li>
 							</ul>
 						</li>
 						<li>

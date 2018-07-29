@@ -67,6 +67,14 @@ function hiddenfile(el1,el2) {
     document.getElementById(el2).hidden = true;
 }
 
+function showId(el) {
+    document.getElementById(el).hidden = false;
+}
+
+function NoShowId(el) {
+    document.getElementById(el).hidden = true;
+}
+
 function undisabled(el1, el2) {
     if(el1.checked) {
         document.getElementById(el2).disabled = false;
@@ -86,8 +94,44 @@ function showloader() {
 
 }
 
+function updateText(id,val) {
+    document.getElementById(id).value=val;
+    if (id=='lead_time_config') {
+        if (document.getElementById('text-lead-time').value>365)  document.getElementById('text-lead-time').value=365;
+    }
+    if (id=='days_number_config') {
+        if (document.getElementById('days_number_config').value>365)  document.getElementById('days_number_config').value=365;
+    }
 
+    if (id=='window_last_config') {
+        if (document.getElementById('text-window_last_config').value>31)  document.getElementById('text-window_last_config').value=31;
+    }
+    if (id=='window_first_config') {
+        if (document.getElementById('text-window_first_config').value>31)  document.getElementById('text-window_first_config').value=31;
+    }
+    if ((id=='window_last_config') || (id=='text-window_last_config')) {
+        if ((parseFloat(document.getElementById('text-window_first_config').value)>parseFloat(document.getElementById(id).value)) || parseFloat((document.getElementById('window_first_config').value>document.getElementById(id).value))){
+            document.getElementById('text-window_first_config').value=document.getElementById(id).value;
+            document.getElementById('window_first_config').value=document.getElementById(id).value;
+        }
+    }
+    if ((id=='window_first_config') || (id=='text-window_first_config')) {
+        if ((parseFloat(document.getElementById('text-window_last_config').value)<parseFloat(document.getElementById(id).value)) || parseFloat((document.getElementById('window_last_config').value)<parseFloat(document.getElementById(id).value))){
+            document.getElementById('text-window_last_config').value=document.getElementById(id).value;
+            document.getElementById('window_last_config').value=document.getElementById(id).value;
+        }
+    }
+}
 
+function checkImportMax(id,val) {
+    var imp = document.getElementById(id).value;
+    if (parseFloat(val)>parseFloat(imp))  document.getElementById(id).value=val;
+ }
+
+function checkImportMin(id,val) {
+    var imp = document.getElementById(id).value;
+    if (parseFloat(val)<parseFloat(imp))  document.getElementById(id).value=val;
+}
 
 
 function showid(master,show,litteral) {

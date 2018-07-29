@@ -11,8 +11,8 @@
         @endif
         @if($dati->acquisti=='1')
             <div class="row">
-                <a class="fa fa-cog" href="#"><span>&nbsp;Configurazione ordini d'acquisto</span></a>
-                <a class="fa fa-cog" href="#"><span>&nbsp;Elabora ordine d'acquisto</span></a>
+                <a class="fa fa-cog" href="{{route('providers')}}"><span>&nbsp;Configurazione ordini d'acquisto</span></a>
+                <a class="fa fa-cog" href="#"><span>&nbsp;Ordini d'acquisto</span></a>
             </div>
 
         @endif

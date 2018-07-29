@@ -12,6 +12,7 @@ use App\Models\BatchForecastRevision;
 use App\Models\BatchGenerationForecast;
 use App\Models\BatchHistoricalDataWork;
 use App\Mail\BatchInventories;
+use App\Mail\BatchSalesList;
 use App\Models\BatchProcessParameter;
 use App\Models\BatchRevisionParameter;
 use App\Models\BatchSharingForecast;
@@ -49,6 +50,7 @@ class BatchController extends Controller
             $this->CreateMappingInventoryProviders();
             $this->CreateProductionFromFile();
             $this->CreateMappingInventoryProduction();
+            $this->CreateSalesListFromFile();
             $this->HistoricalSeriesGeneration();
             $this->HistoricalSeriesAnalysis();
             $this->GenerationForecast();
@@ -127,6 +129,7 @@ class BatchController extends Controller
                                         $array = explode(",", $data['10']);
                                         $data['10'] = $array[0].'.'.$array[1];
                                         $array = explode(",", $data['9']);
+                                        $data['9'] = $array[0].'.'.$array[1];
                                         if($data['16']!='0') $data['16']='1';
                                         if($data['17']!='0') $data['17']='1';
                                         $create = Inventory::create(
@@ -997,6 +1000,84 @@ class BatchController extends Controller
                 );
                 if ($up) Mail::to($work->email_batch_map_pro)->send(new BatchMappingProduction($work->email_batch_map_pro,$store,$problem,$data_it));
                 unlink($path);
+            } return true;
+        } else return false;
+    }
+
+    public function CreateSalesListFromFile(){
+        $works = DB::table('batch_sales_lists')->where('executed_batch_sales_list','0')->select('*')->get();
+        if ($works!=null) {
+            foreach ($works as $work) {
+                $path = 'storage/'.$work->url_file_batch_sales_list;
+                ini_set('auto_detect_line_endings',TRUE);
+                $csv = fopen($path,'r');
+                $i=1;
+                $problem=0;
+                $store=0;
+                while ( ($data = fgetcsv($csv) ) !== FALSE ) {
+                    if ($i==1){
+                        $block=0;
+                        if(
+                            $data['0']!=='cod_product'
+                            or $data['1']!='title_product'
+                            or $data['2']!='price_user'
+                            or $data['3']!='price_b2b'
+                            or $data['4']!='price_visible'
+                            or $data['5']!='quantity_visible'
+                        )   $block=1;
+                    }
+                    if ($i>1){
+                        if ($block==0){
+                            if (strlen($data['0']>50)) $data['0'] = substr($data['0'],0,50);
+                            $block_cod_production = $this->FindCodeAndBlock('productions','company_production',$work->company_batch_sales_list,'cod_production',$data['0']);
+                            if($block_cod_production){
+                                $id_product = $this->FindCode('productions','company_production',$work->company_batch_sales_list,'cod_production',$data['0'],'id_production');
+                                $field = "production_sales_list";
+                            } else {
+                                $block_cod_inventory = $this->FindCodeAndBlock('inventories','company_inventory',$work->company_batch_sales_list,'cod_inventory',$data['0']);
+                                if($block_cod_inventory){
+                                    $id_product = $this->FindCode('inventories','company_inventory',$work->company_batch_sales_list,'cod_inventory',$data['0'],'id_inventory');
+                                    $field = "inventory_sales_list";
+                                }
+                            }
+                            if (isset($id_product)){
+                                if($data['4']!=='1') $data['4']='0';
+                                if($data['5']!=='1') $data['5']='0';
+                                $array = explode("€ ", $data['2']);
+                                $str = $array[1];
+                                $array = explode(',',$str);
+                                $price_user = $array[0].'.'.$array[1];
+                                $array = explode("€ ", $data['3']);
+                                $str = $array[1];
+                                $array = explode(',',$str);
+                                $price_b2b = $array[0].'.'.$array[1];
+                                DB::statement('SET FOREIGN_KEY_CHECKS=0');
+                                $update = DB::table('sales_lists')->where('company_sales_list',$work->company_batch_sales_list)->where($field,$id_product)->update(
+                                  [
+                                      'visible_sales_list' => $data['4'],
+                                      'quantity_sales_list' => $data['5'],
+                                      'price_user' => $price_user,
+                                      'price_b2b' => $price_b2b,
+                                  ]
+                                );
+                                if ($update) $store++; else $problem++;
+                            } else $problem++;
+                        } else $problem++;
+                    } $i++;
+                }
+                fclose($csv);
+                ini_set('auto_detect_line_endings',FALSE);
+                $array = explode("-", $work->created_at);
+                $array[2] = substr($array[2],0,2);
+                $data_it = $array[2]."/".$array[1]."/".$array[0];
+                $up = DB::table('batch_sales_lists')->where('id_batch_sales_list',$work->id_batch_sales_list)->update(
+                    [
+                        'executed_batch_sales_list' => '1'
+                    ]
+                );
+                if ($up) Mail::to($work->email_batch_sales_list)->send(new BatchSalesList($work->email_batch_sales_list,$store,$problem,$data_it));
+               // unlink($path);
+                dd('fatto');
             } return true;
         } else return false;
     }

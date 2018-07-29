@@ -65,6 +65,12 @@
                                     </form>
                                 </div>
                                 <div class="col-md-2 text-left">
+                                    <form onsubmit="showloader()" method="GET" action="{{ route('config-order', $found->id_provider) }}">
+                                        {{ csrf_field() }}
+                                        <button type="submit" class="btn btn-primary2">Configurazione</button>
+                                    </form>
+                                </div>
+                                <div class="col-md-2 text-left">
                                     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal{{$found->id_provider}}">
                                         Elimina
                                     </button>

@@ -243,6 +243,10 @@ ul#menu_a_2livelli li li {
     background-image: url("../img/expires.jpg");
 }
 
+.ship_img {
+    background-image: url("../img/ship.jpg");
+}
+
 .company_img{
     background-image: url("../img/company.jpg");
 }
