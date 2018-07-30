@@ -12,9 +12,6 @@ use Illuminate\Support\Facades\Session;
 |
 */
 
-//PROVA PDF -----------------------------------------------------------------------------------
-Route::get('pdfview',array('as'=>'pdfview','uses'=>'Itemcontroller@pdfview'));
-//PROVA PDF -----------------------------------------------------------------------------------
 
 Route::get('/', function () {
     return view('welcome');

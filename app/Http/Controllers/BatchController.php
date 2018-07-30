@@ -39,6 +39,7 @@ use function Sodium\increment;
 use Barryvdh\DomPDF\PDF;
 use Barryvdh\DomPDF;
 use App\Mail\BatchProduction;
+use App\Mail\MonitoringExpire;
 
 class BatchController extends Controller
 {
@@ -58,9 +59,42 @@ class BatchController extends Controller
             $this->ProcessParameters();
             $this->RevisionParameters();
             $this->SharingForecast();
+            $this->ExpiresMonitorings();
 
             dd('previsione generata');
         } else return view('errors.500');
+    }
+
+    public function ExpiresMonitorings(){
+        $works = DB::table('batch_expiries_monitorings')->where('warned','1')->select('*')->get();
+        if ($works!= null){
+            foreach ($works as $work){
+                $company = DB::table('employees')->where('id_employee',$work->employee_batchExpMon)->join('users','user_employee','=','id')->select('company_employee','name')->first();
+                $system = date('Y-m-d');
+                $system = strtotime('+'.$work->days_batchExpMon.' days',strtotime($system));
+                $system = date ('Y-m-d', $system);
+                $find = DB::table('expiries')->where('company_expiry',$company->company_employee)->where('date_expiry','<=',$system)->join('inventories','id_inventory','=','inventory_expiry')->select('inventory_expiry','stock_expiry','date_expiry','cod_inventory','title_inventory','unit_inventory','stock','committed')->orderBy('cod_inventory','date_expiry')->get();
+                $filename = $this->pdfview($find,'expire','MonitoringExpire',$company->company_employee);
+                Mail::to($work->email_batch_exp_mon)->send(new MonitoringExpire($filename,$company->name));
+                $del = unlink($filename);
+                if ($del){
+                    DB::table('batch_expiries_monitorings')->where('id_batchExpMon',$work->id_batchExpMon)->update(
+                        [
+                            'warned' => '0'
+                        ]
+                    );
+                }
+            } return true;
+        } return false;
+    }
+
+    public function pdfview($data,$view,$controller,$id_company){
+        $rag_soc = DB::table('company_offices')->where('id_company_office',$id_company)->select('rag_soc_company')->first();
+        $pdf = App::make('dompdf.wrapper');
+        $pdf->loadView('pdf.'.$controller, ['items' => $data, 'rag_soc' => $rag_soc->rag_soc_company]);
+        $filename = $view .'-'. $rag_soc->rag_soc_company .'.pdf';
+        $pdf->save($filename);
+        return $filename;
     }
 
     public function CreateInventoryFromFile(){
@@ -3187,13 +3221,43 @@ class BatchController extends Controller
          $works = DB::table('batch_sharing_forecasts')->where('executed_sharing_forecast','0')->where('booking_sharing_forecast','<=',$system_time)->select('sharing_forecast')->groupBy('sharing_forecast')->get();
          if($works!=null) {
                 foreach ($works as $work){
-                    $query = DB::table('batch_sharing_forecasts')->where('executed_sharing_forecast','0')->where('booking_sharing_forecast','<=',$system_time)->where('sharing_forecast',$work->sharing_forecast)->select('*')->get();
-                    if ($query){
-                        foreach ($query as $item){
-                        }
+                    $supply = DB::table('supply_chains')->where('id_supply_chain',$work->sharing_forecast)->join('company_offices','id_company_office','=','company_supply_shares')->join('company_offices as company2','company2.id_company_office','=','company_supply_received')->join('comuni as comune2','comune2.id_comune','=','company2.cap_company')->join('comuni as comune1','comune1.id_comune','=','company_offices.cap_company')->leftjoin('company_offices_extra_italia as extra1','extra1.company_office','=','company_supply_shares')->leftjoin('company_offices_extra_italia as extra2','extra2.company_office','=','company_supply_received')->select('id_supply_chain','company_supply_shares','company_supply_received','ean_mapping','company_offices.rag_soc_company as rag_soc_shares','company_offices.indirizzo_company as indirizzo_shares','company_offices.civico_company as civico_shares','comune1.cap as cap_shares','comune1.comune as comune_shares','comune1.sigla_prov as sigla_prov_shares','extra1.cap_company_office_extra as cap_extra1','extra1.city_company_office_extra as city_extra1','extra1.state_company_office_extra as state_extra1','company_offices.email_company as email_shares','company2.rag_soc_company as rag_soc_received','company2.indirizzo_company as indirizzo_received','company2.civico_company as civico_received','comune2.cap as cap_received','comune2.comune as comune_received','comune2.sigla_prov as sigla_prov_received','company2.email_company as email_received','extra2.cap_company_office_extra as cap_extra2','extra2.city_company_office_extra as city_extra2','extra2.state_company_office_extra as state_extra2')->first();
+                 //   dd($supply);
+                //    dd($supply->company_supply_shares);
+                    $id_provider = DB::table('providers')->where('company_provider',$supply->company_supply_shares)->where('provider_supply',$supply->company_supply_received)->select('id_provider')->first();
+                 //   dd($id_provider);
+                    $product = DB::table('batch_sharing_forecasts')->where('executed_sharing_forecast','0')->where('booking_sharing_forecast','<=',$system_time)->where('sharing_forecast',$work->sharing_forecast)->where('sharing_forecast_model','01')->join('sales_lists','id_sales_list','=','sharing_product')->join('inventories','id_inventory','=','inventory_sales_list')->join('forecast_holt_models','ForecastHoltProduct','=','sharing_product')->join('mapping_inventory_providers','inventory_mapping_provider','=','id_inventory')->where('provider_mapping_provider',$id_provider->id_provider)->select('id_sales_list','initial_month_sales','cod_inventory','title_inventory','unit_inventory','stock','committed','arriving','ean_inventory','cod_mapping_inventory_provider','forecast_holt_models.1 as p1','forecast_holt_models.2 as p2','forecast_holt_models.3 as p3','forecast_holt_models.4 as p4','forecast_holt_models.5 as p5','forecast_holt_models.6 as p6','forecast_holt_models.7 as p7','forecast_holt_models.8 as p8','forecast_holt_models.9 as p9','forecast_holt_models.10 as p10','forecast_holt_models.11 as p11','forecast_holt_models.12 as p12')->get();
+                    if(count($product)==0) {
+                        $product[0]= array(
+                            'id_sales_list' => null,
+                            'initial_month_sales' => null,
+                            'cod_inventory' => null,
+                            'title_inventory' => null,
+                            'unit_inventory' => null,
+                            'stock' => null,
+                            'committed' => null,
+                            'arriving' => null,
+                            'ean_inventory' => null,
+                            'cod_mapping_inventory_provider' => null,
+                            'p1' => null,
+                            'p2' => null,
+                            'p3' => null,
+                            'p4' => null,
+                            'p5' => null,
+                            'p6' => null,
+                            'p7' => null,
+                            'p8' => null,
+                            'p9' => null,
+                            'p10' => null,
+                            'p11' => null,
+                            'p12' => null,
+                        );
+                     //   dd($product);
                     }
+                    dd($product);
+                    $product = collect($product);
 
-                }
+                } return true;
          } else return false;
      }
 
