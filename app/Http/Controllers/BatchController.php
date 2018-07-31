@@ -40,6 +40,7 @@ use Barryvdh\DomPDF\PDF;
 use Barryvdh\DomPDF;
 use App\Mail\BatchProduction;
 use App\Mail\MonitoringExpire;
+use App\Mail\SharingForecast;
 
 class BatchController extends Controller
 {
@@ -3222,43 +3223,161 @@ class BatchController extends Controller
          if($works!=null) {
                 foreach ($works as $work){
                     $supply = DB::table('supply_chains')->where('id_supply_chain',$work->sharing_forecast)->join('company_offices','id_company_office','=','company_supply_shares')->join('company_offices as company2','company2.id_company_office','=','company_supply_received')->join('comuni as comune2','comune2.id_comune','=','company2.cap_company')->join('comuni as comune1','comune1.id_comune','=','company_offices.cap_company')->leftjoin('company_offices_extra_italia as extra1','extra1.company_office','=','company_supply_shares')->leftjoin('company_offices_extra_italia as extra2','extra2.company_office','=','company_supply_received')->select('id_supply_chain','company_supply_shares','company_supply_received','ean_mapping','company_offices.rag_soc_company as rag_soc_shares','company_offices.indirizzo_company as indirizzo_shares','company_offices.civico_company as civico_shares','comune1.cap as cap_shares','comune1.comune as comune_shares','comune1.sigla_prov as sigla_prov_shares','extra1.cap_company_office_extra as cap_extra1','extra1.city_company_office_extra as city_extra1','extra1.state_company_office_extra as state_extra1','company_offices.email_company as email_shares','company2.rag_soc_company as rag_soc_received','company2.indirizzo_company as indirizzo_received','company2.civico_company as civico_received','comune2.cap as cap_received','comune2.comune as comune_received','comune2.sigla_prov as sigla_prov_received','company2.email_company as email_received','extra2.cap_company_office_extra as cap_extra2','extra2.city_company_office_extra as city_extra2','extra2.state_company_office_extra as state_extra2')->first();
-                 //   dd($supply);
-                //    dd($supply->company_supply_shares);
                     $id_provider = DB::table('providers')->where('company_provider',$supply->company_supply_shares)->where('provider_supply',$supply->company_supply_received)->select('id_provider')->first();
-                 //   dd($id_provider);
                     $product = DB::table('batch_sharing_forecasts')->where('executed_sharing_forecast','0')->where('booking_sharing_forecast','<=',$system_time)->where('sharing_forecast',$work->sharing_forecast)->where('sharing_forecast_model','01')->join('sales_lists','id_sales_list','=','sharing_product')->join('inventories','id_inventory','=','inventory_sales_list')->join('forecast_holt_models','ForecastHoltProduct','=','sharing_product')->join('mapping_inventory_providers','inventory_mapping_provider','=','id_inventory')->where('provider_mapping_provider',$id_provider->id_provider)->select('id_sales_list','initial_month_sales','cod_inventory','title_inventory','unit_inventory','stock','committed','arriving','ean_inventory','cod_mapping_inventory_provider','forecast_holt_models.1 as p1','forecast_holt_models.2 as p2','forecast_holt_models.3 as p3','forecast_holt_models.4 as p4','forecast_holt_models.5 as p5','forecast_holt_models.6 as p6','forecast_holt_models.7 as p7','forecast_holt_models.8 as p8','forecast_holt_models.9 as p9','forecast_holt_models.10 as p10','forecast_holt_models.11 as p11','forecast_holt_models.12 as p12')->get();
-                    if(count($product)==0) {
-                        $product[0]= array(
-                            'id_sales_list' => null,
-                            'initial_month_sales' => null,
-                            'cod_inventory' => null,
-                            'title_inventory' => null,
-                            'unit_inventory' => null,
-                            'stock' => null,
-                            'committed' => null,
-                            'arriving' => null,
-                            'ean_inventory' => null,
-                            'cod_mapping_inventory_provider' => null,
-                            'p1' => null,
-                            'p2' => null,
-                            'p3' => null,
-                            'p4' => null,
-                            'p5' => null,
-                            'p6' => null,
-                            'p7' => null,
-                            'p8' => null,
-                            'p9' => null,
-                            'p10' => null,
-                            'p11' => null,
-                            'p12' => null,
-                        );
-                     //   dd($product);
+                    $production = DB::table('batch_sharing_forecasts')->where('executed_sharing_forecast','0')->where('booking_sharing_forecast','<=',$system_time)->where('sharing_forecast',$work->sharing_forecast)->where('sharing_forecast_model','01')->join('sales_lists','id_sales_list','=','sharing_product')->join('mapping_inventory_productions','production_map_pro','=','production_sales_list')->join('inventories','id_inventory','=','inventory_map_pro')->join('forecast_holt_models','ForecastHoltProduct','=','sharing_product')->join('mapping_inventory_providers','inventory_mapping_provider','=','id_inventory')->where('provider_mapping_provider',$id_provider->id_provider)->select('id_sales_list','initial_month_sales','cod_inventory','title_inventory','unit_inventory','stock','committed','arriving','ean_inventory','cod_mapping_inventory_provider','quantity_mapping_production as q','forecast_holt_models.1 as p1','forecast_holt_models.2 as p2','forecast_holt_models.3 as p3','forecast_holt_models.4 as p4','forecast_holt_models.5 as p5','forecast_holt_models.6 as p6','forecast_holt_models.7 as p7','forecast_holt_models.8 as p8','forecast_holt_models.9 as p9','forecast_holt_models.10 as p10','forecast_holt_models.11 as p11','forecast_holt_models.12 as p12')->get();
+                    $month = date('m');
+                    if (count($product)>0){
+                        $i=0;
+                        foreach ($product as $t){
+                            $begin = $this->monthForecast($t->initial_month_sales,$month);
+                            $product[$i]->begin = $begin;
+                            $i++;
+                        }
+                        for ($i=0;$i<count($product);$i++){
+                            $k=1;
+                            $x=0;
+                            foreach ($product[$i] as $t){
+                                if($x>9 and $x<22){
+                                    $months[$k] = $t;
+                                    $k++;
+                                }
+                                $x++;
+                                if ($x==23) $begin = $t;
+                            }
+                            for ($j=1;$j<13;$j++){
+                                if ($begin>12) $begin=$begin-12;
+                                $prova[$j] = $months[$begin];
+                                $begin++;
+                            }
+                            $product[$i]->p1 = $prova[1];
+                            $product[$i]->p2 = $prova[2];
+                            $product[$i]->p3 = $prova[3];
+                            $product[$i]->p4 = $prova[4];
+                            $product[$i]->p5 = $prova[5];
+                            $product[$i]->p6 = $prova[6];
+                            $product[$i]->p7 = $prova[7];
+                            $product[$i]->p8 = $prova[8];
+                            $product[$i]->p9 = $prova[9];
+                            $product[$i]->p10 = $prova[10];
+                            $product[$i]->p11 = $prova[11];
+                            $product[$i]->p12 = $prova[12];
+                        }
                     }
-                    dd($product);
-                    $product = collect($product);
-
+                    if (count($production)>0){
+                        $i=0;
+                        foreach ($production as $t){
+                            $begin = $this->monthForecast($t->initial_month_sales,$month);
+                            $production[$i]->begin = $begin;
+                            $production[$i]->p1 = $t->p1* $t->q;
+                            $production[$i]->p2 = $t->p2* $t->q;
+                            $production[$i]->p3 = $t->p3* $t->q;
+                            $production[$i]->p4 = $t->p4* $t->q;
+                            $production[$i]->p5 = $t->p5* $t->q;
+                            $production[$i]->p6 = $t->p6* $t->q;
+                            $production[$i]->p7 = $t->p7* $t->q;
+                            $production[$i]->p8 = $t->p8* $t->q;
+                            $production[$i]->p9 = $t->p9* $t->q;
+                            $production[$i]->p10 = $t->p10* $t->q;
+                            $production[$i]->p11 = $t->p11* $t->q;
+                            $production[$i]->p12 = $t->p12* $t->q;
+                            $i++;
+                        }
+                        for ($i=0;$i<count($production);$i++){
+                            $k=1;
+                            $x=0;
+                            foreach ($production[$i] as $t){
+                                if($x>10 and $x<23){
+                                    $months[$k] = $t;
+                                    $k++;
+                                }
+                                $x++;
+                                if ($x==24) $begin = $t;
+                            }
+                            for ($j=1;$j<13;$j++){
+                                if ($begin>12) $begin=$begin-12;
+                                $prova[$j] = $months[$begin];
+                                $begin++;
+                            }
+                            $production[$i]->p1 = $prova[1];
+                            $production[$i]->p2 = $prova[2];
+                            $production[$i]->p3 = $prova[3];
+                            $production[$i]->p4 = $prova[4];
+                            $production[$i]->p5 = $prova[5];
+                            $production[$i]->p6 = $prova[6];
+                            $production[$i]->p7 = $prova[7];
+                            $production[$i]->p8 = $prova[8];
+                            $production[$i]->p9 = $prova[9];
+                            $production[$i]->p10 = $prova[10];
+                            $production[$i]->p11 = $prova[11];
+                            $production[$i]->p12 = $prova[12];
+                        }
+                    }
+                    $how_product = count($product);
+                    $how_production = count($production);
+                    if ($how_production>0){
+                        if ($how_product==0) $item = $production;
+                        else {
+                            $item = $product;
+                            $k=$how_product;
+                            foreach ($production as $t){
+                                $ins = false;
+                                $i=0;
+                                foreach ($item as $value){
+                                    if ($value->cod_inventory==$t->cod_inventory){
+                                        $ins = true;
+                                        $item[$i]->p1 = ($item[$i]->p1) + $t->p1;
+                                        $item[$i]->p2 = ($item[$i]->p2) + $t->p2;
+                                        $item[$i]->p3 = ($item[$i]->p3) + $t->p3;
+                                        $item[$i]->p4 = ($item[$i]->p4) + $t->p4;
+                                        $item[$i]->p5 = ($item[$i]->p5) + $t->p5;
+                                        $item[$i]->p6 = ($item[$i]->p6) + $t->p6;
+                                        $item[$i]->p7 = ($item[$i]->p7) + $t->p7;
+                                        $item[$i]->p8 = ($item[$i]->p8) + $t->p8;
+                                        $item[$i]->p9 = ($item[$i]->p9) + $t->p9;
+                                        $item[$i]->p10 = ($item[$i]->p10) + $t->p10;
+                                        $item[$i]->p11 = ($item[$i]->p11) + $t->p11;
+                                        $item[$i]->p12 = ($item[$i]->p12) + $t->p12;
+                                    }
+                                    if ($ins) break;
+                                    $i++;
+                                }
+                                if ($ins==false){
+                                    $item[$k] = $t;
+                                    $k++;
+                                }
+                            }
+                        }
+                    } else $item = $product;
+                    $today = date('d/m/Y');
+                    $filename = $this->pdfview2($item,'Sharing_Forecast_','SharingForecast',$supply, $today);
+                    Mail::to($supply->email_received)->send(new SharingForecast($filename,$supply->rag_soc_received,$supply->rag_soc_shares,$supply->rag_soc_received));
+                    Mail::to($supply->email_shares)->send(new SharingForecast($filename,$supply->rag_soc_shares,$supply->rag_soc_shares,$supply->rag_soc_received));
+                    $del = unlink($filename);
+                    if ($del){
+                        DB::table('batch_sharing_forecasts')->where('sharing_forecast',$work->sharing_forecast)->where('executed_sharing_forecast','0')->update(
+                            [
+                                'executed_sharing_forecast' => '1'
+                            ]
+                        );
+                    }
                 } return true;
          } else return false;
+     }
+
+    public function pdfview2($data,$view,$controller,$supply,$today){
+        $pdf = App::make('dompdf.wrapper')->setPaper('a4','landscape');
+        $pdf->loadView('pdf.'.$controller, ['items' => $data, 'supply' => $supply, 'today' => $today]);
+        $time=date('d-m-Y');
+        $filename = $view .' del '.$time.' di '. $supply->rag_soc_shares .'.pdf';
+        $pdf->save($filename);
+        return $filename;
+    }
+
+     function monthForecast($initial,$month){
+        if ($initial==$month) return 1;
+        if ($initial<$month) return $month - ($initial - 1);
+        if ($initial>$month) return 13 -($initial - $month);
      }
 
 }
