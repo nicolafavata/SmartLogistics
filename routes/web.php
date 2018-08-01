@@ -35,6 +35,9 @@ Route::group(['middleware'=> 'auth'],
         Route::get('/user/{cap}/{comune}', 'UserController@geostore');
         Route::get('/user', 'UserController@index')->name('user');
         Route::get('/geocode', 'UserController@geocode')->name('geocode');
+        Route::get('/user-profile', 'UserController@viewProfile')->name('view-profile');
+        Route::patch('update-user', 'UserController@updateProfile')->name('updateuser');
+        Route::get('find-product','UserController@findProduct')->name('findproduct');
 
         //Impiegati
         Route::get('/employee', 'EmployeeController@index')->name('employee');

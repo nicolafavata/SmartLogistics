@@ -235,6 +235,10 @@ ul#menu_a_2livelli li li {
     background-image: url("../img/sales.jpg");
 }
 
+.ean_img{
+    background-image: url("../img/ean.jpg");
+}
+
 .inventories_img{
     background-image: url("../img/inventory.jpg");
 }
@@ -422,9 +426,26 @@ ul#menu_a_2livelli li li {
 }
 
 .col-md-12.jumbotron {
+     background-color: rgba(255,255,255, 0.5);
+     padding-top: 5px;
+     padding-bottom: 5px;
+}
+
+.jumbotron.user {
     background-color: rgba(255,255,255, 0.5);
-    padding-top: 5px;
-    padding-bottom: 5px;
+    padding-top: 100px;
+    padding-bottom: 100px;
+    padding-left: 10px;
+    padding-right: 100px;
+    margin: 50px;
+}
+
+.jumbotron.item {
+    background-color: rgba(255,255,255, 0.5);
+    padding-top: 50px;
+    padding-bottom: 50px;
+    padding-left: 50px;
+    padding-right: 50px;
 }
 
 .col-md-12.jumbotron-inventory {
@@ -441,7 +462,7 @@ ul#menu_a_2livelli li li {
 
 .carousel-inner {
     max-height: 1200px;
-    background-size: cover; background-position: center center}
+    background-size: cover; background-position: center center;
 }
 
 .carousel-inner-maxi {
