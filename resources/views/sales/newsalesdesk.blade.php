@@ -16,16 +16,15 @@
                         @endcomponent
                     @endif
             </div>
-                <div class="jumbotron jumbotron-fluid item">
+                <div class="item">
                     <div class="row">
                         <div class="col-md-12 text-left">
-                            <h4 class="font-weight-bold text-dark shadow">Vendita al banco</h4>
+                            <h3 class="font-weight-bold text-dark shadow">Vendita al banco</h3>
                         </div>
                     </div>
                     <div id="alert-ajax" roles='alert'>
 
                     </div>
-                    <div class="jumbotron border border-dark document">
 
                         <div class="row">
                             <div class="col-md-12 text-left">
@@ -63,7 +62,19 @@
                                         </thead>
                                         <tbody>
                                         <div id="content">
-
+                                            <tr>
+                                                <th scope="row" class="text-center">1</th>
+                                                <td class="font-weight-bold text-center text-dark text-center"><a  href="#" title="Cancella la riga"><i class="text-danger fa fa-trash-o"></i></a></td>
+                                                <td class="font-weight-bold text-center text-dark text-center"><a  href="#" title="Modifica la riga"><i class="text-success fa fa-pencil-square-o"></i></a></td>
+                                                <td><input class="form-control" maxlenght="50" type="text" name="product_salesDeskCon"></td>
+                                                <td><input class="form-control" maxlenght="80" type="text" name="title_product"></td>
+                                                <td><input class="form-control" type="number" step="1.00" name="quantity_salesDeskCon"></td>
+                                                <td><input disabled class="form-control" maxlenght="2" type="text" name="unit"></td>
+                                                <td><input disabled class="form-control" type="text" name="price_product"></td>
+                                                <td><input class="form-control" type="number" step="0.10" name="discount_salesDeskCon"></td>
+                                                <td><input disabled class="form-control" type="text" name="price_product"></td>
+                                                <td class="font-weight-bold text-center text-dark text-center"><a  href="#" title="Conferma"><i class="text-success fa fa-check-square-o"></i></a></td>
+                                            </tr>
                                         </div>
                                         </tbody>
                                     </table>
@@ -86,7 +97,7 @@
                             </div>
                         </div>
 
-                    </div>
+
                 </div>
             </div>
         </div>
@@ -107,34 +118,36 @@
             $('document').ready(function () {
                 $('div').on('change','input.alert-success', function (ele) {
                     ele.preventDefault();
-                    console.log('fda');
-                    var number = document.getElementById('number_sales_desk').value;
-                    var data = document.getElementById('date_sales_desk').value;
+                    var ean = document.getElementById('ean').value;
                     var id = "{{$id}}";
-                    var url = '/check-number-new-sales-desk/' + id + '/' + number + '/' + data;
+                    var url = '/check-ean-new-sales/' + id + '/' + ean;
                     $.ajax(
                         {
                             url: url,
-                            type: 'post',
+                            type: 'get',
                             data: '_token={{csrf_token()}}',
-                            complete : function (resp) {
-                                if (resp.responseText == 1){
-
-                                } else {
-                                    console.log(document.getElementById('alert'));
-                                    document.getElementById('number_sales_desk').value = "{{$number}}";
-                                    document.getElementById('date_sales_desk').value = "{{$date}}";
-                                    var giorno = data.split("-");
-                                    var el='alert-ajax';
-                                    document.getElementById('alert-ajax').innerHTML = "<ul class='alert alert-danger alert-dismissible'><li>Non puoi inserire questo numero con la data del " + giorno[2] + "/" + giorno[1] + "/" + giorno[0] +
-                                        "</li><button type='button' class='close' onclick='NoHtml()' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></ul>";
+                            beforeSend: function (xhr) {
+                                if (xhr && xhr.overrideMimeType) {
+                                    xhr.overrideMimeType('application/json;charset=utf-8');
                                 }
+                            },
+                            dataType: "json",
+                            success : function (data) {
+                                console.log(data['price_user']);
+                                console.log(data['price_b2b']);
+                                console.log(data['id_sales_list']);
+                                console.log(data['title']);
+                                console.log(data['unit']);
+                                console.log(data['imposta']);
+                                console.log(data['cod']);
+
+
 
                             }
                         }
                     );
-                })
-            })
+                });
+            });
 
             $('document').ready(function () {
                 $('div').on('change','input.font-weight-bold', function (ele) {
@@ -164,8 +177,8 @@
                             }
                         }
                     );
-                })
-            })
+                });
+            });
 
 
         </script>
