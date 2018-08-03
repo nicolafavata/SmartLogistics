@@ -93,6 +93,43 @@ function hideloader() {
     
 }
 
+function deleterowTableContent(row) {
+    document.getElementById('content').deleteRow(row);
+    document.getElementById('ean').disabled = false;
+    document.getElementById('add-item').disabled = false;
+    var rows = document.getElementById('content').getElementsByTagName('tr').length;
+    if (rows==1) addrow('content');
+}
+
+function addrow(content) {
+    var table = document.getElementById(content);
+    var rows = document.getElementById(content).getElementsByTagName('tr').length;
+    var row = table.insertRow(rows);
+    var cell1 = row.insertCell(0);
+    cell1.innerHTML = '<th scope="row" class="text-center">' + (rows) + '</th>';
+    var cell2 = row.insertCell(1);
+    cell2.innerHTML = '<td class="font-weight-bold text-center text-dark text-center"><a  onclick="deleterowTableContent('+ (rows) +')" title="Cancella la riga"><i class="text-danger fa fa-minus-circle"></i></a></td>';
+    var cell3 = row.insertCell(2);
+    cell3.innerHTML = ' ';
+    var cell4 = row.insertCell(3);
+    cell4.innerHTML = '<td><input class="form-control" maxlenght="50" type="text" id="code" name="product_salesDeskCon" value=""></td>'
+    var cell5 = row.insertCell(4);
+    cell5.innerHTML = '<td><input class="form-control" maxlenght="80" type="text" name="title_product" value=""></td>';
+    var cell6 = row.insertCell(5);
+    cell6.innerHTML = '<td><input class="form-check-label" type="number" step="1.00" name="quantity_salesDeskCon" value=""></td>';
+    var cell7 = row.insertCell(6);
+    cell7.innerHTML =  '<td ><input disabled class="form-control" maxlenght="2" type="text" name="unit" value=""></td>';
+    var cell8 = row.insertCell(7);
+    cell8.innerHTML = '<td><input disabled class="form-control" type="text" name="price_product" ></td>';
+    var cell9 = row.insertCell(8);
+    cell9.innerHTML = '<td><input class="form-check" type="number" step="0.01" name="discount_salesDeskCon"></td>';
+    var cell10 = row.insertCell(9);
+    cell10.innerHTML = '<td><input disabled class="form-control" type="text" name="price_product" ></td>';
+    var cell11 = row.insertCell(10);
+    cell11.innerHTML = '<td class="font-weight-bold text-center text-dark text-center"><a  href="#" title="Conferma"><i class="text-success fa fa-check-square-o"></i></a></td>';
+    document.getElementById('ean').value = "";
+    document.getElementById('add-item').disabled = true;
+}
 
 
 
@@ -243,57 +280,7 @@ function showb2b() {
 
 })( window );
 
-/**
- * main.js
- * http://www.codrops.com
- *
- * Licensed under the MIT license.
- * http://www.opensource.org/licenses/mit-license.php
- *
- * Copyright 2014, Codrops
- * http://www.codrops.com
- */
-(function() {
 
-    var bodyEl = document.body,
-        content = document.querySelector( '.content-wrap' ),
-        openbtn = document.getElementById( 'open-button' ),
-        closebtn = document.getElementById( 'close-button' ),
-        isOpen = false;
-
-    function init() {
-        initEvents();
-    }
-
-    function initEvents() {
-        openbtn.addEventListener( 'click', toggleMenu );
-        if( closebtn ) {
-            closebtn.addEventListener( 'click', toggleMenu );
-        }
-
-        // close the menu element if the target it´s not the menu element or one of its descendants..
-        content.addEventListener( 'click', function(ev) {
-            var target = ev.target;
-            if( isOpen && target !== openbtn ) {
-                toggleMenu();
-            }
-        } );
-    }
-
-    function toggleMenu() {
-        if( isOpen ) {
-            classie.remove( bodyEl, 'show-menu' );
-        }
-        else {
-            classie.add( bodyEl, 'show-menu' );
-        }
-        isOpen = !isOpen;
-    }
-
-    init();
-
-})();
-//----------------
 
 
 function lock(el1, el2) {

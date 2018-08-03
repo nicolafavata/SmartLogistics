@@ -119,7 +119,7 @@
 							<ul>
 								<li><a href="#">Ordine</a></li>
 								<li><a href="#">Ddt</a></li>
-								<li><a href="#">Scontrino</a></li>
+								<li><a href="{{route('new-sales-desk')}}">Scontrino</a></li>
 								<li><a href="#">Fattura</a></li>
 								<li><a href="#">Nota di credito</a></li>
 							</ul>
