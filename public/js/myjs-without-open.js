@@ -112,17 +112,17 @@ function addrow(content) {
     var cell3 = row.insertCell(2);
     cell3.innerHTML = ' ';
     var cell4 = row.insertCell(3);
-    cell4.innerHTML = '<td><input class="form-control" maxlenght="50" type="text" id="code" name="product_salesDeskCon" value=""></td>'
+    cell4.innerHTML = '<td><input class="form-control alert-success" maxlenght="50" type="text" id="code" name="product_salesDeskCon" value=""></td>'
     var cell5 = row.insertCell(4);
-    cell5.innerHTML = '<td><input class="form-control" maxlenght="80" type="text" name="title_product" value=""></td>';
+    cell5.innerHTML = '<td><input disabled class="form-control" maxlenght="80" type="text" name="title_product" value=""></td>';
     var cell6 = row.insertCell(5);
-    cell6.innerHTML = '<td><input class="form-check-label" type="number" step="1.00" name="quantity_salesDeskCon" value=""></td>';
+    cell6.innerHTML = '<td><input disabled class="form-check-label" type="number" step="1.00" name="quantity_salesDeskCon" value=""></td>';
     var cell7 = row.insertCell(6);
     cell7.innerHTML =  '<td ><input disabled class="form-control" maxlenght="2" type="text" name="unit" value=""></td>';
     var cell8 = row.insertCell(7);
     cell8.innerHTML = '<td><input disabled class="form-control" type="text" name="price_product" ></td>';
     var cell9 = row.insertCell(8);
-    cell9.innerHTML = '<td><input class="form-check" type="number" step="0.01" name="discount_salesDeskCon"></td>';
+    cell9.innerHTML = '<td><input disabled class="form-check" type="number" step="0.01" name="discount_salesDeskCon"></td>';
     var cell10 = row.insertCell(9);
     cell10.innerHTML = '<td><input disabled class="form-control" type="text" name="price_product" ></td>';
     var cell11 = row.insertCell(10);

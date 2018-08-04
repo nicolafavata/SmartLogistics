@@ -66,12 +66,12 @@
                                                     <th scope="row" class="text-center">1</th>
                                                     <td class="font-weight-bold text-center text-dark text-center"><a  href="#" title="Cancella la riga"><i class="text-danger fa fa-trash-o"></i></a></td>
                                                     <td class="font-weight-bold text-center text-dark text-center"><a  href="#" title="Modifica la riga"><i class="text-success fa fa-pencil-square-o"></i></a></td>
-                                                    <td><input class="form-control" maxlenght="50" type="text" id="code" name="product_salesDeskCon"></td>
-                                                    <td><input class="form-control" maxlenght="80" type="text" name="title_product"></td>
-                                                    <td><input class="form-check-label" type="number" step="1.00" name="quantity_salesDeskCon"></td>
+                                                    <td><input class="form-control alert-success" maxlenght="50" type="text" id="code" name="product_salesDeskCon"></td>
+                                                    <td><input disabled class="form-control" maxlenght="80" type="text" name="title_product"></td>
+                                                    <td><input disabled class="form-check-label" type="number" step="1.00" name="quantity_salesDeskCon"></td>
                                                     <td><input disabled class="form-control" maxlenght="2" type="text" name="unit"></td>
                                                     <td><input disabled class="form-control" type="text" name="price_product"></td>
-                                                    <td><input class="form-check" type="number" step="0.10" name="discount_salesDeskCon"></td>
+                                                    <td><input disabled class="form-check" type="number" step="0.10" name="discount_salesDeskCon"></td>
                                                     <td><input disabled class="form-control" type="text" name="price_product"></td>
                                                     <td class="font-weight-bold text-center text-dark text-center"><a  href="#" title="Conferma"><i class="text-success fa fa-check-square-o"></i></a></td>
                                                 </tr>
@@ -118,32 +118,31 @@
             var block = 1;
             var numberRows = 1;
             var document  = new Object();
-         //   document[0] = {'numero':1,"list":'fsdafdsa',"gianni":'tewtirepw'};
-         //   document[1] = {'numero':3,"list":'ffdsafsfdsfdssa',"gianni":'543irepw'};
-         //   var myjson = JSON.stringify(document);
-         //   console.log(document,myjson);
             $('document').ready(function (){
                $('div').on('click','i.fa-check-square-o',function (ele){
-                   var table = document.getElementById('content');
                    var rows = document.getElementById('content').getElementsByTagName('tr').length;
                    if (rows>numberRows){
                        var e = ele.target;
                        var i = e.parentNode.parentNode.cells[7].lastChild;
                        var t = e.parentNode.parentNode.cells[9].firstChild;
-                       var imposta = i.value;
-                       var tot = t.value;
+                       var imposta = parseFloat(i.value).toFixed(2);
+                       var tot = parseFloat(t.value).toFixed(2);
+                       var imposta = parseFloat(1+(imposta/100)).toFixed(2);
                        var c = e.parentNode.parentNode.cells[3].firstChild;
                        var codice = c.value;
                        var q = e.parentNode.parentNode.cells[5].firstChild;
                        var quant = q.value;
+                       var p = e.parentNode.parentNode.cells[7].firstChild;
+                       var price = parseFloat(p.value).toFixed(2);
                        var s = e.parentNode.parentNode.cells[8].firstChild;
                        var perc = parseFloat(s.value).toFixed(2);
                        if (perc === 'NaN') perc = 0;
                        var i = e.parentNode.parentNode.cells[10].firstChild;
                        var id = i.value;
                        var index = numberRows - 1;
-                       document[index] = {'riga':numberRows,'codice':codice,'quant':quant,'discount':perc,'product':id};
+                       document[index] = {'riga':numberRows,'codice':codice,'quant':quant,'discount':perc,'product':id,'price':price};
                        numberRows++;
+                       block = 1;
                        document.getElementById('ean').disabled = false;
                        document.getElementById('add-item').disabled = false;
                        q.disabled = true;
@@ -155,33 +154,21 @@
                        up.innerHTML = '<td class="font-weight-bold text-center text-dark text-center"><input hidden value="' + numberRows + '"><i title="Modifica la riga" class="text-success fa fa-pencil-square-o"></i></td>';
                        check.innerHTML = '<td class="text-center text-dark text-center"><input hidden value="' + id + '"><i  class="verdino fa fa-check"></i></td>';
                        var ivatot = document.getElementById('iva_tot').value;
+                       ivatot = parseFloat(ivatot);
                        var importo = document.getElementById('tot').value;
-                       var storno = (tot / imposta);
-                       console.log(ivatot,storno,importo);
-                       var netto = parseFloat(tot - storno).toFixed(2);
-                       ivatot = ivatot + storno;
-                       importo = importo + netto;
-                       var totaledocumento = ivatot + importo;
-                       document.getElementById('iva_tot').value = ivatot;
-                       document.getElementById('tot').value = importo;
-                       document.getElementById('tot_doc').value = totaledocumento;
-                    //   TotDoc = parseFloat(TotDoc).toFixed(2);
-                    //   var tot = e.parentNode.parentNode.cells[9].firstChild;
-                    //   tot = parseFloat(tot).toFixed(2);
-                    //   TotDoc = TotDoc + tot;
-                       console.log(ivatot,importo,imposta,tot);
-
-                    //   console.log(perc);
-                    //   var storno = tot / (1.)
-                     //  imposta = imposta.value;
-
-                    //   var iva = parseFloat().toFixed(2);
-                    //   console.log(TotDoc);
-
-                       //innerHTML
+                       importo = parseFloat(importo);
+                       var netto = parseFloat(tot / imposta);
+                       var addiva = parseFloat(tot - netto);
+                       var totiva = parseFloat(ivatot + addiva);
+                       var totimporto = parseFloat(importo + netto);
+                       var totaledocumento = parseFloat(totimporto + totiva);
+                       totiva = parseFloat(totiva).toFixed(2);
+                       totimporto = parseFloat(totimporto).toFixed(2);
+                       totaledocumento = parseFloat(totaledocumento).toFixed(2);
+                       document.getElementById('iva_tot').value = totiva + " €";
+                       document.getElementById('tot').value = totimporto + " €";
+                       document.getElementById('tot_doc').value = totaledocumento + " €";
                    }
-
-
                });
             });
 
@@ -206,13 +193,10 @@
                            var tot = parseFloat(price * quant).toFixed(2);
                            var discount = parseFloat((perc * tot) / 100).toFixed(2);
                            var newtotale = parseFloat(tot - discount).toFixed(2);
-                           console.log(quant,price, perc, tot, discount, tot, newtotale);
-                           //   p.value = newprice + " €";
                            var change = s.parentNode.parentNode.cells[9].firstChild;
                            change.value = newtotale + " €";
                        }
                    }
-
                });
             });
 
@@ -238,10 +222,11 @@
                 $('div').on('change','input.alert-success', function (ele) {
                     ele.preventDefault();
                     var ean = document.getElementById('ean').value;
+                    var e = ele.target;
+                    var codice = e.value;
                     var id = "{{$id}}";
-                    var url = '/check-ean-new-sales/' + id + '/' + ean;
+                    if ( codice > ean) var url = '/check-codice-new-sales/' + id + '/' + codice; else var url = '/check-ean-new-sales/' + id + '/' + ean;
                     var table = document.getElementById('content');
-                    var rows = document.getElementById('content').getElementsByTagName('tr').length;
                     $.ajax(
                         {
                             url: url,
@@ -255,15 +240,14 @@
                             dataType: "json",
                             success : function (data) {
                                 if ( data['cod'] === undefined) {
-                                    document.getElementById('alert-ajax').innerHTML = "<ul class='alert alert-danger alert-dismissible'><li>Il codice a barre: " + ean + " non è presente nel tuo catalogo" +
+                                    document.getElementById('alert-ajax').innerHTML = "<ul class='alert alert-danger alert-dismissible'><li>Il codice: " + codice + ean + " non è presente nel tuo catalogo" +
                                         "</li><button type='button' class='close' onclick='NoHtml()' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></ul>";
                                 } else {
-                                  //  var check = document.getElementById('rows').value;
-                                    if (numberRows == 1){document.getElementById('content').deleteRow(1);}
+                                    if (numberRows == 1) document.getElementById('content').deleteRow(1);
                                     var rows = document.getElementById('content').getElementsByTagName('tr').length;
-                                    console.log(rows);
+                                    if ( codice > ean) document.getElementById('content').deleteRow(rows-1);
+                                    var rows = document.getElementById('content').getElementsByTagName('tr').length;
                                     if (rows<numberRows+1) {
-                                        console.log(data['price_user']);
                                         var row = table.insertRow(rows);
                                         var cell1 = row.insertCell(0);
                                         cell1.innerHTML = '<th scope="row" class="text-center">' + (rows) + '</th>';
@@ -285,10 +269,9 @@
                                         if (list=='price-user') var price = parseFloat(data['price_user']).toFixed(2); else var price = parseFloat(data['price_b2b']).toFixed(2);
                                         var iva = parseFloat((data['imposta'] * price) / 100).toFixed(2);
                                         var imposta = parseFloat(data['imposta']).toFixed(0);
-                                        var percentuale = '1.'+imposta;
                                         var tot = price + iva;
                                         tot = parseFloat(tot).toFixed(2);
-                                        cell8.innerHTML = '<td><input disabled class="form-control" type="text" name="price_product" value="'+tot+' €" /><input hidden value="'+percentuale+'" /></td>';
+                                        cell8.innerHTML = '<td><input disabled class="form-control" type="text" name="price_product" value="'+tot+' €" /><input hidden value="'+imposta+'" /></td>';
                                         var cell9 = row.insertCell(8);
                                         cell9.innerHTML = '<td><input class="form-check" type="number" step="0.10" name="discount_salesDeskCon" value="0.00 %"></td>';
                                         var cell10 = row.insertCell(9);
@@ -299,7 +282,6 @@
                                         document.getElementById('ean').disabled = true;
                                         document.getElementById('add-item').disabled = true;
                                     }
-
                                 }
                             }
                         }
