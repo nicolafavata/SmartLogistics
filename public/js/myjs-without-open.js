@@ -126,7 +126,7 @@ function addrow(content) {
     var cell10 = row.insertCell(9);
     cell10.innerHTML = '<td><input disabled class="form-control" type="text" name="price_product" ></td>';
     var cell11 = row.insertCell(10);
-    cell11.innerHTML = '<td class="font-weight-bold text-center text-dark text-center"><a  href="#" title="Conferma"><i class="text-success fa fa-check-square-o"></i></a></td>';
+    cell11.innerHTML = '<td class="font-weight-bold text-center text-dark text-center"></td>';
     document.getElementById('ean').value = "";
     document.getElementById('add-item').disabled = true;
 }
