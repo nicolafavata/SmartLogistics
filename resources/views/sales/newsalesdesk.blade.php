@@ -28,13 +28,13 @@
 
                         <div class="row">
                             <div class="col-md-12 text-left">
-                                <form onsubmit="showloader()" method="POST" action="{{ route('prova')}}">
+                                <form onsubmit="showloader()" method="get" action="{{ route('store-sales-desk')}}">
                                     {{ csrf_field() }}
                                     <input type="text" name="desk_salesDeskCon" value="{{$id}}" hidden>
                                     <div id="sales_desk" class="p-3 mb-2 bg-white text-dark  font-weight-bold">
                                         <div class="input-group">
                                             <span class="input-group-text">Cliente:</span>
-                                            <input class="form-control" maxlength="18" name="desc_customer" type="text" placeholder="Dati identificativi del cliente">
+                                            <input class="form-control" maxlength="190" name="desc_customer" type="text" placeholder="Dati identificativi del cliente" value="{{old('desc_customer',$desc_customer)}}">
                                         </div>
                                         <div class="input-group">
                                             <span class="input-group-text"> Numero:</span>
@@ -96,16 +96,19 @@
                                             <input disabled class="form-control font-weight-bold verde" type="text" value="0.00 €" id="tot_doc" name="tot_doc">
                                         </div>
                                         <button type="button" disabled onclick="addrow('content')" id="add-item" class="btn btn-primary">Aggiungi prodotto</button>
-                                        <button type="button" class="btn btn-primary">Annulla documento</button>
-                                        <button type="submit" class="btn btn-primary" id="submit_profile">
+                                        <button disabled type="submit" class="btn btn-primary" id="submit_document">
                                             Conferma documento
                                         </button>
-                                    </div>
                                 </form>
+                                <form onsubmit="showloader()" method="POST" action="{{ route('cancel-desk-sale')}}">
+                                    {{ csrf_field() }}
+                                    <input type="text" name="desk_salesDeskCon_del" value="{{$id}}" hidden>
+                                        <button type="submit" class="btn btn-primary">Annulla documento</button>
+
+                                </form>
+                                </div>
                             </div>
                         </div>
-
-
                 </div>
             </div>
         </div>
@@ -171,9 +174,10 @@
                             }
                             numberRows = numberRows - 1;
                             block = 1;
-                            upblock = 1;
                             var prova = JSON.stringify(document);
                             document.getElementById('documentitems').value = prova;
+                            if (numberRows==1)  document.getElementById('submit_document').disabled = true;
+                            if (numberRows>1)  document.getElementById('submit_document').disabled = false;
                     }
                 });
                 return;
@@ -214,6 +218,8 @@
                         document.getElementById('ean').disabled = true;
                         document.getElementById('add-item').disabled = true;
                         e.parentNode.parentNode.cells[2].innerHTML = "<td></td>";
+                        if (numberRows==1)  document.getElementById('submit_document').disabled = true;
+                        if (numberRows>1)  document.getElementById('submit_document').disabled = false;
                     }
                 });
                 return;
@@ -264,6 +270,8 @@
                         document.getElementById('iva_tot').value = totiva + " €";
                         document.getElementById('tot').value = totimporto + " €";
                         document.getElementById('tot_doc').value = totaledocumento + " €";
+                        if (numberRows==1)  document.getElementById('submit_document').disabled = true;
+                        if (numberRows>1)  document.getElementById('submit_document').disabled = false;
                     }
                 });
                 return;
@@ -325,6 +333,8 @@
                            document.getElementById('tot').value = totimporto + " €";
                            document.getElementById('tot_doc').value = totaledocumento + " €";
                            upblock = 1;
+                           if (numberRows==1)  document.getElementById('submit_document').disabled = true;
+                           if (numberRows>1)  document.getElementById('submit_document').disabled = false;
                        }
                    }
                });
@@ -355,6 +365,8 @@
                            var newtotale = parseFloat(tot - discount).toFixed(2);
                            var change = s.parentNode.parentNode.cells[9].firstChild;
                            change.value = newtotale + " €";
+                           if (numberRows==1)  document.getElementById('submit_document').disabled = true;
+                           if (numberRows>1)  document.getElementById('submit_document').disabled = false;
                        }
                    }
                });
@@ -376,6 +388,8 @@
                     var newtotale = parseFloat(totale - discount).toFixed(2);
                     var td = q.parentNode.parentNode.cells[9].firstChild;
                     td.value = newtotale + " €";
+                    if (numberRows==1)  document.getElementById('submit_document').disabled = true;
+                    if (numberRows>1)  document.getElementById('submit_document').disabled = false;
                 });
                 return;
             });
@@ -444,6 +458,8 @@
                                         document.getElementById('ean').disabled = true;
                                         document.getElementById('add-item').disabled = true;
                                         upblock = 1;
+                                        if (numberRows==1)  document.getElementById('submit_document').disabled = true;
+                                        if (numberRows>1)  document.getElementById('submit_document').disabled = false;
                                     }
                                 }
                             }
@@ -480,6 +496,8 @@
                             }
                         }
                     );
+                    if (numberRows==1)  document.getElementById('submit_document').disabled = true;
+                    if (numberRows>1)  document.getElementById('submit_document').disabled = false;
                 });
                 return;
             });

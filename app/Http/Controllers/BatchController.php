@@ -1891,18 +1891,6 @@ class BatchController extends Controller
                         $query = DB::table('sales_lists')->where('id_sales_list', $work->forecast_revision)->select($period)->first();
                         if ($query) foreach ($query as $t) $sales = $t;
                             if ($work->period=='1'){
-                                // <-- A T T E N Z I O N E --> ALLA PRIMA VENDITA EFFETTUARE QUESTE OPERAZIONI !!!!
-                                //Memorizziamo nella tabella 'sales_lists' e 'historical data' il mese iniziale
-                           //     $initial_month = substr($system_time,5,2);
-                           //     $initial_month--;
-                           //     if($initial_month=='0') $initial_month='12';
-                           //     DB::table('sales_lists')->where('id_sales_list',$work->forecast_revision)->update(
-                           //         [
-                           //             'initial_month_sales' => $initial_month,
-                           //             'forecast_model' => '00'
-                           //         ]
-                           //     );
-
                                 //Da sales_lists prendiamo il mese iniziale di vendita e le vendite del primo periodo
                                 $query = DB::table('sales_lists')->where('id_sales_list', $work->forecast_revision)->select($work->period)->first();
                                 if ($query) foreach ($query as $t) $sales = $t;

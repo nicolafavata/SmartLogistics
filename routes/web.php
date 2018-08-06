@@ -137,7 +137,8 @@ Route::group(['middleware'=> 'auth'],
         Route::post('/check-number-new-sales-desk/{id}/{number}/{date}','SalesController@checkNumberNewSalesDesk')->where('id', '[0-9]+')->where('number', '[0-9]+');
         Route::post('/check-ean-new-sales/{id}/{ean}','SalesController@checkEanNewSales')->where('id', '[0-9]+')->where('number', '[0-9]+');
         Route::post('/check-codice-new-sales/{id}/{code}','SalesController@checkCodeNewSales')->where('id', '[0-9]+')->where('number', '[0-9]+');
-        Route::post('/fdsafdsafdsafdafda','SalesController@prova')->name('prova');
+        Route::get('/store-sales-desk','SalesController@storeSalesDesk')->name('store-sales-desk');
+        Route::post('/cancel-desk-sale','SalesController@cancelDeskSale')->name('cancel-desk-sale');
 
         //Upload file *.csv
         Route::post('/upload-inventories','SuppliesController@uploadInventories')->name('upload-inventories');
