@@ -4,28 +4,28 @@
 @section('content_header')
     <div class="codrops-links">
         @if($dati->responsabile=='1')
-            <div class="row">
+            <div class="center">
                 <a class="fa fa-eye" href="{{route('visiblecompany')}}"><span>&nbsp;Visibilità</span></a>
                 <a class="fa fa-link" href="{{route('supplychainmanagement')}}"><span>&nbsp;Gestione Supply Chain</span></a>
             </div>
         @endif
         @if($dati->acquisti=='1')
-            <div class="row">
-                <a class="fa fa-cog" href="{{route('providers')}}"><span>&nbsp;Configurazione ordini d'acquisto</span></a>
-                <a class="fa fa-cog" href="#"><span>&nbsp;Ordini d'acquisto</span></a>
+            <div class="center">
+                <a class="fa fa-shopping-cart" href="{{route('providers')}}"><span>&nbsp;Fornitori</span></a>
+                <a class="fa fa-list-ol" href="#"><span>&nbsp;Ordini d'acquisto</span></a>
             </div>
 
         @endif
         @if($dati->produzione=='1')
-            <div class="row">
-                <a class="fa fa-building" href="{{route('production')}}"><span>&nbsp;La nostra produzione</span></a>
+            <div class="center">
+                <a class="fa fa-building-o" href="{{route('production')}}"><span>&nbsp;La nostra produzione</span></a>
                 <a class="fa fa-cog" href="{{route('mapping-production')}}"><span>&nbsp;Associazione acquisti-produzione</span></a>
             </div>
         @endif
         @if($dati->vendite=='1')
-            <div class="row">
+            <div class="center">
                 <a class="fa fa-book" href="{{route('catalogue')}}"><span>&nbsp;Catalogo vendite</span></a>
-                <a class="fa fa-money" href="{{route('add_catalogue')}}"><span>&nbsp;Le nostre vendite</span></a>
+                <a class="fa fa-calendar" href="{{route('expire-monitor')}}"><span>&nbsp;Monitoraggio delle scadenze</span></a>
             </div>
         @endif
     </div>

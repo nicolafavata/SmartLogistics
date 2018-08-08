@@ -29,8 +29,8 @@ ul#menu_a_2livelli li:hover ul{
     color: rgb(180,28,89);
     font-size:.7em;
     left: 70%;
-    margin-top: -26%;
-    margin-left: -16.5%;
+    margin-top: -17%;
+    margin-left: -17%;
 }
 ul#menu_a_2livelli li li {
     border-bottom:1px solid rgba(0,0,0,0.1);
@@ -233,6 +233,10 @@ ul#menu_a_2livelli li li {
 
 .sales_img{
     background-image: url("../img/sales.jpg");
+}
+
+.invoice_img {
+    background-image: url("../img/invoice.jpg");
 }
 
 .ean_img{

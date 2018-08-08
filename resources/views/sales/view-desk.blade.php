@@ -1,5 +1,5 @@
 @extends('layouts.document')
-@section('title','Fatture di vendita')
+@section('title','Vendite al banco')
 @section('content')
     <div class="carousel-inner register-business">
         <br />
@@ -19,14 +19,14 @@
             <div class="item">
                 <div class="row">
                     <div class="col-md-12 text-left">
-                        <h3 class="font-weight-bold text-dark shadow">Fatture di vendita</h3>
+                        <h3 class="font-weight-bold text-dark shadow">Vendite al banco</h3>
                         <div class="icon-list">
-                            <a onclick="showId('add-file')" title="Aggiungi fatture tramite file xml Danea EasyFatt"><i class="text-success shadow fa fa-plus-square-o fa-2x"></i></a>
+                            <a onclick="showId('add-file')" title="Aggiungi vendite al banco tramite file xml Danea EasyFatt"><i class="text-success shadow fa fa-plus-square-o fa-2x"></i></a>
                         </div>
                         <div hidden id="add-file">
-                            <form onsubmit="showloader()" method="POST" action="{{ route('invoice-file') }}" enctype="multipart/form-data">
+                            <form onsubmit="showloader()" method="POST" action="{{ route('desk-file') }}" enctype="multipart/form-data">
                                 {{ csrf_field() }}
-                                <h6 class="grigio shadow">Carica il file XML generato dal Software Danea EasyFatt con le fatture che vuoi aggiungere</h6>
+                                <h6 class="grigio shadow">Carica il file XML generato dal Software Danea EasyFatt con gli scontrini che vuoi aggiungere</h6>
                                 <input type="file"  name="file-invoice" id="production" class="file-invoice">
                                 <button type="submit" class="btn btn-primary" id="submit_picture">
                                             INVIA
@@ -65,7 +65,7 @@
                                     {{$found->customer_reference_invoice}}
                                 </td>
                                 <td class="font-weight-bold text-dark text-capitalize">
-                                    <?php $imp = number_format($found->total_sales_invoice,2)?>
+                                    <?php $imp = number_format($found->total_sales_invoice,2, ',','')?>
                                     {{$imp.' €'}}
                                 </td>
                                 <td class="font-weight-bold text-center text-dark text-center"><a  data-toggle="modal" data-target="#composer{{$found->id_sales_invoice}}"  title="Visualizza i dettagli della fattura N: {{$found->number_sales_invoice}}"><i class="text-success fa fa-list-ol fa-1x"></i></a></td>
@@ -73,7 +73,7 @@
                             </tr>
 
                         @empty
-                            <h6 class="fucsia font-weight-bold shadow">Non hai fatture in archivio</h6>
+                            <h6 class="fucsia font-weight-bold shadow">Non hai vendite al banco in archivio</h6>
                         @endforelse
                         <div class="row">
                             <div class="col-md-8 push-2">
@@ -97,7 +97,7 @@
                                     <div class="modal-body">
                                         <div id="sales_desk" class="p-3 mb-2 bg-white text-dark  font-weight-bold">
                                             <div class="input-group">
-                                                <span class="input-group-text"> Fattura numero: {{' '.$found->number_sales_invoice}}</span>
+                                                <span class="input-group-text"> Scontrino numero: {{' '.$found->number_sales_invoice}}</span>
                                                 <span class="input-group-text"> del: {{' '.$data[2].'/'.$data[1].'/'.$data[0]}}</span><br />
                                                 <span class="input-group-text">Cliente:{{' '.$found->customer_reference_invoice}}</span>
                                             </div>
@@ -141,9 +141,9 @@
                                                                     $iva_unit = $totale - $netto_unit;
                                                                     $netto = $netto + $netto_unit;
                                                                     $iva = $iva + $iva_unit;
-                                                                    $price = number_format($price,2);
-                                                                    $quantity = number_format($comp->quantity_salesInvCon,2);
-                                                                    $totale = number_format($totale,2);
+                                                                    $price = number_format($price,2, ',', '');
+                                                                    $quantity = number_format($comp->quantity_salesInvCon,2, ',', '');
+                                                                    $totale = number_format($totale,2, ',', '');
                                                                     if ($comp->cod_inventory==null){
                                                                         $code = $comp->cod_production;
                                                                         $title = $comp->title_production;
@@ -170,9 +170,9 @@
                                                 </table>
                                             </div>
                                             <?php
-                                                $netto = number_format($netto,2);
-                                                $iva = number_format($iva,2);
-                                                $tot = number_format($tot,2)
+                                                $netto = number_format($netto,2, ',', '');
+                                                $iva = number_format($iva,2, ',', '');
+                                                $tot = number_format($tot,2, ',', '')
                                             ?>
                                             <div class="input-group-text">
                                                 <span> Totale netto: </span><span class="verde font-weight-bold">&nbsp;{{$netto.' € '}}&nbsp;&nbsp;</span>
@@ -209,7 +209,7 @@
             $('table').on('click','i.fa-trash-o', function (ele) {
                 ele.preventDefault();
                 var e = ele.target.parentNode.firstChild;
-                var url = "/cancel-invoice-sale/" + e.value;
+                var url = "/cancel-desk-sale/" + e.value;
                 var tr = ele.target.parentNode.parentNode;
                 $.ajax(
                     {

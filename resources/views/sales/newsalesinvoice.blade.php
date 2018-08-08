@@ -1,7 +1,7 @@
 @extends('layouts.document')
-@section('title','Vendita al banco')
+@section('title','Fattura di vendita')
 @section('content')
-    <div class="carousel-inner register-business sales_img">
+    <div class="carousel-inner register-business invoice_img">
         <br />
         <div class="text-center">
             <div class="row">
@@ -19,7 +19,7 @@
                 <div class="item">
                     <div class="row">
                         <div class="col-md-12 text-left">
-                            <h3 class="font-weight-bold text-dark shadow">Vendita al banco</h3>
+                            <h3 class="font-weight-bold text-dark shadow">Fattura di vendita</h3>
                         </div>
                     </div>
                     <div id="alert-ajax" roles='alert'>
@@ -28,13 +28,13 @@
 
                         <div class="row">
                             <div class="col-md-12 text-left">
-                                <form onsubmit="showloader()" method="POST" action="{{ route('store-sales-desk')}}">
+                                <form onsubmit="showloader()" method="post" action="{{ route('store-sales-invoice')}}">
                                     {{ csrf_field() }}
-                                    <input type="text" name="desk_salesDeskCon" value="{{$id}}" hidden>
+                                    <input type="text" name="invoice_salesInvCon" value="{{$id}}" hidden>
                                     <div id="sales_desk" class="p-3 mb-2 bg-white text-dark  font-weight-bold">
                                         <div class="input-group">
                                             <span class="input-group-text">Cliente:</span>
-                                            <input class="form-control" maxlength="190" name="desc_customer" type="text" placeholder="Dati identificativi del cliente" value="{{old('desc_customer',$desc_customer)}}">
+                                            <input class="form-control" required maxlength="190" name="desc_customer" type="text" placeholder="Dati identificativi del cliente" value="{{old('desc_customer',$desc_customer)}}">
                                         </div>
                                         <div class="input-group">
                                             <span class="input-group-text"> Numero:</span>
@@ -100,7 +100,7 @@
                                             Conferma documento
                                         </button>
                                 </form>
-                                <form onsubmit="showloader()" method="POST" action="{{ route('cancel-desk-sale')}}">
+                                <form onsubmit="showloader()" method="post" action="{{ route('cancel-invoice-sale')}}">
                                     {{ csrf_field() }}
                                     <input type="text" name="desk_salesDeskCon_del" value="{{$id}}" hidden>
                                         <button type="submit" class="btn btn-primary">Annulla documento</button>
@@ -169,7 +169,6 @@
                                 } catch (e) {
                                     console.log('eccezione',documento2);
                                 }
-
                             }
                             if (numberRows<=2) {
                                 addrow('content');
@@ -183,7 +182,6 @@
                             document.getElementById('documentitems').value = prova;
                             if (numberRows==1)  document.getElementById('submit_document').disabled = true;
                             if (numberRows>1)  document.getElementById('submit_document').disabled = false;
-                            upblock=1;
                     }
                 });
                 return;
@@ -200,6 +198,7 @@
                         e.parentNode.parentNode.cells[8].firstChild.disabled = false;
                         var data = document[parseInt(index)-1];
                         e.parentNode.parentNode.cells[10].innerHTML = '<td class="font-weight-bold text-center text-dark text-center"><input hidden value="' + data['product'] + '"><i title="Conferma le modifiche" class="text-success fa fa-check-circle-o"></i></td>';
+                        console.log(e.parentNode.parentNode.cells[10].innerHTML);
                         var tot = parseFloat(t.value).toFixed(2);
                         var row = document[parseInt(index)-1];
                         var imposta = row['imposta'];
@@ -248,6 +247,7 @@
                         document[parseInt(index)-1] = {'riga':data['riga'],'codice':data['codice'],'quant':quant,'discount':perc,'product':data['product'],'price':data['price'],'imposta':data['imposta']};
                         var prova = JSON.stringify(document);
                         document.getElementById('documentitems').value = prova;
+                        console.log(document);
                         block = 1;
                         document.getElementById('ean').disabled = false;
                         document.getElementById('add-item').disabled = false;
@@ -405,7 +405,7 @@
                     var e = ele.target;
                     var codice = e.value;
                     var id = "{{$id}}";
-                    if ( codice > ean) var url = '/check-codice-new-sales/' + codice; else var url = '/check-ean-new-sales/' + ean;
+                    if ( codice > ean) var url = '/check-codice-new-sales/' + codice; else var url = '/check-ean-new-sales/'  + ean;
                     var table = document.getElementById('content');
                     $.ajax(
                         {
@@ -453,7 +453,7 @@
                                         var tot = parseFloat(prezzoimposta).toFixed(2);
                                         cell8.innerHTML = '<td><input disabled class="form-control" type="text" name="price_product" value="'+tot+' €" /><input hidden value="'+imposta+'" /></td>';
                                         var cell9 = row.insertCell(8);
-                                        cell9.innerHTML = '<td><input class="form-check" min="0" type="number" step="0.10" name="discount_salesDeskCon" value="0.00 %"></td>';
+                                        cell9.innerHTML = '<td><input class="form-check" type="number" step="0.10" name="discount_salesDeskCon" value="0.00 %"></td>';
                                         var cell10 = row.insertCell(9);
                                         cell10.innerHTML = '<td><input disabled class="form-control" type="text" name="price_product" value="'+tot+' €"></td>';
                                         var cell11 = row.insertCell(10);
@@ -479,7 +479,7 @@
                     var number = document.getElementById('number_sales_desk').value;
                     var data = document.getElementById('date_sales_desk').value;
                     var id = "{{$id}}";
-                    var url = '/check-number-new-sales-desk/' + id + '/' + number + '/' + data;
+                    var url = '/check-number-new-sales-invoice/' + id + '/' + number + '/' + data;
                     $.ajax(
                         {
                             url: url,
@@ -487,12 +487,11 @@
                             data: '_token={{csrf_token()}}',
                             complete : function (resp) {
                                 if (resp.responseText == 1){
-
+                                    return;
                                 } else {
                                     document.getElementById('number_sales_desk').value = "{{$number}}";
                                     document.getElementById('date_sales_desk').value = "{{$date}}";
                                     var giorno = data.split("-");
-                                    var el='alert-ajax';
                                     document.getElementById('alert-ajax').innerHTML = "<ul class='alert alert-danger alert-dismissible'><li>Non puoi inserire questo numero con la data del " + giorno[2] + "/" + giorno[1] + "/" + giorno[0] +
                                         "</li><button type='button' class='close' onclick='NoHtml()' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></ul>";
                                 }

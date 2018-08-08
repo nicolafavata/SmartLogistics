@@ -110,20 +110,20 @@
 							<ul>
 								<li><a href="{{route('catalogue')}}">Catalogo</a></li>
 								<li><a href="{{route('add_catalogue')}}">Listini</a></li>
-								<li><a href="#">Vendite effettuate</a></li>
 								<li><a href="{{route('expire-monitor')}}">Monitoraggio delle scadenze</a></li>
+								<li><a href="{{route('list-invoice')}}">Fatture</a></li>
+								<li><a href="{{route('list-sales-order')}}">Ordini</a></li>
+								<li><a href="{{route('desk-sales-list')}}">Vendite al banco</a></li>
 							</ul>
 						</li>
-						<li>
-							<span>Nuovo documento</span>
-							<ul>
-								<li><a href="#">Ordine</a></li>
-								<li><a href="#">Ddt</a></li>
-								<li><a href="{{route('new-sales-desk')}}">Scontrino</a></li>
-								<li><a href="#">Fattura</a></li>
-								<li><a href="#">Nota di credito</a></li>
-							</ul>
-						</li>
+								<li>
+									<span>Nuovo documento</span>
+									<ul>
+										<li><a href="{{route('new-sales-invoice')}}">Fattura di vendita</a></li>
+										<li><a href="{{route('new-sales-order')}}">Ordine cliente</a></li>
+										<li><a href="{{route('new-sales-desk')}}">Vendita al banco</a></li>
+									</ul>
+								</li>
 							@endif
 						<li>
 							<a class="dropdown-item" href="{{ route('logout') }}"

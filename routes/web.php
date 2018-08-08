@@ -38,6 +38,7 @@ Route::group(['middleware'=> 'auth'],
         Route::get('/user-profile', 'UserController@viewProfile')->name('view-profile');
         Route::patch('update-user', 'UserController@updateProfile')->name('updateuser');
         Route::get('find-product','UserController@findProduct')->name('findproduct');
+        //---------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         //Impiegati
         Route::get('/employee', 'EmployeeController@index')->name('employee');
@@ -78,7 +79,8 @@ Route::group(['middleware'=> 'auth'],
         Route::get('/block-supply-chain','EmployeeController@ViewBlockSupply')->name('block-supply');
         Route::post('/sblock-company/{id}','EmployeeController@sblockRequest')->where('id', '[0-9]+')->name('sblock-company');
 
-        //-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+        //---------------------------------------------------------------------------------------------------------------------------------------------------------------
         //R E S P O N S A B I L E   A C Q U I S T I
         Route::get('/providers', 'SuppliesController@ViewProvider')->name('providers');
         Route::post('/delete-provider/{id}','SuppliesController@deleteProvider')->where('id', '[0-9]+')->name('delete-provider');
@@ -132,13 +134,36 @@ Route::group(['middleware'=> 'auth'],
         Route::get('/expire-monitor','SalesController@expireMonitor')->name('expire-monitor');
         Route::patch('/setting-expire','SalesController@settingExpire')->name('setting-expire');
         //-------------------------------------------------------------------------------------------------------------------------------------------------------------
-        //N U O V I  D O C U M E N T I
+        //N U O V I  D O C U M E N T I  D I  V E N D I T A
+        //Ordini clienti
+        Route::get('/new-sales-order','SalesController@newSalesOrder')->name('new-sales-order');
+        Route::post('/check-number-new-order/{id}/{number}/{date}','SalesController@checkNumberNewOrder')->where('id', '[0-9]+')->where('number', '[0-9]+');
+        Route::post('/store-order-custom','SalesController@storeOrderCustom')->name('store-order-custom');
+        Route::post('/cancel-order-custom','SalesController@cancelOrderCustom')->name('cancel-order-custom');
+        Route::get('/view-sales-order','SalesController@viewSalesOrder')->name('list-sales-order');
+        Route::post('/order-sales-file', 'SalesController@addSalesOrder')->name('order-sales-file');
+        Route::post('/cancel-sales-order/{id}','SalesController@cancelSalesOrder')->where('id', '[0-9]+');
+
+        //Fatture
+        Route::get('/new-sales-invoice','SalesController@newSalesInvoice')->name('new-sales-invoice');
+        Route::post('/check-number-new-sales-invoice/{id}/{number}/{date}','SalesController@checkNumberNewSalesInvoice')->where('id', '[0-9]+')->where('number', '[0-9]+');
+        Route::post('/store-sales-invoice','SalesController@storeSalesInvoice')->name('store-sales-invoice');
+        Route::post('/cancel-invoice-sale','SalesController@cancelInvoiceSale')->name('cancel-invoice-sale');
+        Route::get('/view-invoice','SalesController@viewInvoice')->name('list-invoice');
+        Route::post('/cancel-invoice-sale/{id}','SalesController@cancelInvoice')->where('id', '[0-9]+')->name('cancel-invoice-view');
+        Route::post('/invoice-file', 'SalesController@addInvoice')->name('invoice-file');
+
+        //Vendite al banco
         Route::get('/new-sales-desk','SalesController@newSalesDesk')->name('new-sales-desk');
         Route::post('/check-number-new-sales-desk/{id}/{number}/{date}','SalesController@checkNumberNewSalesDesk')->where('id', '[0-9]+')->where('number', '[0-9]+');
-        Route::post('/check-ean-new-sales/{id}/{ean}','SalesController@checkEanNewSales')->where('id', '[0-9]+')->where('number', '[0-9]+');
-        Route::post('/check-codice-new-sales/{id}/{code}','SalesController@checkCodeNewSales')->where('id', '[0-9]+')->where('number', '[0-9]+');
-        Route::get('/store-sales-desk','SalesController@storeSalesDesk')->name('store-sales-desk');
+        Route::post('/check-ean-new-sales/{ean}','SalesController@checkEanNewSales')->where('ean', '[0-9]+');
+        Route::post('/check-codice-new-sales/{code}','SalesController@checkCodeNewSales')->where('code', '[0-9]+');
+        Route::post('/store-sales-desk','SalesController@storeSalesDesk')->name('store-sales-desk');
         Route::post('/cancel-desk-sale','SalesController@cancelDeskSale')->name('cancel-desk-sale');
+        Route::get('/view-sales-desk','SalesController@viewSalesDesk')->name('desk-sales-list');
+        Route::post('/cancel-desk-sale/{id}','SalesController@cancelDesk')->where('id', '[0-9]+')->name('cancel-invoice-view');
+        Route::post('/desk-file', 'SalesController@addDesk')->name('desk-file');
+        //---------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         //Upload file *.csv
         Route::post('/upload-inventories','SuppliesController@uploadInventories')->name('upload-inventories');
@@ -156,6 +181,7 @@ Route::group(['middleware'=> 'auth'],
         Route::get('/download-production-import', 'ProductionController@downloadProduction')->name('download-production-import');
         Route::get('/download-mapping-production-import', 'ProductionController@downloadMappingProduction')->name('download-mapping-production-import');
         Route::get('/download-catalogue-import', 'SalesController@downloadCatalogue')->name('download-catalogue-import');
+        //---------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         //Amministratori
         Route::get('/admin', 'BusinessController@index')->name('admin');
@@ -171,12 +197,14 @@ Route::group(['middleware'=> 'auth'],
         Route::patch('/admin/updatecontatti', 'BusinessController@updateContatti')->name('updatecontatti');
         Route::get('/admin/our_companies', 'BusinessController@viewCompany')->name('viewcompany');
         Route::post('/admin/delete/companies/{id}', 'BusinessController@deleteCompany')->where('id', '[0-9]+')->name('deletecompany');
+        //---------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         //Registrazione
         Route::get('/userprofile', 'UserController@registerProfile')->name('completeuser');
         Route::get('/businessprofile', 'BusinessController@registerProfile')->name('completebusiness');
         Route::post('/registeruserprofile', 'UserController@CreateUserProfile')->name('registeruser');
         Route::post('/registerbusinessprofile', 'BusinessController@CreateBusinessProfile')->name('registerbusiness');
+        //---------------------------------------------------------------------------------------------------------------------------------------------------------------
     });
 
 //Route script in batch => http://www.smartlogis.it/batch/verifyoiGgYJpzqVtljQSwUry9BPITcyEzmbzVBFUgjc2KIPEFptPwNccS8jLhgfT7 ATTENZIONE!!!! dopo verify scrivere il token

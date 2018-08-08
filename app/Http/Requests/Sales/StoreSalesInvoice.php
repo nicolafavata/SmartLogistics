@@ -5,7 +5,7 @@ namespace App\Http\Requests\Sales;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 
-class StoreSalesDesk extends FormRequest
+class StoreSalesInvoice extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -27,9 +27,10 @@ class StoreSalesDesk extends FormRequest
     {
         return [
             'documentitems' => 'required',
-         //   'desk_salesDeskCon' => 'required|exists:sales_desks,id_sales_desk',
+        //    'invoice_salesInvCon' => 'required|exists:sales_invoices,id_sales_invoice',
             'number_sales_desk' => 'required|numeric',
-            'date_sales_desk' => 'required|date'
+            'date_sales_desk' => 'required|date',
+            'desc_customer' => 'required|string'
         ];
     }
 
@@ -37,12 +38,13 @@ class StoreSalesDesk extends FormRequest
     {
         return [
             'documentitems.required' => 'Non hai inserito prodotti nel documento',
-            'desk_salesDeskCon.required' => 'Hai cancellato un\'attributo necessario, annullare il documento e riprovare',
-            'desk_salesDeskCon.exists' => 'Hai cancellato un\'attributo necessario, annullare il documento e riprovare',
+            'invoice_salesInvCon.required' => 'Hai cancellato un\'attributo necessario, annullare il documento e riprovare',
+            'invoice_salesInvCon.exists' => 'Hai cancellato un\'attributo necessario, annullare il documento e riprovare',
             'number_sales_desk.required' => 'Devi inserire il numero del documento',
             'number_sales_desk.numeric' => 'Devi inserire il numero del documento',
             'date_sales_desk.required' => 'Non hai inserito la data del documento',
             'date_sales_desk.date' => 'Non hai inserito la data del documento',
+            'desc_customer.required' => 'Devi inserire il riferimento al cliente'
         ];
     }
 }

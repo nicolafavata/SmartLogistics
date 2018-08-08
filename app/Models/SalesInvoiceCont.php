@@ -9,6 +9,6 @@ class SalesInvoiceCont extends Model
     protected $primaryKey = 'id_salesInvCon';
 
     protected $fillable = [
-        'id_salesInvCon','invoice_salesInvCon','product_salesInvCon','quantity_salesInvCon','discount_salesInvCon',
+        'id_salesInvCon','invoice_salesInvCon','product_salesInvCon','quantity_salesInvCon','discount_salesInvCon','imposta_salesInvCon','price_salesInvCon',
     ];
 }
