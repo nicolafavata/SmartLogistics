@@ -131,7 +131,31 @@ function addrow(content) {
     document.getElementById('add-item').disabled = true;
 }
 
+function showNumberDate() {
+    var tok = document.getElementById('tok').value;
+    document.getElementById('numdat').hidden = false;
+    document.getElementById('number').value = null;
+    document.getElementById('date').value = null;
+    var type = document.getElementById('type-document').value;
+    if (type == 'invoice' || type == 'desk'){
+        var url = '/take-last-number/' + type;
+        $.ajax({
+           url: url,
+           type: 'post',
+            data: '_token='+tok,
+            dataType: "html",
+            success: function (resp) {
+               if (resp.length>0){
+                   document.getElementById('number').value = resp;
+                   document.getElementById('date').value = document.getElementById('now').value;
+               }
+            }
+        });
+    }
+    return;
 
+
+}
 
 function showloader() {
     document.getElementById('loading').style.display = 'inline-block';

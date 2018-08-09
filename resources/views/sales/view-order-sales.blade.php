@@ -1,7 +1,12 @@
 @extends('layouts.document')
 @section('title','Ordini clienti')
 @section('content')
-    <div class="carousel-inner register-business">
+    <?php
+        $date = date('Y-m-d');
+    ?>
+    <input type="hidden" id="tok" value="{{csrf_token()}}">
+    <input type="hidden" id="now" value="{{$date}}">
+    <div class="carousel-inner register-order">
         <br />
         <div class="text-center">
             <div class="row">
@@ -16,12 +21,15 @@
                     @endcomponent
                 @endif
             </div>
-            <div class="item" id="orders">
+            <div class="item" id="form">
                 <div class="row">
                     <div class="col-md-12 text-left">
                         <h3 class="font-weight-bold text-dark shadow">Gli ordini dei clienti</h3>
                         <div class="icon-list">
                             <a onclick="showId('add-file')" title="Aggiungi Ordini clienti tramite file xml Danea EasyFatt"><i class="text-success shadow fa fa-plus-square-o fa-2x"></i></a>
+                        </div>
+                        <div id="alert-ajax" roles='alert'>
+
                         </div>
                         <div hidden id="add-file">
                             <form onsubmit="showloader()" method="POST" action="{{ route('order-sales-file') }}" enctype="multipart/form-data">
@@ -56,7 +64,7 @@
                                     @if($found->state_salesCust_or=='1')
                                             <a  title="L'ordine N: {{$found->number_sales_invoice}} è stato chiuso"><i class="fucsia fa fa-times-circle fa-1x"></i></a>
                                         @else
-                                            <a  data-toggle="modal" data-target="#open-document{{$found->id_sales_invoice}}"  title="Ordini aperti del cliente {{$found->customer_reference_invoice}}"><i class="text-success fa fa-folder-open-o"></i></a>
+                                            <a  data-toggle="modal" data-target="#open-document{{$found->id_sales_invoice}}"  title="Ordini aperti del cliente {{$found->customer_reference_invoice}}"><input value="{{$found->customer_reference_invoice}}" hidden><i class="text-success fa fa-folder-open-o"></i></a>
                                     @endif
                                 </td>
                                 <th scope="row">
@@ -279,9 +287,105 @@
 @section('ajax')
     <script>
         $('document').ready(function () {
+           $('table').on('click','i.fa-folder-open-o', function (ele) {
+              ele.preventDefault();
+              var e = ele.target.parentNode.firstChild;
+              var rag = e.value.substr(0,25);
+              var rag = rag +'%'
+              var url = "/order-sales-open/" + rag;
+              var customer = e.value;
+              $.ajax({
+                  url: url,
+                  type: 'post',
+                  data: '_token={{csrf_token()}}',
+                  beforeSend: function (xhr) {
+                      if (xhr && xhr.overrideMimeType) {
+                          xhr.overrideMimeType('application/json;charset=utf-8');
+                      }
+                  },
+                  dataType: "json",
+                  success : function (data){
+                      console.log(data);
+                      if ( data.length === 0) {
+                          document.getElementById('alert-ajax').innerHTML = "<ul class='alert alert-danger alert-dismissible'><li>Il cliente non ha ordini aperti</li><button type='button' class='close' onclick='NoHtml()' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></ul>";
+                      } else {
+                          var tok = document.getElementById('tok').value;
+                          document.getElementById('form').innerHTML='<form onsubmit="showloader()" method="post" action="/close-order-sales-open"><input hidden name="customer" value="'+customer+'">' +
+                               '<input type="hidden" name="_token" value="'+tok+'">' +
+                              '<div id="orders"></div><a type="button" class="btn btn-primary" href="/view-sales-order">Indietro</a> <button type="submit" class="btn btn-primary" id="submit_document">' +
+                              '                                            Conferma' +
+                              '                                        </button></form>';
+                          document.getElementById('orders').innerHTML = '<div class="row">' +
+                              '                    <div class="col-md-12 text-left">' +
+                              '                        <h3 class="font-weight-bold text-dark shadow">Gli ordini aperti del cliente:</h3><h4 class="fucsia shadow">'+ customer +'</h4>' +
+                              '                    </div>' +
+                              '                </div>'+'<div class="input-group mb-3">' +
+                              '  <div class="input-group-prepend">' +
+                              '    <label class="input-group-text" for="inputGroupSelect01">Tipo di documento</label>' +
+                              '  </div>' +
+                              ' <select name="type" class="custom-select" id="type-document" onchange="showNumberDate()">' +
+                              '<option class="input-group" selected>Seleziona il tipo di documento</option>' +
+                              '<option class="input-group" value="invoice">Fattura</option>' +
+                              '    <option value="desk">Vendita al banco</option>' +
+                              '  </select>' +
+                              '</div>'+
+                                  '<div id="numdat" hidden class="input-group">' +
+                              '                                            <span class="input-group-text">Numero:</span>' +
+                              '                                            <input required  type="number" name="number" id="number" class="font-weight-bold form-control" >' +
+                              '                                            <span class="input-group-text"> del:</span> <input required class="form-control" type="date" name="date" id="date" >' +
+                              '                                        </div>'+
+                              '<div class="table-responsive-sm">' +
+                              '                    <table id="content" class="table table-striped border">' +
+                              '                        <thead class="thead-light">' +
+                              '                        <tr>' +
+                              '                            <th scope="col"></th>' +
+                              '                            <th scope="col">Nr</th>' +
+                              '                            <th scope="col">Data</th>' +
+                              '                            <th scope="col">Totale ivato</th>' +
+                              '                        </tr>' +
+                              '                        </thead>' +
+                              '                        <tbody> </tbody>' +
+                          '                    </table></div>'+
+                              '<div class="row">' +
+                              '                    <div class="col-md-12 text-left">' +
+                              '                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class="text-success font-weight-bold  fa fa-long-arrow-up">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Seleziona gli ordini che vuoi chiudere</i>' +
+                              '                    </div>' +
+                              '                </div>';
+                          var i=1;
+                              data.forEach(function (e) {
+                                  var table = document.getElementById('content');
+                                  var row = table.insertRow(i);
+                                  i++;
+                                  var cell1 = row.insertCell(0);
+                                  cell1.innerHTML = '<td class="text-center"><div class="input-group mb-3">' +
+                                    '  <div class="input-group-prepend">' +
+                                    '  <div class="input-group-text">' +
+                                    '  <input type="checkbox" name="document[]" value="'+e['id']+'" aria-label="Checkbox for following text input">'+
+                                    ' </div></div> </td>';
+                                  var cell2 = row.insertCell(1);
+                                  cell2.innerHTML = '<th scope="row" class="text-center font-weight-bold">' + e['number'] + '</th>';
+                                  var cell3 = row.insertCell(2);
+                                  e['date'] = e['date'].substr(0,10);
+                                  var data_doc = e['date'].split("-");
+                                  cell3.innerHTML = '<td class="text-center font-weight-bold">'+data_doc[2]+'/'+data_doc[1]+'/'+data_doc[0]+'</td>';
+                                  var cell4 = row.insertCell(3);
+                                  var total = parseFloat(e['total']).toFixed(2);
+                                  cell4.innerHTML = '<td class="text-center font-weight-bold">'+total+'&nbsp;€</td>';
+
+                              });
+
+
+                      }
+                  }
+              });
+           });
+           return;
+        });
+
+        $('document').ready(function () {
             $('table').on('click','i.fa-trash-o', function (ele) {
                 ele.preventDefault();
-                var e = ele.target.parentNode.firstChild;
+                var e = ele.target.parentNode.firstChild.nextSibling;
                 var url = "/cancel-sales-order/" + e.value;
                 var tr = ele.target.parentNode.parentNode;
                 $.ajax(
@@ -290,7 +394,6 @@
                         type: 'post',
                         data: '_token={{csrf_token()}}',
                         complete : function (resp) {
-                            console.log(resp);
                             if (resp.responseText == 1){
                                 tr.parentNode.removeChild(tr);
                             } else {
@@ -299,8 +402,9 @@
                         }
                     }
                 );
-            })
-        })
+            });
+            return;
+        });
     </script>
 @endsection
 

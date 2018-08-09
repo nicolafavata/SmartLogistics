@@ -143,6 +143,9 @@ Route::group(['middleware'=> 'auth'],
         Route::get('/view-sales-order','SalesController@viewSalesOrder')->name('list-sales-order');
         Route::post('/order-sales-file', 'SalesController@addSalesOrder')->name('order-sales-file');
         Route::post('/cancel-sales-order/{id}','SalesController@cancelSalesOrder')->where('id', '[0-9]+');
+        Route::post('/order-sales-open/{customer}', 'SalesController@viewOrderOpen');
+        Route::post('/close-order-sales-open', 'SalesController@closeOrderOpen');
+        Route::post('/take-last-number/{type}','SalesController@takeLastNumber');
 
         //Fatture
         Route::get('/new-sales-invoice','SalesController@newSalesInvoice')->name('new-sales-invoice');

@@ -71,6 +71,7 @@ function showId(el) {
     document.getElementById(el).hidden = false;
 }
 
+
 function NoShowId(el) {
     document.getElementById(el).hidden = true;
 }
