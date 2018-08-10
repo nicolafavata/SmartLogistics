@@ -21,8 +21,8 @@ class CreatePurchaseOrdersTable extends Migration
             $table->foreign('provider_purchase_order')->on('providers')->references('id_provider')->onDelete('cascade')->onUpdate('cascade');
             $table->integer('order_number_purchase')->nullable();
             $table->dateTime('order_date_purchase')->nullable();
-            $table->binary('state_purchase_order')->nullable();
-            $table->string('comment_purchase_order',40)->nullable();
+            $table->string('state_purchase_order',2)->nullable();
+            $table->string('comment_purchase_order',190)->nullable();
             $table->double('total_purchase_order')->default(0);
             $table->string('reference_purchase_order',40)->nullable();
             $table->timestamps();

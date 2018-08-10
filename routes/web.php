@@ -210,5 +210,5 @@ Route::group(['middleware'=> 'auth'],
         //---------------------------------------------------------------------------------------------------------------------------------------------------------------
     });
 
-//Route script in batch => http://www.smartlogis.it/batch/verifyoiGgYJpzqVtljQSwUry9BPITcyEzmbzVBFUgjc2KIPEFptPwNccS8jLhgfT7 ATTENZIONE!!!! dopo verify scrivere il token
+//Route script in batch => http://www.smartlogis.it/batch/verifyfcYjdwXDVblc52ONMhflDNk0LCqBJ23vNqPZSGnLNbpkIdB11G0MtgFMYVYB ATTENZIONE!!!! dopo verify scrivere il token
 Route::get('/batch/verify{token}','BatchController@verifyToken');

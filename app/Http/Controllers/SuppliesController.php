@@ -719,13 +719,12 @@ class SuppliesController extends Controller
                                 return redirect()->route('config-order',$data['provider_config_order']);
                             } else {
                                 if (!isset($data['level_config'])) $data['level_config']="0";
-                                if ($data['mapping_config']!=="10" or $data['mapping_config']!=="11") $data['mapping_config']="01";
                                 if ($data['transmission_config']!=="1") $data['transmission_config'] = "0";
                                 if ($data['execute_config']!=="1"){
                                     $data['days_number_config']=0;
                                     $data['execute_config']='0';
                                 }
-                                DB::table('config_orders')->where('company_config_order',$company_provider->company_employee)->where('provider_config_order',$data['provider_config_order'])->update(
+                                $up = DB::table('config_orders')->where('company_config_order',$company_provider->company_employee)->where('provider_config_order',$data['provider_config_order'])->update(
                                   [
                                       'lead_time_config' => $data['lead_time_config'],
                                       'window_first_config' => $data['window_first_config'],
@@ -759,7 +758,9 @@ class SuppliesController extends Controller
                                     $email_provider = DB::table('providers')->where('id_provider',$data['provider_config_order'])->select('email_provider')->first();
                                     $email = $email_provider->email_provider;
                                 } else $email = null;
-                                $batch = DB::table('batch_monitoring_orders')->where('company_batchMonOrder',$company_provider->company_employee)->where('configOrder_batchMonOrder',$check->id_config_order)->update(
+                                $select = DB::table('batch_monitoring_orders')->where('company_batchMonOrder',$company_provider->company_employee)->where('configOrder_batchMonOrder',$check->id_config_order)->first();
+                                if (count($select)>0){
+                                    $batch = DB::table('batch_monitoring_orders')->where('company_batchMonOrder',$company_provider->company_employee)->where('configOrder_batchMonOrder',$check->id_config_order)->update(
                                         [
                                             'level_control' => $data['level_config'],
                                             'date_batch_monitoring_order' => $date_booking,
@@ -768,7 +769,7 @@ class SuppliesController extends Controller
                                             'email_monitoring_order' => $email
                                         ]
                                     );
-                                if($batch==null){
+                                } else {
                                     $batch = Batch_monitoringOrder::create(
                                         [
                                             'company_batchMonOrder' => $company_provider->company_employee,
@@ -781,8 +782,7 @@ class SuppliesController extends Controller
                                         ]
                                     );
                                 }
-                                $messaggio = $batch ? 'Le informazioni sono state aggiornate' : 'Problemi con il Server riprovare più tardi';
-                                session()->flash('message', $messaggio);
+                                session()->flash('message', 'Le informazioni sono state aggiornate');
                                 return redirect()->route('config-order',$data['provider_config_order']);
                             }
                         }
