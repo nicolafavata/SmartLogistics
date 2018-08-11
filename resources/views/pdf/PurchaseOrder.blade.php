@@ -3,117 +3,114 @@
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/mystyle.css" rel="stylesheet">
     <style>
-        div {margin: 5px}
+        div {margin: 2px}
     </style>
 </head>
 
-<div style="margin: 3px">
-
-
+<div style="margin: 2px">
         <table>
             <tr>
                 <td rowspan="5" class="text-left">
                     <img height="150px" width="150px"
-                    @if(($supply->logo)!='0')
-                        src="{{env('APP_URL').'/storage/'.$supply->logo}}">
+                         @if(($supply->logo)!='0')
+                         src="{{env('APP_URL').'/storage/'.$supply->logo}}">
                     @else
                         src="{{env('APP_URL').'/img/logo_business.jpg'}}">
                     @endif
                 </td>
                 <td>
-                    <h5 class="text-uppercase"{{$supply->rag_soc_shares}}></h5>
                 </td>
             </tr>
             <tr>
                 <td>
-                    <h6 class="text-capitalize"{{$supply->indirizzo_shares.', '.$supply->civico_shares}}></h6>
+                    <h4 class="font-weight-bold text-uppercase">{{$supply->rag_soc_shares}}</h4>
                 </td>
             </tr>
             <tr>
-                <td class="text-left">
-                    <h6 class="text-capitalize"> @if($supply->cap_shares=='8092')
+                <td>
+                    <h5 class="text-capitalize">{{$supply->indirizzo_shares.', '.$supply->civico_shares.' - '}}
+                        @if($supply->cap_shares=='8092')
                             {{$supply->cap_extra1.' '.$supply->city_extra1.' '.$supply->state_extra1}}
                         @else
                             {{$supply->cap_shares.' '.$supply->comune_shares.', '.$supply->sigla_prov_shares}}
-                        @endif</h6>
+                        @endif
+                    </h5>
                 </td>
             </tr>
             <tr>
                 <td class="text-left text-capitalize">
-                    <h6>{{'Telefono:'.$supply->telefono.' - Email: '.$supply->email_shares}}</h6>
+                    <h5>
+                        {{'Telefono: '.$supply->telefono.' - Email: '.$supply->email_shares}}
+                    </h5>
                 </td>
             </tr>
             <tr>
                 <td class="text-left text-capitalize">
-                    <h6>{{'Partita iva:'.$supply->partiva}}</h6>
+                    <h5>
+                        {{'Partita iva: '.$supply->partiva}}
+                    </h5>
                 </td>
             </tr>
         </table>
         <hr>
-        <h5 class="text-capitalize">{{'Ordine numero: '.$document->number.' del '.$document->date}}</h5>
+        <h5 class="font-weight-bold">{{'Ordine Numero: '.$document->number.' del '.$document->date}}</h5>
         <hr>
-        <table class="text-left">
-            <tr>
-                <td class="text-left">
-                    <h5 class="font-weight-bold text-left verde">{{'Fornitore: '}} </h5>
-                </td>
-            </tr>
-            <tr>
-                <td class="text-right">
-                    <h6 class="text-uppercase">{{$supply->rag_soc_received}}</h6>
-                </td>
-            </tr>
-            <tr>
-                <td class="text-right">
-                    <h6 class="text-uppercase">{{$supply->indirizzo_received.', '.$supply->civico_received}}</h6>
-                </td>
-            </tr>
-            <tr>
-                <td class="text-right">
-                    <h6 class="text-uppercase">@if($supply->cap_shares=='8092')
-                        {{$supply->cap_received.' '.$supply->city_received.' '.$supply->state_received}}
-                    @else
+        <div>
+            <h5 class="font-weight-bold">{{'Spett.le: '}} </h5>
+            <h5 class="font-weight-bold text-uppercase">{{$supply->rag_soc_received}}</h5>
+            <h6 class="text-capitalize">{{$supply->indirizzo_received.', '.$supply->civico_received}}
+                @if($supply->cap_shares=='8092')
+                    {{$supply->cap_received.' '.$supply->city_received.' '.$supply->state_received}}
+                @else
+                    @if($supply->cap_received!=='')
                         {{$supply->cap_received.' '.$supply->comune_received.', '.$supply->sigla_prov_received}}
-                        @endif</h6>
-                </td>
-            </tr>
-        </table>
+                    @endif
+                @endif
+            </h6>
+            <h6 class="text-left text-capitalize">{{'Telefono: '.$supply->telefono_provider.' - Email: '.$supply->email_received}}</h6>
+            <h6 class="text-left text-capitalize">{{'Partita iva: '.$supply->iva_provider}}</h6>
+        </div>
+        <hr>
+        <h6 class="font-weight-bold grigio shadow">{{'Stato dell\'ordine: '}}
+        @if($document->state=='00') {{'Annullato'}} @endif
+            @if($document->state=='01') {{'Generato in attesa di trasmissione'}} @endif
+            @if($document->state=='10') {{'Trasmesso al fornitore, in attesa della merce'}} @endif
+            @if($document->state=='11') {{'Ordine confermato merce arrivata'}} @endif
+        </h6>
+        <hr>
     <div class="text-left">
-        <table border="1" bgcolor="#fff8dc">
+        <table border="2" bgcolor="#f8f8ff">
             <thead>
-                <tr>
-                    <td class="text-center font-weight-bold">
+                <tr border="1" bgcolor="#ff1493">
+                    <td class="text-center font-weight-bold text-white">
                         Vs. Codice
                     </td>
-                    <td class="text-center font-weight-bold">
+                    <td class="text-center font-weight-bold text-white">
                         Descrizione
                     </td>
-                    <td class="text-center font-weight-bold">
+                    <td class="text-center font-weight-bold text-white">
                         Ns. Codice
                     </td>
-                    <td class="text-center font-weight-bold">
+                    <td class="text-center font-weight-bold text-white">
                         Q.tà
                     </td>
-                    <td class="text-center font-weight-bold">
+                    <td class="text-center font-weight-bold text-white">
                         U.M.
                     </td>
-                    <td class="text-center font-weight-bold">
+                    <td class="text-center font-weight-bold text-white">
                         Prezzo
                     </td>
-                    <td class="text-center font-weight-bold">
-                        Iva %
-                    </td>
-                    <td class="text-center font-weight-bold">
+                    <td class="text-center font-weight-bold text-white">
                         Sconto
                     </td>
-                    <td class="text-center font-weight-bold">
+                    <td class="text-center font-weight-bold text-white">
                         Importo
                     </td>
                 </tr>
             </thead>
             <tbody>
         @foreach ($items as $item)
-            <tr>
+            <tr >
                 <td class="text-center text-uppercase">
                     {{$item->your_code}}
                 </td>
@@ -124,18 +121,15 @@
                 <td class="text-center text-uppercase">
                     {{$item->our_code}}
                 </td>
-                <td class="text-center">
+                <td class="text-center font-weight-bold">
                     {{$item->quantity}}
                 </td>
                 <td class="text-center">
                     {{$item->unit}}
                 </td>
-                <td class="text-center">
+                <td class="text-center font-weight-bold">
                     <?php $price = number_format($item->price_unit_no_tax,2, ',', ''); ?>
                     {{$price.' €'}}
-                </td>
-                <td class="text-center">
-                    {{$item->tax}}
                 </td>
                 <td class="text-center">
                     @if($item->discount>0)
@@ -155,24 +149,18 @@
         @endforeach
         </tbody>
         </table>
-        <table border="1" bgcolor="#fff8dc">
+        <table border="1" bgcolor="#7cfc00">
             <tr>
-                <td class="text-left">
+                <td style="padding: 10px" class="text-left font-weight-bold">
                     <?php $tot_netto = number_format($document->total_no_tax,2, ',', ''); ?>
-                    {{'Totale netto: '.$tot_netto.' €'}}
-                </td>
-                <td class="text-center">
-                    <?php $iva = number_format($document->tax,2, ',', ''); ?>
-                    {{'Iva: '.$iva.' €'}}
-                </td>
-                <td class="text-right">
-                    <?php
-                        $tot_document = $document->total_no_tax + $document->tax;
-                        $tot_document = number_format($tot_document, 2, ',', '');
-                    ?>
-                    {{'Totale documento: '.$tot_document.' €'}}
+                    &nbsp;{{'Totale imponibile: '.$tot_netto.' €'}}
                 </td>
             </tr>
         </table>
     </div>
+    <br /><br />
+    <footer class="text-center font-weight-bold">
+        <small class="text-center">Realizzato con l'applicazione www.smartlogis.it</small><br />
+        <img src="img/logo.gif" width="250px">
+    </footer>
 </div>

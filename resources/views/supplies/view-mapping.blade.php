@@ -77,7 +77,7 @@
                             <tr>
                                 <th scope="col">#</th>
                                 <th scope="col"></th>
-                                <th scope="col">Vs.Codice</th>
+                                <th scope="col">Ns.Codice</th>
                                 <th scope="col">Descrizione</th>
                                 <th scope="col">U.M.</th>
                                 <th scope="col">Mapping</th>

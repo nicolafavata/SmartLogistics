@@ -109,6 +109,8 @@ Route::group(['middleware'=> 'auth'],
         //Configurazione ordini
         Route::get('/config-order/{id}','SuppliesController@configOrder')->where('id', '[0-9]+')->name('config-order');
         Route::patch('/setting-config-order','SuppliesController@settingConfig')->name('setting-config-order');
+        //Generazione ordine
+        Route::get('/generated-order/{id}','SuppliesController@generatedOrder')->where('id', '[0-9]+')->name('generated-order');
 
         //-------------------------------------------------------------------------------------------------------------------------------------------------------------
         //R E S P O N S A B I L E   P R O D U Z I O N E

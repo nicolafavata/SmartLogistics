@@ -17,10 +17,22 @@ use App\Models\ConfigOrder;
 use App\Models\Expiry;
 use App\Models\Provider;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Employee;
 use App\User;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\PDF;
+use Barryvdh\DomPDF;
+use App\Mail\BatchProduction;
+use App\Mail\MonitoringExpire;
+use App\Mail\SharingForecast;
+use App\Mail\PurchaseOrderCanceled;
+use App\Mail\PurchaseOrderReceived;
+use App\Mail\PurchaseOrderTransmission;
+use App\Models\PurchaseOrder;
+use App\Models\PurchaseOrderContent;
+use Illuminate\Support\Facades\Mail;
 
 
 class SuppliesController extends Controller
@@ -42,6 +54,12 @@ class SuppliesController extends Controller
             session()->flash('message', 'Non puoi accedere a queste informazioni');
             return redirect()->route('employee');
         }
+    }
+
+    function monthForecast($initial,$month){
+        if ($initial==$month) return 1;
+        if ($initial<$month) return $month - ($initial - 1);
+        if ($initial>$month) return 13 -($initial - $month);
     }
 
     public function deleteProvider($id){
@@ -795,5 +813,374 @@ class SuppliesController extends Controller
             session()->flash('message', 'Non puoi effettuare questa operazione');
             return redirect()->route('employee');
         }
+    }
+
+    public function generatedOrder($id){
+        $acquisti = $this->supplieControl();
+        if ($acquisti->acquisti=='1') {
+            $company = Employee::where('user_employee',Auth::id())->join('company_offices','id_company_office','=','company_employee')->select('company_employee')->first();
+            $check = DB::table('providers')->where('company_provider',$company->company_employee)->where('id_provider',$id)->first();
+            if (count($check)==1){
+                $work = DB::table('batch_monitoring_orders')->join('config_orders','id_config_order','=','configOrder_batchMonOrder')->where('company_batchMonOrder',$company->company_employee)->where('provider_config_order',$id)->select('*')->first();
+                if (count($work)==1){
+                    $ordered = false;
+                    $generated = false;
+                    //Se specifichiamo il numero di giorni fra un ordine e l'altro e controlliamo il livello di sicurezza
+                    //Dobbiamo rifornirci solo della quantità necessaria sino al prossimo ordine
+                    if ($work->execute_config=='1' and $work->level_control=='1'){
+                        //Recuperiamo la data dell'ultimo ordine effettuato
+                        $last =  DB::table('purchase_orders')->where('company_purchase_order',$work->company_batchMonOrder)->where('state_purchase_order','11')->where('provider_purchase_order',$work->provider_config_order)->orderByDesc('order_date_purchase')->select('order_date_purchase')->first();
+                        if ($last!==null){
+                            $date_last = date_create(substr($last->order_date_purchase,0,10));
+                            $today = date_create(date('Y-m-d'));
+                            $days_last_order = date_diff($date_last , $today)->format('%a');
+                            $giorni = $work->days_number_config - ($work->days_number_config * 0.1);
+                            $giorni = $giorni - $days_last_order;
+                            if ($giorni>0) $giorni = $work->days_number_config - $days_last_order; else $giorni = $work->days_number_config;
+                        } else $giorni = $work->days_number_config;
+                    } else $giorni = $work->days_number_config;
+                    $n=null;
+                    $year = date('Y');
+                    while ($n==null){
+                        $number = DB::table('purchase_orders')->where('company_purchase_order',$work->company_batchMonOrder)->whereYear('order_date_purchase','=',$year)->orderByDesc('order_number_purchase')->select('order_number_purchase','id_purchase_order')->first();
+                        if (count($number)==0) $n=1;
+                        else{
+                            $id = $number->id_purchase_order;
+                            $find = DB::table(('purchase_order_contents'))->where('order_purchase_content',$id)->first();
+                            if (count($find)==0){
+                                DB::table('purchase_orders')->where('id_purchase_order',$id)->where('company_purchase_order',$work->company_batchMonOrder)->delete();
+                            } else $n = $number->order_number_purchase+1;
+                        }
+                    }
+                    $order = PurchaseOrder::create(
+                        [
+                            'company_purchase_order' => $work->company_batchMonOrder,
+                            'provider_purchase_order' => $work->provider_config_order,
+                            'order_date_purchase' => date('Y-m-d'),
+                            'order_number_purchase' => $n
+                        ]
+                    );
+                    $supply = $this->CheckEanMapping($work->company_batchMonOrder,$work->configOrder_batchMonOrder);
+                    if ($supply==null){
+                        $mapping = DB::table('config_orders')->where('id_config_order',$work->configOrder_batchMonOrder)->select('mapping_config')->first();
+                        if ($mapping->mapping_config=='11'){
+                            $map=$work->company_batchMonOrder;
+                            $field='company_mapping_provider';
+                        } else {
+                            $field='first';
+                            if ($mapping->mapping_config=='01') $map='1'; else $map='0';
+                        }
+                        $item = DB::table('mapping_inventory_providers')->where('company_mapping_provider',$work->company_batchMonOrder)->where($field,$map)->where('provider_mapping_provider',$work->provider_config_order)->select('inventory_mapping_provider as item')->distinct()->get();
+                    } else {
+                        $item = DB::table('sales_lists')->where('company_sales_list',$supply)->join('inventories','ean_inventory','=','ean_saleslist')->where('company_inventory',$work->company_batchMonOrder)->select('id_inventory as item')->distinct()->get();
+                    }
+                    if (count($item)>0){
+                        $order_total = 0;
+                        $order_iva = 0;
+                        foreach ($item as $prod){
+                            $price=null;
+                            $store = DB::table('inventories')->where('id_inventory',$prod->item)->where('company_inventory',$work->company_batchMonOrder)->first();
+                            if (count($store)>0){
+                                $quantity = $this->CalculateQuantityInOrder($prod->item,$work->company_batchMonOrder,$work->lead_time_config,$giorni);
+                                if ($quantity>0){
+                                    //L'ordine è stato generato!!!
+                                    $generated = true;
+
+                                    //Da sviluppare in futuro a regime la condivisione della disponibilità del fornitore
+                                    //Nell'eventualità non è disponibile si ricerca un fornitore con un prezzo uguale o minore
+                                    if ($supply!==null){
+                                        $supply_chain = DB::table('supply_chains')->where('company_supply_shares',$supply)->where('company_supply_received',$work->company_batchMonOrder)->select('availability','b2b','ean_mapping')->first();
+                                        //-----------------------------
+
+                                        //-----------------------------
+
+                                        //Se le due aziende sono in aggregazione supply chain e condividono i prezzi
+                                        if ($supply_chain->b2b=='1'){
+                                            if ($supply_chain->ean_mapping=='1'){
+                                                $find = DB::table('sales_lists')->where('company_sales_list',$supply)->where('ean_saleslist',$store->ean_inventory)->select('price_b2b','id_sales_list')->first();
+                                                $price = $find->price_b2b;
+                                            }
+                                        }
+                                    }
+                                    if (!isset($price)){
+                                        $find = DB::table('mapping_inventory_providers')->where('company_mapping_provider',$work->company_batchMonOrder)->where('inventory_mapping_provider',$prod->item)->select('price_provider')->first();
+                                        if ($find) $price = $find->price_provider; else $price = 0;
+                                    }
+                                    $order_total = $order_total + ($quantity * $price);
+                                    $order_iva = $order_iva + (($quantity * $price)*$store->imposta_inventory)/100;
+                                    PurchaseOrderContent::create(
+                                        [
+                                            'order_purchase_content' => $order->id_purchase_order,
+                                            'inventory_purchase_content' => $prod->item,
+                                            'quantity_purchase_content' => $quantity,
+                                            'unit_price_purchase_content' => $price,
+                                            'imposta_purchase_order' => $store->imposta_inventory
+                                        ]
+                                    );
+                                }
+                            }
+                        }
+                        if ($generated){
+                            $order_iva = round($order_iva,2);
+                            $order_total = round($order_total,2);
+                            if (($order_total>=$work->min_import_config) and ($work->max_import_config>=$order_total)) {
+                                if ($work->transmission_config == 1 or $supply !== null) $state = '10'; else $state = '01';
+                            } else $state = '00';
+                            if ($state == '00') $messaggio = 'L\'ordine è stato annullato perchè non rispettava i parametri forniti';
+                            if ($state == '10') $messaggio = 'L\'ordine è stato trasmesso al fornitore';
+                            if ($state == '01') $messaggio = 'L\'ordine è stato generato ed è in attesa di trasmissione';
+                            DB::table('purchase_orders')->where('id_purchase_order',$order->id_purchase_order)->update(
+                                [
+                                    'state_purchase_order' => $state,
+                                    'total_purchase_order' => $order_total,
+                                    'iva_purchase_order' => $order_iva,
+                                    'comment_purchase_order' => $messaggio
+                                ]
+                            );
+                            //RECUPERIAMO I DATI PER GENERARE IL PDF DELL'ORDINE
+                            if ($supply!==null)
+                                $companys = DB::table('supply_chains')->where('company_supply_received',$supply)->where('company_supply_shares',$work->company_batchMonOrder)->join('company_offices','id_company_office','=','company_supply_shares')->join('company_offices as company2','company2.id_company_office','=','company_supply_received')->join('comuni as comune2','comune2.id_comune','=','company2.cap_company')->join('comuni as comune1','comune1.id_comune','=','company_offices.cap_company')->leftjoin('company_offices_extra_italia as extra1','extra1.company_office','=','company_supply_shares')->leftjoin('company_offices_extra_italia as extra2','extra2.company_office','=','company_supply_received')->join('business_profiles','id_admin','=','company_offices.id_admin_company')->select('id_supply_chain','company_supply_shares','company_supply_received','ean_mapping','company_offices.rag_soc_company as rag_soc_shares','company_offices.indirizzo_company as indirizzo_shares','company_offices.civico_company as civico_shares','comune1.cap as cap_shares','comune1.comune as comune_shares','comune1.sigla_prov as sigla_prov_shares','extra1.cap_company_office_extra as cap_extra1','extra1.city_company_office_extra as city_extra1','extra1.state_company_office_extra as state_extra1','company_offices.email_company as email_shares','company2.rag_soc_company as rag_soc_received','company2.indirizzo_company as indirizzo_received','company2.civico_company as civico_received','comune2.cap as cap_received','comune2.comune as comune_received','comune2.sigla_prov as sigla_prov_received','company2.email_company as email_received','extra2.cap_company_office_extra as cap_extra2','extra2.city_company_office_extra as city_extra2','extra2.state_company_office_extra as state_extra2','logo','company_offices.partita_iva_company as partiva','company_offices.telefono_company as telefono','company2.partita_iva_company as iva_provider','company2.telefono_company as telefono_provider')->first();
+                            else{
+                                $companys = DB::table('company_offices')->where('id_company_office',$work->company_batchMonOrder)->join('comuni','id_comune','=','cap_company')->leftjoin('company_offices_extra_italia as extra','extra.company_office','=','id_company_office')->join('providers','company_provider','=','id_company_office')->where('id_provider',$work->provider_config_order)->join('business_profiles','id_admin','=','id_admin_company')->select('rag_soc_company as rag_soc_shares','rag_soc_provider as rag_soc_received','indirizzo_company as indirizzo_shares','civico_company as civico_shares','address_provider as indirizzo_received','cap_company as cap_shares','cap_company_office_extra as cap_extra1','city_company_office_extra as city_extra1','state_company_office_extra as state_extra1','cap as cap_shares','comune as comune_shares','sigla_prov as sigla_prov_shares','email_company as email_shares','email_provider as email_received','logo','partita_iva_company as partiva','telefono_company as telefono','telefono_provider','iva_provider')->first();
+                                $companys->sigla_prov_received = '';
+                                $companys->civico_received = '';
+                                $companys->cap_received = '';
+                                $companys->comune_received = '';
+                                $companys->city_received = '';
+                                $companys->state_received = '';
+                            }
+                            $document = DB::table('purchase_orders')->where('id_purchase_order',$order->id_purchase_order)->select('state_purchase_order as state','order_number_purchase as number','order_date_purchase as date','total_purchase_order as total_no_tax','iva_purchase_order as tax')->first();
+                            $date = substr($document->date,0,10);
+                            $array = explode('-',$date);
+                            $document->date = $array[2].'/'.$array[1].'/'.$array[0];
+                            if ($supply!==null) $products = DB::table('purchase_order_contents')->where('order_purchase_content',$order->id_purchase_order)->join('inventories','id_inventory','=','inventory_purchase_content')->select('cod_inventory as our_code','ean_inventory as your_code','title_inventory as desc','unit_inventory as unit','quantity_purchase_content as quantity','unit_price_purchase_content as price_unit_no_tax','imposta_purchase_order as tax','discount','expiry_purchase_content as expiry','id_inventory')->get();
+                            else $products = DB::table('purchase_order_contents')->where('order_purchase_content',$order->id_purchase_order)->join('inventories','id_inventory','=','inventory_purchase_content')->join('mapping_inventory_providers','inventory_mapping_provider','=','id_inventory')->where('company_mapping_provider',$work->company_batchMonOrder)->where('provider_mapping_provider',$work->provider_config_order)->select('cod_inventory as our_code','cod_mapping_inventory_provider as your_code','title_inventory as desc','unit_inventory as unit','quantity_purchase_content as quantity','unit_price_purchase_content as price_unit_no_tax','imposta_purchase_order as tax','discount','expiry_purchase_content as expiry','id_inventory')->get();
+                            //GENERAZIONE DEL PDF DELL'ORDINE
+                            $today = date('d/m/Y');
+                            $filename = $this->pdforder($products,'PurchaseOrder_','PurchaseOrder',$companys, $document, $today);
+                            //TRASMISSIONE AL FORNITORE
+                            if ($state == '10' or $supply!==null) {
+                                $ordered = true;
+                                Mail::to($companys->email_shares)->send(new PurchaseOrderTransmission($filename,$companys->rag_soc_shares,$companys->rag_soc_received,$today));
+                                Mail::to($companys->email_received)->send(new PurchaseOrderReceived($filename,$companys->rag_soc_received,$companys->rag_soc_shares,$today));
+
+                                //SE E' IN AGGREGAZIONE SUPPLY CHAIN
+                                //A REGIME SI PUO' CREARE UN ORDINE CLIENTE NEL SISTEMA PER L'AZIENDA CHE HA RICEVUTO L'ORDINE E AUMENTARE LA QUANTITA' IMPEGNATA
+                                //MOMENTANEAMENTE L'AZIENDA DOVRA' INSERIRLO MANUALMENTE
+
+                                //MODIFICA LE QUANTITA' IN ARRIVO NELL'INVENTARIO PER OGNI PRODOTTO
+                                foreach ($products as $item){
+                                    $arriving = DB::table('inventories')->where('id_inventory',$item->id_inventory)->select('arriving')->first();
+                                    $quant = $arriving->arriving + $item->quantity;
+                                    DB::table('inventories')->where('id_inventory',$item->id_inventory)->update(
+                                        [
+                                            'arriving' => $quant
+                                        ]
+                                    );
+                                }
+
+
+                            } else {
+                                //TRASMISSIONE AL RESPONSABILE ACQUISTI DI UN ORDINE GENERATO MA NON TRASMESSO
+                                Mail::to($companys->email_shares)->send(new OrderAwaitingTransmission($filename,$companys->rag_soc_shares,$companys->rag_soc_received,$today));
+                            }
+                            if ($state='00'){
+                                //TRASMETTE UN EMAIL AL RESPONSABILE ACQUISTI DELL'ORDINE ANNULLATO
+                                Mail::to($companys->email_shares)->send(new PurchaseOrderCanceled($filename,$companys->rag_soc_shares,$companys->rag_soc_received,$today));
+                            }
+
+                        } else {
+                            //Cancelliamo l'ordine
+                            DB::table('purchase_orders')->where('id_purchase_order',$order->id_purchase_order)->delete();
+                            session()->flash('message', 'La merce disponibile non rende necessario effetuare un ordine');
+                            return redirect()->route('providers');
+                        }
+                    }
+
+                    //PRENOTAZIONE NUOVA OPERAZIONE DI MONITORAGGIO
+                    $date_booking = date('Y-m-d');
+                    $limit_day = date('Y-m-'.$work->window_last_config);
+                    $first_day = date('Y-m-'.$work->window_first_config);
+                    if ($ordered){
+                        if ($work->level_config=='0'){
+                            if ($work->days_number_config>0) {
+                                $date_booking = strtotime('+'.$work->days_number_config.' days',strtotime($date_booking));
+                                $limit_day = date('Y-m-'.$work->window_last_config,$date_booking);
+                                $first_day = date('Y-m-'.$work->window_first_config,$date_booking);
+                                $date_booking = date ('Y-m-d', $date_booking);
+                            } else {
+                                $date_booking = strtotime('+1 month',strtotime($date_booking));
+                                $limit_day = date('Y-m-'.$work->window_last_config,$date_booking);
+                                $first_day = date('Y-m-'.$work->window_first_config,$date_booking);
+                                $date_booking = date ('Y-m-01', $date_booking);
+                            }
+                        }
+                    }
+                    //AGGIORNAMENTO TABELLA DI PRENOTAZIONE
+                    DB::table('batch_monitoring_orders')->where('id_batch_monitoring_order',$work->id_batch_monitoring_order)->update(
+                        [
+                            'limit_day_batch_monitoring_order' => $limit_day,
+                            'first_day_batch_monitoring_order' => $first_day,
+                            'date_batch_monitoring_order' => $date_booking
+                        ]
+                    );
+                    unlink($filename);
+                    session()->flash('message', 'Ti abbiamo trasmesso via email l\'ordine generato');
+                    return redirect()->route('providers');
+                } else {
+                    session()->flash('message', 'Non hai inserito la configurazione degli ordini');
+                    return redirect()->route('config-order',$id);
+                }
+            } else {
+                session()->flash('message', 'Il fornitore non è presente nella tua lista');
+                return redirect()->route('providers');
+            }
+        } else {
+            session()->flash('message', 'Non hai il privilegio per effettuare questa operazione');
+            return redirect()->route('providers');
+        }
+    }
+
+    public function pdforder($product,$view,$controller,$companys, $document, $today){
+        $pdf = App::make('dompdf.wrapper')->setPaper('a4');
+        $pdf->loadView('pdf.'.$controller, ['items' => $product, 'supply' => $companys, 'document' => $document, 'today' => $today]);
+        $time=date('d-m-Y');
+        $filename = 'Ordine d\'acquisto N '.$document->number.' del '.$time.' di '. $companys->rag_soc_shares .' a '. $companys->rag_soc_received.'.pdf';
+        $pdf->save($filename);
+        return $filename;
+    }
+
+    public function CalculateQuantityInOrder($item,$company,$leadtime,$giorni){
+        //Controlliamo se il prodotto è destinato alla rivendita diretta
+        $quantity = 0;
+        $sales = DB::table('sales_lists')->where('inventory_sales_list',$item)->where('company_sales_list',$company)->select('id_sales_list','forecast_model','initial_month_sales')->first();
+        if (count($sales)>0) $quant_order = $this->CalculateQuantityToOrder($leadtime,$giorni,$sales);
+        $quantity = $quantity + $quant_order;
+        //Controlliamo se il prodotto partecipa alla produzione per aggiungere altra quantità
+        $production = DB::table('mapping_inventory_productions')->where('company_mapping_production',$company)->where('inventory_map_pro',$item)->select('production_map_pro','quantity_mapping_production')->get();
+        if (count($production)>0){
+            foreach ($production as $prod){
+                $sales = DB::table('sales_lists')->where('production_sales_list',$prod->production_map_pro)->where('company_sales_list',$company)->select('id_sales_list','forecast_model','initial_month_sales')->first();
+                $quant_order = $this->CalculateQuantityToOrder($leadtime,$giorni,$sales);
+                $quantity = $quantity + ($quant_order * $prod->quantity_mapping_production);
+            }
+        }
+        //$quantity rappresenta la quantità che si prevede di vendere sino al prossimo riordino
+        $stock = DB::table('inventories')->where('id_inventory',$item)->where('company_inventory',$company)->select('stock','committed','arriving','unit_inventory')->first();
+        $quantity_to_order = 0;
+        if ($stock){
+            if (count($stock)>0) $quantity_stock = $stock->stock - $stock->committed + $stock->arriving;
+
+            else $quantity_stock = 0;
+
+            $quantity_to_order = $quantity - $quantity_stock;
+            //Arrotondiamo la quantità se l'unità di misura è NR
+            if ($stock->unit_inventory=='NR') $quantity_to_order = ceil($quantity_to_order);
+        }
+        return $quantity_to_order;
+    }
+
+    public function CalculateQuantityToOrder($leadtime,$giorni,$sales){
+        $month = floatval(date('m'));
+        $index = $this->monthForecast($sales->initial_month_sales,$month);
+        if ($sales->forecast_model=='00') $table = $this->tableForecastExponential($sales->id_sales_list);
+        if ($sales->forecast_model=='01') $table = $this->tableForecastHolt($sales->id_sales_list);
+        if ($sales->forecast_model=='10') $table = $this->tableForecastWinter2($sales->id_sales_list);
+        if ($sales->forecast_model=='11') $table = $this->tableForecastWinter4($sales->id_sales_list);
+        if ($giorni==0) {
+            $day = floatval(date('d'));
+            if ($day>30) $day = 30;
+            $giorni = 30 - $day;
+        }
+        $next_order = ($giorni + $leadtime) / 30;
+        $explode = explode('.',$next_order);
+        $whole_side = floatval($explode[0]);
+        if ($whole_side>0) {
+            if (isset($explode[1])){
+                $decimal_side = '0.'.($explode[1]);
+                $decimal_side = floatval($decimal_side);
+            } else $decimal_side=0;
+        } else $decimal_side = $next_order;
+        $quantity = 0;
+        if ($whole_side>0){
+            for ($i=0;$i<$whole_side;$i++){
+                if (($index+$i)<13) $quantity = $quantity + $table[$index+$i];
+                else $quantity = $quantity + $table[($index+$i)-12];
+            }
+        }
+        if ($decimal_side>0){
+            $index = $index + $whole_side; //Per scorrere la tabella di previsione
+            if ($index>=13) $index = $index - 12;
+            $quantity = $quantity + ($decimal_side * $table[$index]);
+        }
+        return $quantity;
+    }
+
+    public function tableForecastExponential($id){
+        $forecast = DB::table('forecast_exponential_models')->where('ForecastExpoProduct',$id)->select('1','2','3','4','5','6','7','8','9','10','11','12')->first();
+        $table = null;
+        if (count($forecast)>0){
+            $i=1;
+            foreach ($forecast as $t) {
+                $table[$i] = $t;
+                $i++;
+            }
+        }
+        return $table;
+    }
+
+    public function tableForecastHolt($id){
+        $forecast = DB::table('forecast_holt_models')->where('ForecastHoltProduct',$id)->select('1','2','3','4','5','6','7','8','9','10','11','12')->first();
+        $table = null;
+        if (count($forecast)>0){
+            $i=1;
+            foreach ($forecast as $t) {
+                $table[$i] = $t;
+                $i++;
+            }
+        }
+        return $table;
+    }
+
+    public function tableForecastWinter2($id){
+        $forecast = DB::table('forecast_winter2_models')->where('Forecastwinter2Product',$id)->select('1','2')->first();
+        $table = null;
+        if (count($forecast)>0){
+            $i=1;
+            foreach ($forecast as $t) {
+                $table[$i] = $t/6;
+                $table[$i+1] = $t/6;
+                $table[$i+2] = $t/6;
+                $table[$i+3] = $t/6;
+                $table[$i+4] = $t/6;
+                $table[$i+5] = $t/6;
+                $i = 7;
+            }
+        }
+        return $table;
+    }
+
+    public function tableForecastWinter4($id){
+        $forecast = DB::table('forecast_winter4_models')->where('Forecastwinter4Product',$id)->select('1','2','3','4')->first();
+        $table = null;
+        if (count($forecast)>0){
+            $i=1;
+            foreach ($forecast as $t) {
+                $table[$i] = $t/3;
+                $table[$i+1] = $t/3;
+                $table[$i+2] = $t/3;
+                $i = $i + 3;
+            }
+        }
+        return $table;
+    }
+
+
+
+    public function CheckEanMapping($company,$config){
+        $find = DB::table('config_orders')->where('id_config_order',$config)->join('providers','id_provider','=','provider_config_order')->where('supply_provider','1')->join('supply_chains','company_supply_shares','=','company_config_order')->where('company_config_order',$company)->select('company_supply_received','ean_mapping')->first();
+        if (count($find)>0){
+            if ($find->ean_mapping == '1') return $find->company_supply_received; else return null;
+        } else return null;
     }
 }

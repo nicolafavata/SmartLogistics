@@ -52,28 +52,13 @@
                                         {{' Email: '.$found->email_provider}}</h6>
                             </div>
                             <div class="row">
+                                <a href="{{ route('update-provider', $found->id_provider) }}" title="Modifica le informazioni"><i class="btn btn-primary  fa fa-database fa-1x" aria-hidden="true" ></i></a>
+                                <a href="{{ route('mapping-providers', $found->id_provider) }}" title="Mapping dei codici prodotto"><i class="btn btn-primary  fa fa-book fa-1x" aria-hidden="true" ></i></a>
+                                <a href="{{ route('config-order', $found->id_provider) }}" title="Configurazione ordini d'acquisto"><i class="btn btn-primary  fa fa-cogs fa-1x" aria-hidden="true" ></i></a>
+                                <a href="{{ route('generated-order', $found->id_provider) }}" title="Genera un ordine d'acquisto"><i class="btn btn-primary  fa fa-list-ol fa-1x" aria-hidden="true" ></i></a>
+                                <a data-toggle="modal" data-target="#exampleModal{{$found->id_provider}}" title="Elimina il fornitore"><i class="btn btn-primary  fa fa-minus-square fa-1x" aria-hidden="true" ></i></a>
                                 <div class="col-md-2 text-left">
-                                    <form onsubmit="showloader()" method="GET" action="{{ route('update-provider', $found->id_provider) }}">
-                                        {{ csrf_field() }}
-                                        <button type="submit" class="btn btn-primary2">Modifica</button>
-                                    </form>
-                                </div>
-                                <div class="col-md-2 text-left">
-                                    <form onsubmit="showloader()" method="GET" action="{{ route('mapping-providers', $found->id_provider) }}">
-                                        {{ csrf_field() }}
-                                        <button type="submit" class="btn btn-primary2">Mapping</button>
-                                    </form>
-                                </div>
-                                <div class="col-md-2 text-left">
-                                    <form onsubmit="showloader()" method="GET" action="{{ route('config-order', $found->id_provider) }}">
-                                        {{ csrf_field() }}
-                                        <button type="submit" class="btn btn-primary2">Configurazione</button>
-                                    </form>
-                                </div>
-                                <div class="col-md-2 text-left">
-                                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal{{$found->id_provider}}">
-                                        Elimina
-                                    </button>
+
                                     <!-- Modal -->
                                     <div class="modal fade hide" id="exampleModal{{$found->id_provider}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
                                         <div class="modal-dialog" role="document">
