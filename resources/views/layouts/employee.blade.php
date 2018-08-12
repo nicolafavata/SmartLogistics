@@ -90,8 +90,7 @@
 								<li><a href="{{route('inventories')}}">Inventario</a></li>
 								<li><a href="{{route('providers')}}">Fornitori</a></li>
 								<li><a href="{{route('expires')}}">Scadenze</a></li>
-								<li><a href="{{route('providers')}}">Genera ordine</a></li>
-								<li><a href="#">Ordini effettuati</a></li>
+								<li><a href="{{route('purchase-orders')}}">Ordini effettuati</a></li>
 							</ul>
 						</li>
 							@endif

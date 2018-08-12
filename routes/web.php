@@ -111,6 +111,10 @@ Route::group(['middleware'=> 'auth'],
         Route::patch('/setting-config-order','SuppliesController@settingConfig')->name('setting-config-order');
         //Generazione ordine
         Route::get('/generated-order/{id}','SuppliesController@generatedOrder')->where('id', '[0-9]+')->name('generated-order');
+        //Gestione ordini
+        Route::get('/purchase-orders', 'SuppliesController@ViewpurchaseOrders')->name('purchase-orders');
+        Route::post('/purchase-orders/{year}/{id}', 'SuppliesController@SelectpurchaseOrders')->where('year', '[0-9]+')->where('id', '[0-9]+');
+        Route::get('/view-orders{id}', 'SuppliesController@ViewOrder')->where('id', '[0-9]+')->name('view-purchase-order');
 
         //-------------------------------------------------------------------------------------------------------------------------------------------------------------
         //R E S P O N S A B I L E   P R O D U Z I O N E

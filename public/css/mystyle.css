@@ -239,6 +239,10 @@ ul#menu_a_2livelli li li {
     background-image: url("../img/invoice.jpg");
 }
 
+.purchase_img {
+    background-image: url("../img/purchase.jpg");
+}
+
 .ean_img{
     background-image: url("../img/ean.jpg");
 }
@@ -413,6 +417,10 @@ ul#menu_a_2livelli li li {
 
 .carousel-inner.register-order {
     max-height: 3000px;
+    background-size: cover; background-position: center center}
+
+.carousel-inner.purchase-order {
+    max-height: 10000px;
     background-size: cover; background-position: center center}
 
 .col-md-12.jumbotron.border.bianco {

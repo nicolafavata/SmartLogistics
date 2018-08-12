@@ -1,7 +1,7 @@
 @extends('layouts.document')
-@section('title','Fattura di vendita')
+@section('title','Ordine fornitore')
 @section('content')
-    <div class="carousel-inner register-business invoice_img">
+    <div class="carousel-inner register-order purchase_img">
         <br />
         <div class="text-center">
             <div class="row">
@@ -18,8 +18,8 @@
             </div>
                 <div class="item">
                     <div class="row">
-                        <div class="col-md-12 text-left">
-                            <h3 class="font-weight-bold text-dark shadow">Fattura di vendita</h3>
+                        <div class="col-md-12 text-right">
+                            <h3 class="font-weight-bold  verde shadow">Ordine d'acquisto</h3>
                         </div>
                     </div>
                     <div id="alert-ajax" roles='alert'>
@@ -27,28 +27,33 @@
                     </div>
 
                         <div class="row">
+
                             <div class="col-md-12 text-left">
                                 <form onsubmit="showloader()" method="post" action="{{ route('store-sales-invoice')}}">
                                     {{ csrf_field() }}
                                     <input type="text" name="invoice_salesInvCon" value="{{$id}}" hidden>
                                     <div id="sales_desk" class="p-3 mb-2 bg-white text-dark  font-weight-bold">
                                         <div class="input-group">
-                                            <span class="input-group-text">Cliente:</span>
-                                            <input class="form-control" required maxlength="190" name="desc_customer" type="text" placeholder="Dati identificativi del cliente" value="{{old('desc_customer',$desc_customer)}}">
+                                            <span class="input-group-text">Fornitore:</span>
+                                            <span class="form-control">{{$desc_customer}}</span>
                                         </div>
                                         <div class="input-group">
                                             <span class="input-group-text"> Numero:</span>
-                                            <input required  type="number" name="number_sales_desk" id="number_sales_desk" class="font-weight-bold form-control" value="{{old('number_sales_desk',$number)}}" >
-                                            <span class="input-group-text"> del:</span> <input required class="form-control" type="date" name="date_sales_desk" id="date_sales_desk"   value="{{old('date_sales_desk',$date)}}" >
-
-                                            <span class="input-group-text"> Listino prezzi:</span>
-                                            <select class="custom-select" id="list">
-                                                <option value="price-user" selected>Clienti</option>
-                                                <option value="price-b2b">B2b</option>
+                                            <span class="font-weight-bold form-control">{{$number}}</span>
+                                            <span class="input-group-text"> del:</span> <span class="form-control">{{$date}}</span>
+                                            <span class="input-group-text"> Stato dell'ordine</span>
+                                            <select class="custom-select" id="state">
+                                                <option value="00" @if($check->state=='00') select @endif>Annullato</option>
+                                                <option value="01" @if($check->state=='01') select @endif>Non trasmesso</option>
+                                                <option value="10" @if($check->state=='10') select @endif>Trasmesso</option>
+                                                <option value="11" @if($check->state=='11') select @endif>Concluso</option>
                                             </select>
                                         </div>
+                                        <div class="input-group">
+                                            <span class="input-group-text">Commento:</span>
+                                            <input class="form-control" maxlength="190" name="comment" type="text" placeholder="Inserisci un commento identificativo" value="{{old('comment',$check->comment)}}">
+                                        </div>
                                         <div id="document-content">
-
                                             <input type="text" name="documentitems[]" hidden id="documentitems">
                                             <table id="content" class="table table-responsive table-sm table-bordered">
                                                 <thead>
@@ -60,26 +65,34 @@
                                                     <th scope="col">Descrizione</th>
                                                     <th scope="col" class="text-center" style="width: 10px">Q.tà</th>
                                                     <th scope="col" class="text-center">U.m.</th>
-                                                    <th scope="col" class="text-center">Prezzo ivato</th>
+                                                    <th scope="col" class="text-center">Prezzo</th>
                                                     <th scope="col" class="text-center">Sconti %</th>
                                                     <th scope="col" class="text-center">Totale</th>
                                                     <th scope="col"></th>
                                                 </tr>
                                                 </thead>
                                                 <tbody>
+                                                <?php $i=0; ?>
+                                                @foreach($content as $item)
                                                     <tr>
-                                                        <th scope="row" class="text-center">1</th>
-                                                        <td class="font-weight-bold text-center text-dark text-center"><a  onclick="deleterowTableContent(1)" title="Cancella la riga"><i class="text-danger fa fa-minus-circle"></i></a></td>
-                                                        <td class="font-weight-bold text-center text-dark text-center"></td>
-                                                        <td><input class="form-control alert-success" maxlenght="50" type="text" id="code" name="product_salesDeskCon"></td>
-                                                        <td><input disabled class="form-control" maxlenght="80" type="text" name="title_product"></td>
-                                                        <td><input disabled class="form-check-label" min="1" type="number" step="1.00" name="quantity_salesDeskCon"></td>
-                                                        <td><input disabled class="form-control" maxlenght="2" type="text" name="unit"></td>
-                                                        <td><input disabled class="form-control" type="text" name="price_product"></td>
-                                                        <td><input disabled class="form-check" min="0" type="number" step="0.10" name="discount_salesDeskCon"></td>
-                                                        <td><input disabled class="form-control" type="text" name="price_product"></td>
-                                                        <td class="font-weight-bold text-center text-dark text-center"></td>
+                                                        <?php $i++; ?>
+                                                        <th scope="row" class="text-center"><input hidden id="row{{$i}}" value="{{$i}}">{{$i}}</th>
+                                                            <td class="text-center text-dark text-center"><input hidden value="{{$item->id_content}}"><i title="Elimina la riga" class="text-danger fa fa-trash-o"></i></td>
+                                                            <td class="font-weight-bold text-center text-dark text-center"><input hidden value="{{$i}}"><i title="Modifica la riga" class="text-success fa fa-pencil-square-o"></i></td>
+                                                            <td><input hidden id="product{{$i}}" value="{{$item->id_inventory}}"><input hidden id="codice{{$i}}" value="{{$item->code}}"><input disabled class="form-control alert-success" maxlenght="50" type="text" id="code" name="product_salesDeskCon" value="{{$item->code}}"></td>
+                                                            <td><input disabled class="form-control" maxlenght="80" type="text" name="title_product" value="{{$item->title}}"></td>
+                                                        <td><input hidden id="idcontent{{$i}}" value="{{$item->id_content}}"><input hidden id="quant{{$i}}" value="{{$item->quantity}}"><input disabled class="form-check-label" size="1" min="1" type="number" step="1.00" name="quantity_salesDeskCon" value="{{$item->quantity}}"></td>
+                                                        <td><input disabled class="form-control" maxlenght="2" type="text" name="unit" value="{{$item->unit}}"></td>
+                                                            <td><input hidden id="imposta{{$i}}" value="{{$item->imposta}}"><input hidden id="price{{$i}}" value="{{$item->price}}"><input disabled class="form-control" type="text" name="price_product" value="{{$item->price}}"></td>
+                                                            <?php if($item->discount==0) $discount=null; else $discount=$item->discount ?>
+                                                        <td><input hidden id="perc{{$i}}" value="{{$item->discount}}"><input disabled class="form-check" min="0" type="number" step="0.10" name="discount_salesDeskCon" value="{{$discount}}"></td>
+                                                            <?php $tot_price = ($item->price * $item->quantity) - ((($item->price * $item->quantity)*$item->discount)/100);
+                                                                $tot_price = number_format($tot_price,2, ',', '');
+                                                            ?>
+                                                            <td><input disabled class="form-control" type="text" name="price_product" value="{{$tot_price}}"></td>
+                                                            <td class="text-center text-dark text-center"><input hidden value="{{$item->id_content}}"><i  class="verdino fa fa-check"></i></td>
                                                     </tr>
+                                                @endforeach
                                                 </tbody>
                                             </table>
                                         </div>
@@ -89,21 +102,25 @@
                                         </div>
                                         <div class="input-group">
                                             <span class="input-group-text text-right"> Totale netto:</span>
-                                            <input disabled class="form-control font-weight-bold verde" type="text" value="0.00 €" id="tot" name="tot">
+                                            <input disabled class="form-control font-weight-bold verde" type="text" value="{{$check->total_no_tax}} €" id="tot" name="tot">
                                             <span class="input-group-text text-right"> Iva:</span>
-                                            <input disabled class="form-control font-weight-bold verde"  type="text"  value="0.00 €" id="iva_tot" name="iva_tot">
+                                            <input disabled class="form-control font-weight-bold verde"  type="text"  value="{{$check->iva}} €" id="iva_tot" name="iva_tot">
                                             <span class="input-group-text text-right"> Totale documento:</span>
-                                            <input disabled class="form-control font-weight-bold verde" type="text" value="0.00 €" id="tot_doc" name="tot_doc">
+                                            <input disabled class="form-control font-weight-bold verde" type="text" value="{{($check->total_no_tax+$check->iva)}} €" id="tot_doc" name="tot_doc">
                                         </div>
-                                        <button type="button" disabled onclick="addrow('content')" id="add-item" class="btn btn-primary">Aggiungi prodotto</button>
+                                        <div class="input-group">
+                                            <span class="input-group-text">Riferimento fattura:</span>
+                                            <input class="form-control" maxlength="40" name="reference" type="text" placeholder="Inserisci un riferimento alla fattura" value="{{old('reference',$check->reference)}}">
+                                        </div>
+                                        <button type="button" onclick="addrow('content')" id="add-item" class="btn btn-primary">Aggiungi prodotto</button>
                                         <button disabled type="submit" class="btn btn-primary" id="submit_document">
-                                            Conferma documento
+                                            Conferma modifiche
                                         </button>
                                 </form>
                                 <form onsubmit="showloader()" method="post" action="{{ route('cancel-invoice-sale')}}">
                                     {{ csrf_field() }}
                                     <input type="text" name="desk_salesDeskCon_del" value="{{$id}}" hidden>
-                                        <button type="submit" class="btn btn-primary">Annulla documento</button>
+                                        <button type="submit" class="btn btn-primary">Elimina ordine</button>
 
                                 </form>
                                 </div>
@@ -127,63 +144,19 @@
     @section('ajax')
         <script>
             var block = 1;
-            var numberRows = 1;
+            var numberRows = {{$i+1}};
             var document  = new Object();
+            for (i=1; i<numberRows; i++){
+                var idcontent=document.getElementById(idcontent{{$i}}).value;
+                console.log(idcontent);
+                document[i-1]={'id_content':idcontent};
+            }
+            console.log(document);
             var upblock = 1;
             $('document').ready(function () {
                 $('div').on('click','i.fa-trash-o', function (ele) {
-                    var rows = document.getElementById('content').getElementsByTagName('tr').length;
-                    if (rows<=numberRows+1){
-                            var e = ele.target;
-                            var index = e.parentNode.parentNode.cells[0].innerHTML;
-                            var t = e.parentNode.parentNode.cells[9].firstChild;
-                            var tot = parseFloat(t.value).toFixed(2);
-                            var row = document[parseInt(index)-1];
-                            console.log(row);
-                            var imposta = row['imposta'];
-                            var netto = parseFloat(tot / imposta).toFixed(2);
-                            var iva = parseFloat(tot - netto).toFixed(2);
-                            var ivatot = document.getElementById('iva_tot').value;
-                            var totnetto = document.getElementById('tot').value;
-                            var totdoc = document.getElementById('tot_doc').value;
-                            ivatot = parseFloat(ivatot).toFixed(2);
-                            totnetto = parseFloat(totnetto).toFixed(2);
-                            totdoc = parseFloat(totdoc).toFixed(2);
-                            ivatot = parseFloat(ivatot - iva).toFixed(2);
-                            totnetto = parseFloat(totnetto -netto).toFixed(2);
-                            totdoc = parseFloat(totdoc -tot).toFixed(2);
-                            document.getElementById('iva_tot').value = ivatot + " €";
-                            document.getElementById('tot').value = totnetto + " €";
-                            document.getElementById('tot_doc').value = totdoc + " €";
-                            delete document[parseInt(index)-1];
-                            document.getElementById('content').deleteRow(parseInt(index));
-                            var rows = document.getElementById('content').getElementsByTagName('tr').length;
-                            var indice = parseInt(index);
-                            if (rows>=parseInt(indice+1)) {
-                                try {
-                                    for (i=indice; i<rows;i++) {
-                                        document.getElementById('content').rows[i].cells[0].innerHTML = i;
-                                        var documento2 = document[i];
-                                        document[i-1]= {'riga':documento2['riga']-1,'codice':documento2['codice'],'quant':documento2['quant'],'discount':documento2['discount'],'product':documento2['product'],'price':documento2['price'],'imposta':documento2['imposta']};
-                                    }
-                                    delete document[rows-1];
-                                } catch (e) {
-                                    console.log('eccezione',documento2);
-                                }
-                            }
-                            if (numberRows<=2) {
-                                addrow('content');
-                                document.getElementById('iva_tot').value = "0.00 €";
-                                document.getElementById('tot').value = "0.00 €";
-                                document.getElementById('tot_doc').value = "0.00 €";
-                            }
-                            numberRows = numberRows - 1;
-                            block = 1;
-                            var prova = JSON.stringify(document);
-                            document.getElementById('documentitems').value = prova;
-                            if (numberRows==1)  document.getElementById('submit_document').disabled = true;
-                            if (numberRows>1)  document.getElementById('submit_document').disabled = false;
-                    }
+                    ele.preventDefault();
+                    console.log('click_trash');
                 });
                 return;
             });
@@ -199,10 +172,11 @@
                         e.parentNode.parentNode.cells[8].firstChild.disabled = false;
                         var data = document[parseInt(index)-1];
                         e.parentNode.parentNode.cells[10].innerHTML = '<td class="font-weight-bold text-center text-dark text-center"><input hidden value="' + data['product'] + '"><i title="Conferma le modifiche" class="text-success fa fa-check-circle-o"></i></td>';
-                        console.log(e.parentNode.parentNode.cells[10].innerHTML);
                         var tot = parseFloat(t.value).toFixed(2);
                         var row = document[parseInt(index)-1];
-                        var imposta = row['imposta'];
+                        console.log(row);
+                        var imposta = row['codice'];
+                        console.log(imposta);
                         var netto = parseFloat(tot / imposta).toFixed(2);
                         var iva = parseFloat(tot - netto).toFixed(2);
                         var ivatot = document.getElementById('iva_tot').value;
@@ -213,7 +187,8 @@
                         totdoc = parseFloat(totdoc).toFixed(2);
                         ivatot = parseFloat(ivatot - iva).toFixed(2);
                         totnetto = parseFloat(totnetto -netto).toFixed(2);
-                        totdoc = parseFloat(totdoc -tot).toFixed(2);
+                        totdoc = parseFloat(totdoc - tot).toFixed(2);
+                        console.log(ivatot,totnetto,totdoc);
                         document.getElementById('iva_tot').value = ivatot + " €";
                         document.getElementById('tot').value = totnetto + " €";
                         document.getElementById('tot_doc').value = totdoc + " €";
@@ -223,8 +198,6 @@
                         document.getElementById('ean').disabled = true;
                         document.getElementById('add-item').disabled = true;
                         e.parentNode.parentNode.cells[2].innerHTML = "<td></td>";
-                        if (numberRows==1)  document.getElementById('submit_document').disabled = true;
-                        if (numberRows>1)  document.getElementById('submit_document').disabled = false;
                     }
                 });
                 return;
@@ -357,6 +330,7 @@
                $('div').on('change','input.form-check', function (ele) {
                    if (block !== undefined){
                        if (block==1) {
+                           console.log('click sconto');
                            block++;
                            var s = ele.target;
                            var p = s.parentNode.parentNode.cells[7].firstChild;
@@ -384,10 +358,12 @@
                     var q = ele.target;
                     var tr = q.parentNode.parentNode.cells[7].firstChild;
                     var s = q.parentNode.parentNode.cells[8].firstChild;
+
                     var perc = parseFloat(s.value).toFixed(2);
                     if (perc === 'NaN') perc = 0;
                     var quant = parseFloat(q.value).toFixed(2);
                     var price = (parseFloat(tr.value).toFixed(2));
+                    console.log(tr.value,quant,price,perc);
                     var totale = parseFloat(quant * price).toFixed(2);
                     var discount = parseFloat((totale * perc)/100).toFixed(2);
                     var newtotale = parseFloat(totale - discount).toFixed(2);

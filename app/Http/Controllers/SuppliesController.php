@@ -8,6 +8,7 @@ use App\Http\Requests\Supplies\SettingConfig;
 use App\Http\Requests\Supplies\UploadExpires;
 use App\Http\Requests\Supplies\UploadInventory;
 use App\Http\Requests\Supplies\UploadMapProvider;
+use App\Mail\OrderAwaitingTransmission;
 use App\Models\Batch_Expiry;
 use App\Models\Batch_inventory;
 use App\Models\Batch_MappingInventoryProvider;
@@ -992,7 +993,7 @@ class SuppliesController extends Controller
                         } else {
                             //Cancelliamo l'ordine
                             DB::table('purchase_orders')->where('id_purchase_order',$order->id_purchase_order)->delete();
-                            session()->flash('message', 'La merce disponibile non rende necessario effetuare un ordine');
+                            session()->flash('message', 'La merce disponibile non rende necessario effettuare un ordine');
                             return redirect()->route('providers');
                         }
                     }
@@ -1024,9 +1025,10 @@ class SuppliesController extends Controller
                             'date_batch_monitoring_order' => $date_booking
                         ]
                     );
-                    unlink($filename);
+
                     session()->flash('message', 'Ti abbiamo trasmesso via email l\'ordine generato');
-                    return redirect()->route('providers');
+                    unlink($filename);
+                    return redirect()->route('view-purchase-order',$order->id_purchase_order);
                 } else {
                     session()->flash('message', 'Non hai inserito la configurazione degli ordini');
                     return redirect()->route('config-order',$id);
@@ -1183,4 +1185,102 @@ class SuppliesController extends Controller
             if ($find->ean_mapping == '1') return $find->company_supply_received; else return null;
         } else return null;
     }
+
+    public function ViewpurchaseOrders(){
+        $acquisti = $this->supplieControl();
+        if ($acquisti->acquisti=='1') {
+            $dato = $this->dataProfile();
+            $company_provider = Employee::where('user_employee',Auth::id())->select('company_employee')->first();
+            $order = DB::table('purchase_orders')->where('company_purchase_order',$company_provider->company_employee)->select('id_purchase_order')->get();
+            if (count($order)>0) {
+                $year = date('Y');
+                $first = DB::table('purchase_orders')->where('company_purchase_order',$company_provider->company_employee)->select('order_date_purchase','id_purchase_order')->orderBy('id_purchase_order')->first();
+                $first_year = substr($first->order_date_purchase,0,4);
+                if ($year==$first_year) $table_year[0] = intval($year);
+                else {
+                    $k=0;
+                    $assign=intval($year);
+                    for ($i=$first_year-1; $i<$year;$i++){
+                        $table_year[$k] = $assign;
+                        $k++;
+                        $assign--;
+                    }
+                }
+                $provider = DB::table('purchase_orders')->where('company_purchase_order',$company_provider->company_employee)->join('providers','id_provider','=','provider_purchase_order')->select('provider_purchase_order','rag_soc_provider')->groupBy('provider_purchase_order')->get();
+                $order = DB::table('purchase_orders')->where('company_purchase_order',$company_provider->company_employee)->join('providers','id_provider','=','provider_purchase_order')->where('company_provider',$company_provider->company_employee)->whereYear('order_date_purchase','=',$year)->select('id_purchase_order as id','provider_purchase_order as provider','order_number_purchase as number','order_date_purchase as date','total_purchase_order as total_no_tax','state_purchase_order as state','reference_purchase_order as reference','comment_purchase_order as comment','iva_purchase_order','rag_soc_provider')->orderByDesc('number')->paginate(env('PAGINATE_DOCUMENT'));
+            }
+            if (!isset($table)) $table=null;
+            if (!isset($provider)) $provider=null;
+            $dato = $this->dataProfile();
+            return view('supplies.view-purchase-orders',
+                [
+                    'dati' => $dato[0],
+                    'item' => $order,
+                    'year' => $table_year,
+                    'provider' => $provider
+                ]);
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
+        }
+    }
+
+    public function SelectpurchaseOrders($year,$provider){
+        $acquisti = $this->supplieControl();
+        if ($acquisti->acquisti=='1') {
+            $company = Employee::where('user_employee',Auth::id())->select('company_employee as id')->first();
+            if ($provider>0) {
+                $check = DB::table('providers')->where('id_provider', $provider)->where('company_provider', $company->id)->first();
+                $field = 'id_provider';
+            } else {
+                $check=1;
+                $field = 'company_purchase_order';
+                $provider = $company->id;
+            }
+            if ($check){
+                $order = DB::table('purchase_orders')->where('company_purchase_order',$company->id)->join('providers','id_provider','=','provider_purchase_order')->where($field,$provider)->where('company_provider',$company->id)->whereYear('order_date_purchase','=',$year)->select('id_purchase_order as id','provider_purchase_order as provider','order_number_purchase as number','order_date_purchase as date','total_purchase_order as total_no_tax','state_purchase_order as state','reference_purchase_order as reference','comment_purchase_order as comment','iva_purchase_order','rag_soc_provider')->orderByDesc('number')->get();
+                if ($order==null) return 0;
+                else $response = json_encode($order);
+                return $response;
+            } else {
+                session()->flash('message', 'Il fornitore non appartiene alla tua lista');
+                return 0;
+            }
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
+        }
+    }
+
+    public function ViewOrder($id){
+        $acquisti = $this->supplieControl();
+        if ($acquisti->acquisti=='1') {
+            $company = Employee::where('user_employee',Auth::id())->select('company_employee as id')->first();
+            $check = DB::table('purchase_orders')->where('company_purchase_order',$company->id)->join('providers','id_provider','=','provider_purchase_order')->where('id_purchase_order',$id)->select('id_purchase_order as id_order','order_number_purchase as number','order_date_purchase as date','state_purchase_order as state','comment_purchase_order as comment','rag_soc_provider as provider','address_provider','email_provider','reference_purchase_order as reference','total_purchase_order as total_no_tax','iva_purchase_order as iva')->first();
+            if ($check){
+                $content = DB::table('purchase_order_contents')->where('order_purchase_content',$id)->join('inventories','id_inventory','=','inventory_purchase_content')->where('company_inventory',$company->id)->select('id_purchase_order_content as id_content','inventory_purchase_content as id_inventory','cod_inventory as code','title_inventory as title','quantity_purchase_content as quantity','unit_price_purchase_content as price','unit_inventory as unit','imposta_purchase_order as imposta','discount','expiry_purchase_content as expiry')->get();
+                $dato = $this->dataProfile();
+                $desc_provider = $check->provider.' '.$check->address_provider;
+                $date = substr($check->date,0,10);
+                $date = explode('-',$date);
+                return view('supplies.orderpurchase',
+                    [
+                        'dati' => $dato[0],
+                        'date' => $date[2].'/'.$date[1].'/'.$date[0],
+                        'number' => $check->number,
+                        'id' => $check->id_order,
+                        'desc_customer' => $desc_provider,
+                        'check' => $check,
+                        'content' => $content
+                    ]);
+            } else {
+                session()->flash('message', 'L\'ordine specificato non esiste');
+                return 0;
+            }
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
+        }
+    }
+
 }

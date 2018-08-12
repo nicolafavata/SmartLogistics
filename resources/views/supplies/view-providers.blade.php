@@ -6,7 +6,7 @@
         <div class="container admin_home">
             <div class="row">
                 <div class="row">
-                    <h1 class="fucsia font-weight-bold shadow uppercase">I tuoi fornitori</h1>
+
                 </div><hr>
                 <div class="row">
                     @if(session()->has('message'))
@@ -21,8 +21,9 @@
                     @endif
                 </div>
                 <div class="col-md-12 jumbotron border">
+                    <h4 class="grigio font-weight-bold shadow text-capitalize">I tuoi fornitori</h4>
                     <div class="icon-list">
-                        <a href="{{ route('add_provider') }}" title="Aggiungi un fornitore"><i class="verde shadow fa fa-plus-square-o fa-4x"></i></a>
+                        <a href="{{ route('add_provider') }}" title="Aggiungi un fornitore"><i class="verde shadow fa fa-plus-square-o fa-2x"></i></a>
                     </div>
                     @forelse($company as $found)
                             <hr>
@@ -55,8 +56,8 @@
                                 <a href="{{ route('update-provider', $found->id_provider) }}" title="Modifica le informazioni"><i class="btn btn-primary  fa fa-database fa-1x" aria-hidden="true" ></i></a>
                                 <a href="{{ route('mapping-providers', $found->id_provider) }}" title="Mapping dei codici prodotto"><i class="btn btn-primary  fa fa-book fa-1x" aria-hidden="true" ></i></a>
                                 <a href="{{ route('config-order', $found->id_provider) }}" title="Configurazione ordini d'acquisto"><i class="btn btn-primary  fa fa-cogs fa-1x" aria-hidden="true" ></i></a>
-                                <a href="{{ route('generated-order', $found->id_provider) }}" title="Genera un ordine d'acquisto"><i class="btn btn-primary  fa fa-list-ol fa-1x" aria-hidden="true" ></i></a>
-                                <a data-toggle="modal" data-target="#exampleModal{{$found->id_provider}}" title="Elimina il fornitore"><i class="btn btn-primary  fa fa-minus-square fa-1x" aria-hidden="true" ></i></a>
+                                <a href="{{ route('generated-order', $found->id_provider) }}" title="Genera un ordine d'acquisto"><i onclick="showloader()" class="btn btn-primary  fa fa-list-ol fa-1x" aria-hidden="true" ></i></a>
+                                <a data-toggle="modal" data-target="#exampleModal{{$found->id_provider}}" title="Elimina il fornitore"><i class="btn btn-primary fa fa-minus-square fa-1x" aria-hidden="true" ></i></a>
                                 <div class="col-md-2 text-left">
 
                                     <!-- Modal -->

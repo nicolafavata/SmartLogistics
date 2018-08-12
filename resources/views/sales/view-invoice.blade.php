@@ -65,7 +65,7 @@
                                     {{$found->customer_reference_invoice}}
                                 </td>
                                 <td class="font-weight-bold text-dark text-capitalize">
-                                    <?php $imp = number_format($found->total_sales_invoice,2)?>
+                                    <?php $imp = number_format($found->total_sales_invoice,2, ',', '')?>
                                     {{$imp.' €'}}
                                 </td>
                                 <td class="font-weight-bold text-center text-dark text-center"><a  data-toggle="modal" data-target="#composer{{$found->id_sales_invoice}}"  title="Visualizza i dettagli della fattura N: {{$found->number_sales_invoice}}"><i class="text-success fa fa-list-ol fa-1x"></i></a></td>

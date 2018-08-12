@@ -11,10 +11,10 @@
         @endif
         @if($dati->acquisti=='1')
             <div class="center">
-                <a class="fa fa-shopping-cart" href="{{route('providers')}}"><span>&nbsp;Fornitori</span></a>
-                <a class="fa fa-list-ol" href="#"><span>&nbsp;Ordini d'acquisto</span></a>
-            </div>
 
+                <a class="fa fa-list-ol" href="{{route('purchase-orders')}}"><span> Gli ordini</span></a>
+                <a class="fa fa-shopping-cart" href="{{route('providers')}}"><span> Gestione dei Fornitori</span></a>
+            </div>
         @endif
         @if($dati->produzione=='1')
             <div class="center">
