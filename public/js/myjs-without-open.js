@@ -155,9 +155,12 @@ function showNumberDate() {
     return;
 }
 
-function pushInformation(reference,comment) {
+function pushInformation(reference,comment,tot,iva) {
     document.getElementById(reference).value = document.getElementById('reference').value;
     document.getElementById(comment).value = document.getElementById('comment').value;
+    document.getElementById(tot).value = document.getElementById('tot').value;
+    document.getElementById(iva).value = document.getElementById('iva_tot').value;
+
 }
 
 function showloader() {

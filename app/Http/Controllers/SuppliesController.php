@@ -16,6 +16,7 @@ use App\Models\Batch_monitoringOrder;
 use App\Models\BatchHistoricalData;
 use App\Models\ConfigOrder;
 use App\Models\Expiry;
+use App\Models\MappingInventoryProvider;
 use App\Models\Provider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -1386,10 +1387,24 @@ class SuppliesController extends Controller
             $order = DB::table('purchase_orders')->where('id_purchase_order',$id)->where('company_purchase_order',$company->id)->select('*')->first();
             if (count($order)>0) {
                 $data = $request->all();
-                $control = $this->orderSystem($data['documentitemsarrive'],$order->id_purchase_order,$order->state_purchase_order,'11',$company->id);
                 if ($order->state_purchase_order=='10'){
-
-
+                    $control = $this->orderSystem($data['documentitemsarrive'],$order->id_purchase_order,$order->state_purchase_order,'11',$company->id,$order->provider_purchase_order);
+                    if ($control) {
+                        $total = floatval(substr($data['totarrive'],0,strlen($data['totarrive']-2)));
+                        $iva = floatval(substr($data['ivatotarrive'],0,strlen($data['ivatotarrive']-2)));
+                        $update = DB::table('purchase_orders')->where('id_purchase_order',$id)->where('company_purchase_order',$company->id)->update(
+                          [
+                              'state_purchase_order' => '11',
+                              'comment_purchase_order' => $data['comment-arrive'],
+                              'reference_purchase_order' => $data['reference-arrive'],
+                              'total_purchase_order' => $total,
+                              'iva_purchase_order' => $iva,
+                          ]
+                        );
+                        $messaggio = $update ? 'L\'ordine è stato aggiornato' : 'Problemi con il Server riprovare più tardi';
+                        session()->flash('message', $messaggio);
+                        return redirect()->route('view-purchase-order',$id);
+                    }
                     dd($order,$data);
                 } else {
                     session()->flash('message', 'Lo stato dell\'ordine non è di trasmesso. Cambia lo stato dell\'ordine in trasmesso e poi conferma l\'arrivo della merce');
@@ -1402,7 +1417,7 @@ class SuppliesController extends Controller
         }
     }
 
-    public function orderSystem($data,$id_order,$previous_state,$current_state,$company){
+    public function orderSystem($data,$id_order,$previous_state,$current_state,$company,$provider){
         $items = json_decode($data[0]);
         $item_previous = DB::table('purchase_order_contents')->where('order_purchase_content',$id_order)->select('*')->get();
         //Bonifichiamo i precedenti
@@ -1414,29 +1429,143 @@ class SuppliesController extends Controller
                     if($item->id_content==$now->id_purchase_order_content) {
                         $find=true;
                         //Devo controllare se le quantità sono uguali
-                        $now->quantity_purchase_content //Quantità precedente
-                        $item->quant //Quantità nuova
-                        Controllare la differenza e aggiornare il magazzino
+                        if ($now->quantity_purchase_content!==$item->quant) {
+                            //Se la quantità è cambiata prima la devo ristabilire
+                            $previous_quantity = $now->quantity_purchase_content;
+                            $current_quantity = floatval($item->quant);
+                            $difference = $previous_quantity - $current_quantity;
+                            //Se lo stato precedente era trasmesso diminuisco la quantità in arrivo
+                            if ($previous_state == '10') {
+                                $arriving = DB::table('inventories')->where('id_inventory', $now->inventory_purchase_content)->where('company_inventory', $company)->select('arriving')->first();
+                                $update = $arriving->arriving - $difference;
+                                DB::table('inventories')->where('id_inventory', $now->inventory_purchase_content)->where('company_inventory', $company)->update(
+                                    [
+                                        'arriving' => $update
+                                    ]
+                                );
+                            }
+                           // dd('quantità ristabilita');
+                        }
+                        //dd('contenuto aggiornato');
+                        //Se lo stato precedente è trasmesso
+                        if ($previous_state == '10') {
+                            //Se il nuovo stato è concluso
+                            if ($current_state == '11') $future = $this->FromTransmissionToConclude($item->product,$item->quant,$company);
+                            //Se il nuovo stato è annullato o cancellato
+                            if ($current_state == '00' or $current_state == '01') $future = $this->FromTransmissionToCanceled($item->product,$item->quant,$company);
+                        }
+                        //Se lo stato era annullato o non trasmesso e adesso è trasmesso
+                        if ($previous_state == '00' or $previous_state == '01'){
+                            if ($current_state == '10') $future = $this->FromCanceledToTransmission($item->product,$item->quant,$company);
+                        }
+                        //Aggiorno il contenuto
+                        if (!isset($item->perc)) $discount = 0; else $discount=$item->perc;
+                        if (!isset($item->expiry)) $expiry = null; else $expiry=$item->$expiry;
+                        DB::table('purchase_order_contents')->where('id_purchase_order_content',$now->id_purchase_order_content)->where('order_purchase_content',$id_order)->update(
+                            [
+                                'quantity_purchase_content' => $current_quantity,
+                                'unit_price_purchase_content' => $item->price,
+                                'imposta_purchase_order' => $item->imposta,
+                                'discount' => $discount,
+                                'expiry_purchase_content' => $expiry
+                            ]
+                        );
+                        break;
                     }
                 }
             }
             if ($find==false){
                 //L'utente l'ha eliminato,devo vedere lo stato precedente
                 //Se lo stato precedente era trasmesso diminuisco la quantità in arrivo
-                $arriving = DB::table('inventories')->where('id_inventory',$now->inventory_purchase_content)->where('company_inventory',$company)->select('arriving')->first();
-                $update = $arriving->arriving - $now->quantity_purchase_content;
-                DB::table('inventories')->where('id_inventory',$now->inventory_purchase_content)->where('company_inventory',$company)->update(
-                    [
-                        'arriving' => $update
-                    ]
-                );
+                if ($previous_state=='10') $future = $this->FromTransmissionToCanceled($now->inventory_purchase_content,$now->quantity_purchase_content,$company);
+                //Elimino il contenuto
                 DB::table('purchase_order_contents')->where('id_purchase_order_content',$now->id_purchase_order_content)->where('order_purchase_content',$id_order)->delete();
             }
-
-
         }
+        //Operiamo con eventuali aggiunte
+        for ($i=0;$i<count($items);$i++) {
+            $item = $items[$i];
+            if ($item !== null) {
+                if ($item->id_content=='new'){
+                    //dd($item);
+                    //Controlliamo lo stato precedente
+                    //Se lo stato precedente è trasmesso
+                    if ($previous_state == '10') {
+                        //Se il nuovo stato è concluso
+                        if ($current_state == '11') $future = $this->FromTransmissionToConclude($item->product,$item->quant,$company);
+                        //Se il nuovo stato è annullato o cancellato
+                        if ($current_state == '00' or $current_state == '01') $future = $this->FromTransmissionToCanceled($item->product,$item->quant,$company);
+                    }
+                    //Se lo stato era annullato o non trasmesso e adesso è trasmesso
+                    if ($previous_state == '00' or $previous_state == '01'){
+                        if ($current_state == '10') $future = $this->FromCanceledToTransmission($item->product,$item->quant,$company);
+                    }
+                    //Aggiungiamo la riga nell'ordine
+                    PurchaseOrderContent::create(
+                      [
+                          'order_purchase_content' => $id_order,
+                          'inventory_purchase_content' => $item->product,
+                          'quantity_purchase_content' => $item->quant,
+                          'unit_price_purchase_content' => $item->price,
+                          'imposta_purchase_order' => $item->imposta,
+                          'discount' => $item->discount
+                      ]
+                    );
+                    //Controlliamo se è presente nel Mapping eventualmente lo aggiungiamo
+                    $check = DB::table('mapping_inventory_providers')->where('company_mapping_provider',$company)->where('provider_mapping_provider',$provider)->where('inventory_mapping_provider',$item->product)->first();
+                    if (count($check)==0) {
+                        MappingInventoryProvider::create(
+                          [
+                              'company_mapping_provider' => $company,
+                              'inventory_mapping_provider' => $item->product,
+                              'provider_mapping_provider' => $provider,
+                              'price_provider' => $item->price,
+                              'first' => '0'
+                          ]
+                        );
+                    }
+                }
+            }
+        }
+        return true;
+    }
 
+    public function FromCanceledToTransmission($product,$quant,$company){
+        //Aumenta la quantità in arrivo
+        $store = DB::table('inventories')->where('id_inventory',$product)->where('company_inventory',$company)->select('arriving')->first();
+        $update_arriving = $store->arriving + $quant;
+        $up = DB::table('inventories')->where('id_inventory',$product)->where('company_inventory',$company)->update(
+            [
+                'arriving' => $update_arriving,
+            ]
+        );
+        return $up;
+    }
 
+    public function FromTransmissionToConclude($product,$quant,$company){
+        //Diminuisce la quantità in arrivo e aumenta quella in stock
+        $store = DB::table('inventories')->where('id_inventory',$product)->where('company_inventory',$company)->select('stock','arriving')->first();
+        $update_arriving = $store->arriving - $quant;
+        $update_stock = $store->stock + $quant;
+        $up = DB::table('inventories')->where('id_inventory',$product)->where('company_inventory',$company)->update(
+            [
+                'arriving' => $update_arriving,
+                'stock' => $update_stock
+            ]
+        );
+        return $up;
+    }
+
+    public function FromTransmissionToCanceled($product,$quant,$company){
+        //Diminuisce la quantità in arrivo
+        $store = DB::table('inventories')->where('id_inventory',$product)->where('company_inventory',$company)->select('arriving')->first();
+        $update_arriving = $store->arriving - $quant;
+        $up = DB::table('inventories')->where('id_inventory',$product)->where('company_inventory',$company)->update(
+            [
+                'arriving' => $update_arriving,
+            ]
+        );
+        return $up;
     }
 
     //Trasmissione dell'ordine
@@ -1444,7 +1573,50 @@ class SuppliesController extends Controller
         $acquisti = $this->supplieControl();
         if ($acquisti->acquisti=='1') {
             $company = Employee::where('user_employee',Auth::id())->join('company_offices','id_company_office','=','company_employee')->select('company_employee as id')->first();
-            dd($id,$request->all());
+            $order = DB::table('purchase_orders')->where('id_purchase_order',$id)->where('company_purchase_order',$company->id)->select('*')->first();
+            if (count($order)>0) {
+                $data = $request->all();
+                if ($order->state_purchase_order=='00' or $order->state_purchase_order=='01'){
+                    $control = $this->orderSystem($data['documentitemtransmission'],$order->id_purchase_order,$order->state_purchase_order,'10',$company->id,$order->provider_purchase_order);
+                    if ($control) {
+                        $total = floatval(substr($data['tottransmission'],0,strlen($data['tottransmission']-2)));
+                        $iva = floatval(substr($data['ivatottransmission'],0,strlen($data['ivatottransmission']-2)));
+                        $update = DB::table('purchase_orders')->where('id_purchase_order',$id)->where('company_purchase_order',$company->id)->update(
+                            [
+                                'state_purchase_order' => '10',
+                                'comment_purchase_order' => $data['comment-transmission'],
+                                'reference_purchase_order' => $data['reference-transmission'],
+                                'total_purchase_order' => $total,
+                                'iva_purchase_order' => $iva,
+                            ]
+                        );
+                        //RECUPERIAMO I DATI PER GENERARE IL PDF DELL'ORDINE
+                            $companys = DB::table('company_offices')->where('id_company_office',$company->id)->join('comuni','id_comune','=','cap_company')->leftjoin('company_offices_extra_italia as extra','extra.company_office','=','id_company_office')->join('providers','company_provider','=','id_company_office')->where('id_provider',$order->provider_purchase_order)->join('business_profiles','id_admin','=','id_admin_company')->select('rag_soc_company as rag_soc_shares','rag_soc_provider as rag_soc_received','indirizzo_company as indirizzo_shares','civico_company as civico_shares','address_provider as indirizzo_received','cap_company as cap_shares','cap_company_office_extra as cap_extra1','city_company_office_extra as city_extra1','state_company_office_extra as state_extra1','cap as cap_shares','comune as comune_shares','sigla_prov as sigla_prov_shares','email_company as email_shares','email_provider as email_received','logo','partita_iva_company as partiva','telefono_company as telefono','telefono_provider','iva_provider')->first();
+                            $companys->sigla_prov_received = '';
+                            $companys->civico_received = '';
+                            $companys->cap_received = '';
+                            $companys->comune_received = '';
+                            $companys->city_received = '';
+                            $companys->state_received = '';
+                        $document = DB::table('purchase_orders')->where('id_purchase_order',$id)->select('state_purchase_order as state','order_number_purchase as number','order_date_purchase as date','total_purchase_order as total_no_tax','iva_purchase_order as tax')->first();
+                        $date = substr($document->date,0,10);
+                        $array = explode('-',$date);
+                        $document->date = $array[2].'/'.$array[1].'/'.$array[0];
+                        $products = DB::table('purchase_order_contents')->where('order_purchase_content',$id)->join('inventories','id_inventory','=','inventory_purchase_content')->join('mapping_inventory_providers','inventory_mapping_provider','=','id_inventory')->where('company_mapping_provider',$company->id)->where('provider_mapping_provider',$order->provider_purchase_order)->select('cod_inventory as our_code','cod_mapping_inventory_provider as your_code','title_inventory as desc','unit_inventory as unit','quantity_purchase_content as quantity','unit_price_purchase_content as price_unit_no_tax','imposta_purchase_order as tax','discount','expiry_purchase_content as expiry','id_inventory')->get();
+                        //GENERAZIONE DEL PDF DELL'ORDINE
+                        $today = date('d/m/Y');
+                        $filename = $this->pdforder($products,'PurchaseOrder_','PurchaseOrder',$companys, $document, $today);
+                        //TRASMISSIONE AL FORNITORE
+                        Mail::to($data['email-provider'])->send(new PurchaseOrderReceived($filename,$companys->rag_soc_received,$companys->rag_soc_shares,$today));
+                        $messaggio = $update ? 'L\'ordine è stato aggiornato e la trasmissione effettuata' : 'Problemi con il Server riprovare più tardi';
+                        session()->flash('message', $messaggio);
+                        return redirect()->route('view-purchase-order',$id);
+                    }
+                } else {
+                    session()->flash('message', 'L\'ordine risulta già trasmesso');
+                    return redirect()->route('purchase-orders');
+                }
+            }
         } else {
             session()->flash('message', 'Non puoi accedere a queste informazioni');
             return redirect()->route('employee');
@@ -1456,7 +1628,28 @@ class SuppliesController extends Controller
         $acquisti = $this->supplieControl();
         if ($acquisti->acquisti=='1') {
             $company = Employee::where('user_employee',Auth::id())->join('company_offices','id_company_office','=','company_employee')->select('company_employee as id')->first();
-            dd($id,$request->all());
+            $order = DB::table('purchase_orders')->where('id_purchase_order',$id)->where('company_purchase_order',$company->id)->select('*')->first();
+            if (count($order)>0) {
+                $data = $request->all();
+                if ($order->state_purchase_order="11") $data['state']='11';
+                $control = $this->orderSystem($data['documentitems'],$order->id_purchase_order,$order->state_purchase_order,$data['state'],$company->id,$order->provider_purchase_order);
+                if ($control) {
+                    $total = floatval(substr($data['totale'],0,strlen($data['totale']-2)));
+                        $iva = floatval(substr($data['ivatotale'],0,strlen($data['ivatotale']-2)));
+                        $update = DB::table('purchase_orders')->where('id_purchase_order',$id)->where('company_purchase_order',$company->id)->update(
+                            [
+                                'state_purchase_order' => $data['state'],
+                                'comment_purchase_order' => $data['comment'],
+                                'reference_purchase_order' => $data['reference'],
+                                'total_purchase_order' => $total,
+                                'iva_purchase_order' => $iva,
+                            ]
+                        );
+                        $messaggio = $update ? 'L\'ordine è stato aggiornato' : 'Problemi con il Server riprovare più tardi';
+                        session()->flash('message', $messaggio);
+                        return redirect()->route('view-purchase-order',$id);
+                    }
+            }
         } else {
             session()->flash('message', 'Non puoi accedere a queste informazioni');
             return redirect()->route('employee');

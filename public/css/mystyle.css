@@ -416,7 +416,7 @@ ul#menu_a_2livelli li li {
     background-size: cover; background-position: center center}
 
 .carousel-inner.register-order {
-    max-height: 3000px;
+    max-height: 100000px;
     background-size: cover; background-position: center center}
 
 .carousel-inner.purchase-order {

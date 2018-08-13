@@ -31,7 +31,6 @@
                             <div class="col-md-12 text-left">
                                 <form onsubmit="showloader()" method="post" action="{{ route('update-purchase-order',$id)}}">
                                     {{ csrf_field() }}
-                                    <input hidden type="text" value="_PATCH">
                                     <input type="text" name="invoice_salesInvCon" value="{{$id}}" hidden>
                                     <div id="sales_desk" class="p-3 mb-2 bg-white text-dark  font-weight-bold">
                                         <div class="input-group">
@@ -107,9 +106,9 @@
                                         </div>
                                         <div class="input-group">
                                             <span class="input-group-text text-right"> Totale netto:</span>
-                                            <input disabled class="form-control font-weight-bold verde" type="text" value="{{$check->total_no_tax}} €" id="tot" name="tot">
+                                            <input disabled class="form-control font-weight-bold verde" type="text" value="{{$check->total_no_tax}} €" id="tot" >
                                             <span class="input-group-text text-right"> Iva:</span>
-                                            <input disabled class="form-control font-weight-bold verde"  type="text"  value="{{$check->iva}} €" id="iva_tot" name="iva_tot">
+                                            <input disabled class="form-control font-weight-bold verde"  type="text"  value="{{$check->iva}} €" id="iva_tot" >
                                             <span class="input-group-text text-right"> Totale documento:</span>
                                             <input disabled class="form-control font-weight-bold verde" type="text" value="{{($check->total_no_tax+$check->iva)}} €" id="tot_doc" name="tot_doc">
                                         </div>
@@ -118,34 +117,37 @@
                                             <input class="form-control" id="reference" maxlength="40" name="reference" type="text" placeholder="Inserisci un riferimento alla fattura" value="{{old('reference',$check->reference)}}">
                                         </div>
                                         <button @if($check->state=='11') hidden @endif type="button" onclick="addrow('content')" id="add-item" class="btn btn-primary">Aggiungi prodotto</button>
-                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#delete">
+                                        <button id="delete" type="button" class="btn btn-primary" data-toggle="modal" data-target="#cancelladocumento">
                                             Elimina ordine
                                         </button>
                                         @if($check->state=='01')
-                                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#transmission">
+                                            <button id="transmission" onclick="pushInformation('reference-transmission','comment-transmission','tottransmission','ivatottransmission')" type="button" class="btn btn-primary" data-toggle="modal" data-target="#transmissiondocument">
                                                 Trasmissione ordine
                                             </button>
                                         @endif
                                         @if($check->state=='10')
-                                            <button onclick="pushInformation('reference-arrive','comment-arrive')" id="arriveItem" type="button" class="btn btn-primary" data-toggle="modal" data-target="#arrive">
+                                            <button onclick="pushInformation('reference-arrive','comment-arrive','totarrive','ivatotarrive')" id="arriveItem" type="button" class="btn btn-primary" data-toggle="modal" data-target="#arrive">
                                                 Arrivo merce
                                             </button>
                                         @endif
-                                        <button type="submit" class="btn btn-primary" id="submit_document">
+                                        <input hidden type="text" id="totale" name="totale">
+                                        <input hidden type="text" id="ivatotale" name="ivatotale">
+                                        <button onclick="pushInformation('reference','comment','totale','ivatotale')" type="submit" class="btn btn-primary" id="submit_document">
                                             Conferma modifiche
-                                        </button>
-                                </form><br /><br />
-                                download -> <a href="{{route('download-pdf-order',$id)}}"><i title="Pdf" class="text-danger fa fa-file-pdf-o fa-2x"></i></a>
-                                <a href="{{route('download-xml-order',$id)}}"><i title="Xml" class="text-primay fa fa-file-text-o fa-2x"></i></a>
+                                        </button><br /><br />
+                                        download -> <a href="{{route('download-pdf-order',$id)}}"><i title="Pdf" class="text-danger fa fa-file-pdf-o fa-2x"></i></a>
+                                        <a href="{{route('download-xml-order',$id)}}"><i title="Xml" class="text-primay fa fa-file-text-o fa-2x"></i></a>
+                                    </div>
+                                </form>
+
                                 </div>
                             </div>
                         </div>
-                </div>
-            </div>
+
         </div>
     </div>
     <!-- Modal Delete-->
-    <div class="modal fade" id="delete" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal fade" id="cancelladocumento" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -189,9 +191,11 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
                     <form onsubmit="showloader()" method="post" action="{{ route('arrive-purchase-order',$id)}}">
-                        <input type="text" name="documentitemsarrive[]" hidden id="documentitemsarrive" value="{{$json}}">
-                        <input hidden name="reference-arrive" type="text" id="reference-arrive" value="{{old('reference',$check->reference)}}">
-                        <input hidden name="comment-arrive" type="text" id="comment-arrive" value="{{old('comment',$check->comment)}}">
+                        <input hidden type="text" id="totarrive" name="totarrive">
+                        <input hidden type="text" id="ivatotarrive" name="ivatotarrive">
+                        <input hidden type="text" name="documentitemsarrive[]"  id="documentitemsarrive" value="{{$json}}">
+                        <input hidden name="reference-arrive" type="text" id="reference-arrive">
+                        <input hidden name="comment-arrive" type="text" id="comment-arrive">
                         {{ csrf_field() }}
                         <button type="submit" class="btn btn-primary">Prosegui</button>
                     </form>
@@ -200,7 +204,7 @@
         </div>
     </div>
     <!-- Modal Transmission-->
-    <div class="modal fade" id="transmission" tabindex="-1" role="dialog" aria-labelledby="transmissionModalLabel" aria-hidden="true">
+    <div class="modal fade" id="transmissiondocument" tabindex="-1" role="dialog" aria-labelledby="transmissionModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -212,12 +216,17 @@
                 <div class="modal-body">
                     Conferma oppure inserisci l'indirizzo email del fornitore e clicca su invia.
                     <form onsubmit="showloader()" method="post" action="{{ route('transmission-purchase-order',$id)}}">
+                        <input hidden type="text" id="tottransmission" name="tottransmission">
+                        <input hidden type="text" id="ivatottransmission" name="ivatottransmission">
+                        <input hidden type="text" name="documentitemtransmission[]"  id="documentitemstransmission" value="{{$json}}">
+                        <input hidden name="reference-transmission" type="text" id="reference-transmission">
+                        <input hidden name="comment-transmission" type="text" id="comment-transmission">
                         {{ csrf_field() }}
                         <input class="form-group" type="email" name="email-provider" value="{{$check->email_provider}}">
-                </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
-                        <button type="submit" class="btn btn-primary">Invia</button>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
+                            <button type="submit" class="btn btn-primary">Invia</button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -303,6 +312,7 @@
                         var prova = JSON.stringify(products);
                         document.getElementById('documentitems').value = prova;
                         document.getElementById('documentitemsarrive').value = prova;
+                        document.getElementById('documentitemstransmission').value = prova;
                         if (numberRows==1)  document.getElementById('submit_document').disabled = true;
                         if (numberRows>1)  document.getElementById('submit_document').disabled = false;
                     }
@@ -313,6 +323,7 @@
             $('document').ready(function () {
                 $('div').on('click','i.fa-pencil-square-o', function (ele) {
                     if (upblock==1){
+
                         upblock++;
                         block = 1;
                         var e = ele.target;
@@ -349,8 +360,13 @@
                         var prova = JSON.stringify(products);
                         document.getElementById('documentitems').value = prova;
                         document.getElementById('documentitemsarrive').value = prova;
+                        document.getElementById('documentitemstransmission').value = prova;
                         document.getElementById('ean').disabled = true;
                         document.getElementById('add-item').disabled = true;
+                        document.getElementById('submit_document').disabled = true;
+                        document.getElementById('arriveItem').disabled = true;
+                        document.getElementById('transmission').disabled = true;
+                        document.getElementById('delete').disabled = true;
                         e.parentNode.parentNode.cells[2].innerHTML = "<td></td>";
                     }
                 });
@@ -380,11 +396,16 @@
                         var prova = JSON.stringify(products);
                         document.getElementById('documentitems').value = prova;
                         document.getElementById('documentitemsarrive').value = prova;
+                        document.getElementById('documentitemstransmission').value = prova;
                         document.getElementById('ean').disabled = false;
                         document.getElementById('add-item').disabled = false;
                         q.disabled = true;
                         s.disabled = true;
                         p.disabled = true;
+                        document.getElementById('submit_document').disabled = false;
+                        document.getElementById('arriveItem').disabled = false;
+                        document.getElementById('transmission').disabled = false;
+                        document.getElementById('delete').disabled = false;
                         var check = e.parentNode.parentNode.cells[10];
                         var del = e.parentNode.parentNode.cells[1];
                         var up = e.parentNode.parentNode.cells[2];
@@ -438,6 +459,7 @@
                            var prova = JSON.stringify(products);
                            document.getElementById('documentitems').value = prova;
                            document.getElementById('documentitemsarrive').value = prova;
+                           document.getElementById('documentitemstransmission').value = prova;
                            numberRows++;
                            block = 1;
                            upblock = 1;
@@ -467,8 +489,10 @@
                            document.getElementById('tot').value = totimporto + " €";
                            document.getElementById('tot_doc').value = totaledocumento + " €";
 
-                           if (numberRows==1)  document.getElementById('submit_document').disabled = true;
-                           if (numberRows>1)  document.getElementById('submit_document').disabled = false;
+                           document.getElementById('submit_document').disabled = false;
+                           document.getElementById('arriveItem').disabled = false;
+                           document.getElementById('transmission').disabled = false;
+                           document.getElementById('delete').disabled = false;
                        }
                    }
                });
@@ -558,8 +582,10 @@
                                             document.getElementById('add-item').disabled = true;
                                             upblock = 1;
                                             block=1;
-                                            if (numberRows==1)  document.getElementById('submit_document').disabled = true;
-                                            if (numberRows>1)  document.getElementById('submit_document').disabled = false;
+                                            document.getElementById('submit_document').disabled = true;
+                                            document.getElementById('arriveItem').disabled = true;
+                                            document.getElementById('transmission').disabled = true;
+                                            document.getElementById('delete').disabled = true;
                                         }
                                     }
                             }
