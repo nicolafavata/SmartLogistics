@@ -198,8 +198,8 @@
                         e.parentNode.parentNode.cells[5].firstChild.disabled = false;
                         e.parentNode.parentNode.cells[8].firstChild.disabled = false;
                         var data = document[parseInt(index)-1];
+                        console.log(data);
                         e.parentNode.parentNode.cells[10].innerHTML = '<td class="font-weight-bold text-center text-dark text-center"><input hidden value="' + data['product'] + '"><i title="Conferma le modifiche" class="text-success fa fa-check-circle-o"></i></td>';
-                        console.log(e.parentNode.parentNode.cells[10].innerHTML);
                         var tot = parseFloat(t.value).toFixed(2);
                         var row = document[parseInt(index)-1];
                         var imposta = row['imposta'];
@@ -219,6 +219,7 @@
                         document.getElementById('tot_doc').value = totdoc + " €";
                         block = 1;
                         var prova = JSON.stringify(document);
+                        console.log(prova);
                         document.getElementById('documentitems').value = prova;
                         document.getElementById('ean').disabled = true;
                         document.getElementById('add-item').disabled = true;

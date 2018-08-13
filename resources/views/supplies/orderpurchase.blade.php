@@ -29,8 +29,9 @@
                         <div class="row">
 
                             <div class="col-md-12 text-left">
-                                <form onsubmit="showloader()" method="post" action="{{ route('store-sales-invoice')}}">
+                                <form onsubmit="showloader()" method="post" action="{{ route('update-purchase-order',$id)}}">
                                     {{ csrf_field() }}
+                                    <input hidden type="text" value="_PATCH">
                                     <input type="text" name="invoice_salesInvCon" value="{{$id}}" hidden>
                                     <div id="sales_desk" class="p-3 mb-2 bg-white text-dark  font-weight-bold">
                                         <div class="input-group">
@@ -39,19 +40,27 @@
                                         </div>
                                         <div class="input-group">
                                             <span class="input-group-text"> Numero:</span>
-                                            <span class="font-weight-bold form-control">{{$number}}</span>
+                                            <span class="font-weight-bold form-control">{{$numberorder}}</span>
                                             <span class="input-group-text"> del:</span> <span class="form-control">{{$date}}</span>
                                             <span class="input-group-text"> Stato dell'ordine</span>
-                                            <select class="custom-select" id="state">
-                                                <option value="00" @if($check->state=='00') select @endif>Annullato</option>
-                                                <option value="01" @if($check->state=='01') select @endif>Non trasmesso</option>
-                                                <option value="10" @if($check->state=='10') select @endif>Trasmesso</option>
-                                                <option value="11" @if($check->state=='11') select @endif>Concluso</option>
+                                            <select  name="state" @if($check->state=='11') class="text-success font-weight-bold" disabled @else class="custom-select" @endif id="state">
+                                                    @if($check->state=='10')
+                                                        <option class="text-capitalize" value="10"  select >Trasmesso</option>
+                                                        <option class="text-capitalize" value="00">Annullato</option>
+                                                    @endif
+                                                    @if($check->state=='00' or $check->state=='01')
+                                                        <option value="00" @if($check->state=='00') select @endif>Annullato</option>
+                                                        <option value="01" @if($check->state=='01') select @endif>Non trasmesso</option>
+                                                        <option value="10" @if($check->state=='10') select @endif>Trasmesso</option>
+                                                    @endif
+                                                    @if($check->state=='11') select
+                                                        <option value="11"  >Concluso</option>
+                                                    @endif
                                             </select>
                                         </div>
                                         <div class="input-group">
                                             <span class="input-group-text">Commento:</span>
-                                            <input class="form-control" maxlength="190" name="comment" type="text" placeholder="Inserisci un commento identificativo" value="{{old('comment',$check->comment)}}">
+                                            <input class="form-control" maxlength="190" name="comment" id="comment" type="text" placeholder="Inserisci un commento identificativo" value="{{old('comment',$check->comment)}}">
                                         </div>
                                         <div id="document-content">
                                             <input type="text" name="documentitems[]" hidden id="documentitems" value="{{$json}}">
@@ -75,8 +84,8 @@
                                                 @foreach($content as $item)
                                                     <tr>
                                                         <th scope="row" class="text-center">{{$item->riga}}</th>
-                                                            <td class="text-center text-dark text-center"><i title="Elimina la riga" class="text-danger fa fa-trash-o"></i></td>
-                                                            <td class="font-weight-bold text-center text-dark text-center"><i title="Modifica la riga" class="text-success fa fa-pencil-square-o"></i></td>
+                                                            <td class="text-center text-dark text-center">@if($check->state!=='11')<i title="Elimina la riga" class="text-danger fa fa-trash-o"></i>@endif</td>
+                                                            <td class="font-weight-bold text-center text-dark text-center">@if($check->state!=='11')<i title="Modifica la riga" class="text-success fa fa-pencil-square-o"></i>@endif</td>
                                                             <td><input disabled class="form-control alert-success" maxlenght="50" type="text" id="code" name="product_salesDeskCon" value="{{$item->codice}}"></td>
                                                             <td><input disabled class="form-control" maxlenght="80" type="text" name="title_product" value="{{$item->title}}"></td>
                                                             <td><input disabled class="form-check-label" size="1" min="1" type="number" step="1.00" name="quantity_salesDeskCon" value="{{$item->quant}}"></td>
@@ -94,7 +103,7 @@
                                         </div>
                                         <div class="input-group-text ">
                                             <span class="input-group-text"> Inserisci prodotto con il codice a barre:</span>
-                                            <input class="form-control alert-success" maxlength="18" id="ean" type="text" placeholder="EAN : 9960085493412">
+                                            <input @if($check->state=='11') disabled @endif class="form-control alert-success" maxlength="18" id="ean" type="text" placeholder="EAN : 9960085493412">
                                         </div>
                                         <div class="input-group">
                                             <span class="input-group-text text-right"> Totale netto:</span>
@@ -106,22 +115,110 @@
                                         </div>
                                         <div class="input-group">
                                             <span class="input-group-text">Riferimento fattura:</span>
-                                            <input class="form-control" maxlength="40" name="reference" type="text" placeholder="Inserisci un riferimento alla fattura" value="{{old('reference',$check->reference)}}">
+                                            <input class="form-control" id="reference" maxlength="40" name="reference" type="text" placeholder="Inserisci un riferimento alla fattura" value="{{old('reference',$check->reference)}}">
                                         </div>
-                                        <button type="button" onclick="addrow('content')" id="add-item" class="btn btn-primary">Aggiungi prodotto</button>
-                                        <button disabled type="submit" class="btn btn-primary" id="submit_document">
+                                        <button @if($check->state=='11') hidden @endif type="button" onclick="addrow('content')" id="add-item" class="btn btn-primary">Aggiungi prodotto</button>
+                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#delete">
+                                            Elimina ordine
+                                        </button>
+                                        @if($check->state=='01')
+                                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#transmission">
+                                                Trasmissione ordine
+                                            </button>
+                                        @endif
+                                        @if($check->state=='10')
+                                            <button onclick="pushInformation('reference-arrive','comment-arrive')" id="arriveItem" type="button" class="btn btn-primary" data-toggle="modal" data-target="#arrive">
+                                                Arrivo merce
+                                            </button>
+                                        @endif
+                                        <button type="submit" class="btn btn-primary" id="submit_document">
                                             Conferma modifiche
                                         </button>
-                                </form>
-                                <form onsubmit="showloader()" method="post" action="{{ route('cancel-invoice-sale')}}">
-                                    {{ csrf_field() }}
-                                    <input type="text" name="desk_salesDeskCon_del" value="{{$id}}" hidden>
-                                        <button type="submit" class="btn btn-primary">Elimina ordine</button>
-
-                                </form>
+                                </form><br /><br />
+                                download -> <a href="{{route('download-pdf-order',$id)}}"><i title="Pdf" class="text-danger fa fa-file-pdf-o fa-2x"></i></a>
+                                <a href="{{route('download-xml-order',$id)}}"><i title="Xml" class="text-primay fa fa-file-text-o fa-2x"></i></a>
                                 </div>
                             </div>
                         </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal Delete-->
+    <div class="modal fade" id="delete" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Eliminazione dell'ordine</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    ATTENZIONE!!!!
+
+                    @if($check->state=='11') <p>Se elimini un ordine già concluso, la quantità della merce disponibile relativa ad ogni codice movimentato sarà diminuita. Sei sicuro?</p> @endif
+                    @if($check->state=='10') <p>Se elimini un ordine già trasmesso, la quantità della merce in arrivo di ogni codice movimentato sarà diminuita. Sei sicuro?</p> @endif
+                    @if($check->state=='00' or $check->state=='01') <p>L'eliminazione del documento non comporta modifiche della quantità presente in magazzino. Clicca su Prosegui per eliminare definitivamente l'ordine.</p> @endif
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
+                    <form onsubmit="showloader()" method="post" action="{{ route('cancel-purchase-order',$id)}}">
+                        {{ csrf_field() }}
+                        <button type="submit" class="btn btn-primary">Prosegui</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal Arrive-->
+    <div class="modal fade" id="arrive" tabindex="-1" role="dialog" aria-labelledby="arriveModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Arrivo della merce</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    ATTENZIONE!!!!
+
+                    <p>Confermi la ricezione delle quantità presenti nel documento? Lo stato dell'ordine sarà impostato su "concluso" e non si potranno effettuare più modifiche. Clicca su Prosegui per confermare.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
+                    <form onsubmit="showloader()" method="post" action="{{ route('arrive-purchase-order',$id)}}">
+                        <input type="text" name="documentitemsarrive[]" hidden id="documentitemsarrive" value="{{$json}}">
+                        <input hidden name="reference-arrive" type="text" id="reference-arrive" value="{{old('reference',$check->reference)}}">
+                        <input hidden name="comment-arrive" type="text" id="comment-arrive" value="{{old('comment',$check->comment)}}">
+                        {{ csrf_field() }}
+                        <button type="submit" class="btn btn-primary">Prosegui</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal Transmission-->
+    <div class="modal fade" id="transmission" tabindex="-1" role="dialog" aria-labelledby="transmissionModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Trasmissione dell'ordine</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Conferma oppure inserisci l'indirizzo email del fornitore e clicca su invia.
+                    <form onsubmit="showloader()" method="post" action="{{ route('transmission-purchase-order',$id)}}">
+                        {{ csrf_field() }}
+                        <input class="form-group" type="email" name="email-provider" value="{{$check->email_provider}}">
+                </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
+                        <button type="submit" class="btn btn-primary">Invia</button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -145,6 +242,16 @@
             var upblock = 1;
             var prova = JSON.stringify(products);
             document.getElementById('documentitems').value = prova;
+
+            $('document').ready(function () {
+               $('select').on('click','option.text-capitalize', function (ele) {
+                   ele.preventDefault();
+                   var state = document.getElementById('state').value;
+                   if (state=='10') document.getElementById('arriveItem').hidden = false;
+                   if (state=='00') document.getElementById('arriveItem').hidden = true;
+               })
+            });
+
             $('document').ready(function () {
                 $('div').on('click','i.fa-trash-o', function (ele) {
                     var rows = document.getElementById('content').getElementsByTagName('tr').length;
@@ -195,6 +302,7 @@
                         block = 1;
                         var prova = JSON.stringify(products);
                         document.getElementById('documentitems').value = prova;
+                        document.getElementById('documentitemsarrive').value = prova;
                         if (numberRows==1)  document.getElementById('submit_document').disabled = true;
                         if (numberRows>1)  document.getElementById('submit_document').disabled = false;
                     }
@@ -240,6 +348,7 @@
                         document.getElementById('tot_doc').value = totdoc + " €";
                         var prova = JSON.stringify(products);
                         document.getElementById('documentitems').value = prova;
+                        document.getElementById('documentitemsarrive').value = prova;
                         document.getElementById('ean').disabled = true;
                         document.getElementById('add-item').disabled = true;
                         e.parentNode.parentNode.cells[2].innerHTML = "<td></td>";
@@ -270,6 +379,7 @@
                         products[parseInt(index)-1] = {'id_content':data['id_content'],'riga':data['riga'],'codice':data['codice'],'quant':quant,'discount':perc,'product':data['product'],'price':data['price'],'imposta':data['imposta']};
                         var prova = JSON.stringify(products);
                         document.getElementById('documentitems').value = prova;
+                        document.getElementById('documentitemsarrive').value = prova;
                         document.getElementById('ean').disabled = false;
                         document.getElementById('add-item').disabled = false;
                         q.disabled = true;
@@ -327,6 +437,7 @@
                            products[index] = {'id_content':'new','riga':numberRows,'codice':codice,'quant':quant,'discount':perc,'product':id,'price':price,'imposta':imposta};
                            var prova = JSON.stringify(products);
                            document.getElementById('documentitems').value = prova;
+                           document.getElementById('documentitemsarrive').value = prova;
                            numberRows++;
                            block = 1;
                            upblock = 1;

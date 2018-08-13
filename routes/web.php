@@ -115,6 +115,14 @@ Route::group(['middleware'=> 'auth'],
         Route::get('/purchase-orders', 'SuppliesController@ViewpurchaseOrders')->name('purchase-orders');
         Route::post('/purchase-orders/{year}/{id}', 'SuppliesController@SelectpurchaseOrders')->where('year', '[0-9]+')->where('id', '[0-9]+');
         Route::get('/view-orders{id}', 'SuppliesController@ViewOrder')->where('id', '[0-9]+')->name('view-purchase-order');
+        Route::post('/check-codice-new-order/{code}','SuppliesController@checkCodeNewOrder')->where('code', '[0-9]+');
+        Route::post('/check-ean-new-order/{code}','SuppliesController@checkEanNewOrder')->where('code', '[0-9]+');
+        Route::post('/cancel-purchase-order/{id}','SuppliesController@cancelPurchaseOrder')->where('id', '[0-9]+')->name('cancel-purchase-order');
+        Route::post('/arrive-purchase-order/{id}','SuppliesController@arrivePurchaseOrder')->where('id', '[0-9]+')->name('arrive-purchase-order');
+        Route::post('/transmission-purchase-order/{id}','SuppliesController@transmissionPurchaseOrder')->where('id', '[0-9]+')->name('transmission-purchase-order');
+        Route::patch('/transmission-purchase-order/{id}','SuppliesController@updatePurchaseOrder')->where('id', '[0-9]+')->name('update-purchase-order');
+        Route::get('/download-pdf-order/{id}','SuppliesController@downloadPdfPurchaseOrder')->where('id', '[0-9]+')->name('download-pdf-order');
+        Route::get('/download-xml-order/{id}','SuppliesController@downloadXmlPurchaseOrder')->where('id', '[0-9]+')->name('download-xml-order');
 
         //-------------------------------------------------------------------------------------------------------------------------------------------------------------
         //R E S P O N S A B I L E   P R O D U Z I O N E

@@ -153,8 +153,11 @@ function showNumberDate() {
         });
     }
     return;
+}
 
-
+function pushInformation(reference,comment) {
+    document.getElementById(reference).value = document.getElementById('reference').value;
+    document.getElementById(comment).value = document.getElementById('comment').value;
 }
 
 function showloader() {

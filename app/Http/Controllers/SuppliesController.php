@@ -34,6 +34,7 @@ use App\Mail\PurchaseOrderTransmission;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderContent;
 use Illuminate\Support\Facades\Mail;
+use phpDocumentor\Reflection\DocBlock;
 
 
 class SuppliesController extends Controller
@@ -1258,25 +1259,228 @@ class SuppliesController extends Controller
             $company = Employee::where('user_employee',Auth::id())->select('company_employee as id')->first();
             $check = DB::table('purchase_orders')->where('company_purchase_order',$company->id)->join('providers','id_provider','=','provider_purchase_order')->where('id_purchase_order',$id)->select('id_purchase_order as id_order','order_number_purchase as number','order_date_purchase as date','state_purchase_order as state','comment_purchase_order as comment','rag_soc_provider as provider','address_provider','email_provider','reference_purchase_order as reference','total_purchase_order as total_no_tax','iva_purchase_order as iva')->first();
             if ($check){
-                $content = DB::table('purchase_order_contents')->where('order_purchase_content',$id)->join('inventories','id_inventory','=','inventory_purchase_content')->where('company_inventory',$company->id)->select('id_purchase_order_content as id_content','inventory_purchase_content as id_inventory','cod_inventory as code','title_inventory as title','quantity_purchase_content as quantity','unit_price_purchase_content as price','unit_inventory as unit','imposta_purchase_order as imposta','discount','expiry_purchase_content as expiry')->get();
+                $content = DB::table('purchase_order_contents')->where('order_purchase_content',$id)->join('inventories','id_inventory','=','inventory_purchase_content')->where('company_inventory',$company->id)->select('id_purchase_order_content as id_content','inventory_purchase_content as product','cod_inventory as codice','title_inventory as title','quantity_purchase_content as quant','unit_price_purchase_content as price','unit_inventory as unit','imposta_purchase_order as imposta','discount as perc','expiry_purchase_content as expiry')->get();
                 $dato = $this->dataProfile();
                 $desc_provider = $check->provider.' '.$check->address_provider;
                 $date = substr($check->date,0,10);
                 $date = explode('-',$date);
+                $i=0;
+                foreach ($content as $item) {
+                    $content[$i]->riga = $i+1;
+                    $i++;
+                }
+                $json= json_encode($content);
                 return view('supplies.orderpurchase',
                     [
                         'dati' => $dato[0],
                         'date' => $date[2].'/'.$date[1].'/'.$date[0],
-                        'number' => $check->number,
+                        'numberorder' => $check->number,
                         'id' => $check->id_order,
                         'desc_customer' => $desc_provider,
                         'check' => $check,
-                        'content' => $content
+                        'content' => $content,
+                        'json' => $json,
+                        'number' => $i
                     ]);
             } else {
                 session()->flash('message', 'L\'ordine specificato non esiste');
                 return 0;
             }
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
+        }
+    }
+
+    public function checkCodeNewOrder($code){
+        $acquisti = $this->supplieControl();
+        if ($acquisti->acquisti=='1') {
+            $company = Employee::where('user_employee',Auth::id())->join('company_offices','id_company_office','=','company_employee')->select('company_employee')->first();
+            $item = $this->findCode($code, $company->company_employee);
+            if ($item==null) return 0;
+            else $response = json_encode($item);
+            return $response;
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
+        }
+    }
+
+    public function findCode($code, $company){
+        $inventory = DB::table('inventories')->where('company_inventory',$company)->where('cod_inventory',$code)->select('last_cost_inventory as price','id_inventory','title_inventory as title','unit_inventory as unit','imposta_inventory as imposta','cod_inventory as cod')->first();
+        if (count($inventory)==0) return null; else return $inventory;
+    }
+
+    public function checkEanNewOrder($code){
+        $acquisti = $this->supplieControl();
+        if ($acquisti->acquisti=='1') {
+            $company = Employee::where('user_employee',Auth::id())->join('company_offices','id_company_office','=','company_employee')->select('company_employee')->first();
+            $item = $this->findEan($code, $company->company_employee);
+            if ($item==null) return 0;
+            else $response = json_encode($item);
+            return $response;
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
+        }
+    }
+
+    public function findEan($ean, $company){
+        $inventory = DB::table('inventories')->where('company_inventory',$company)->where('ean_inventory',$ean)->select('last_cost_inventory as price','id_inventory','title_inventory as title','unit_inventory as unit','imposta_inventory as imposta','cod_inventory as cod')->first();
+        if (count($inventory)==0) return null; else return $inventory;
+    }
+
+    //Cancellazione dell'ordine
+    public function cancelPurchaseOrder($id){
+        $acquisti = $this->supplieControl();
+        if ($acquisti->acquisti=='1') {
+            $company = Employee::where('user_employee',Auth::id())->join('company_offices','id_company_office','=','company_employee')->select('company_employee as id')->first();
+            $order = DB::table('purchase_orders')->where('id_purchase_order',$id)->where('company_purchase_order',$company->id)->select('*')->first();
+            if (count($order)>0){
+                if ($order->state_purchase_order=='10' or $order->state_purchase_order=='11'){
+                    $content = DB::table('purchase_order_contents')->where('order_purchase_content',$id)->get();
+                    if (count($content)>0){
+                        if ($order->state_purchase_order=='10'){
+                            foreach ($content as $item){
+                                $arriving = DB::table('inventories')->where('id_inventory',$item->inventory_purchase_content)->where('company_inventory',$company->id)->select('arriving')->first();
+                                $update = $arriving->arriving - $item->quantity_purchase_content;
+                                DB::table('inventories')->where('id_inventory',$item->inventory_purchase_content)->where('company_inventory',$company->id)->update(
+                                  [
+                                      'arriving' => $update
+                                  ]
+                                );
+                            }
+                        }
+                        if ($order->state_purchase_order=='11'){
+                            foreach ($content as $item){
+                                $stock = DB::table('inventories')->where('id_inventory',$item->inventory_purchase_content)->where('company_inventory',$company->id)->select('stock')->first();
+                                $update = $stock->stock - $item->quantity_purchase_content;
+                                DB::table('inventories')->where('id_inventory',$item->inventory_purchase_content)->where('company_inventory',$company->id)->update(
+                                    [
+                                        'stock' => $update
+                                    ]
+                                );
+                            }
+                        }
+                    }
+                }
+                $del = DB::table('purchase_orders')->where('id_purchase_order',$id)->where('company_purchase_order',$company->id)->delete();
+                $messaggio = $del ? 'L\'ordine è stato eliminato e le quantità in magazzino sono state aggiornate' : 'Problemi con il Server riprova più tardi';
+                session()->flash('message', $messaggio);
+                return redirect()->route('purchase-orders');
+            } else {
+                session()->flash('message', 'Non abbiamo trovato l\'ordine specificato');
+                return redirect()->route('purchase-orders');
+            }
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
+        }
+    }
+
+    //Arrivo dell'ordine
+    public function arrivePurchaseOrder($id,Request $request){
+        $acquisti = $this->supplieControl();
+        if ($acquisti->acquisti=='1') {
+            $company = Employee::where('user_employee',Auth::id())->join('company_offices','id_company_office','=','company_employee')->select('company_employee as id')->first();
+            $order = DB::table('purchase_orders')->where('id_purchase_order',$id)->where('company_purchase_order',$company->id)->select('*')->first();
+            if (count($order)>0) {
+                $data = $request->all();
+                $control = $this->orderSystem($data['documentitemsarrive'],$order->id_purchase_order,$order->state_purchase_order,'11',$company->id);
+                if ($order->state_purchase_order=='10'){
+
+
+                    dd($order,$data);
+                } else {
+                    session()->flash('message', 'Lo stato dell\'ordine non è di trasmesso. Cambia lo stato dell\'ordine in trasmesso e poi conferma l\'arrivo della merce');
+                    return redirect()->route('purchase-orders');
+                }
+            }
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
+        }
+    }
+
+    public function orderSystem($data,$id_order,$previous_state,$current_state,$company){
+        $items = json_decode($data[0]);
+        $item_previous = DB::table('purchase_order_contents')->where('order_purchase_content',$id_order)->select('*')->get();
+        //Bonifichiamo i precedenti
+        foreach ($item_previous as $now){
+            $find=false;
+            for ($i=0;$i<count($items);$i++){
+                $item = $items[$i];
+                if ($item!==null){
+                    if($item->id_content==$now->id_purchase_order_content) {
+                        $find=true;
+                        //Devo controllare se le quantità sono uguali
+                        $now->quantity_purchase_content //Quantità precedente
+                        $item->quant //Quantità nuova
+                        Controllare la differenza e aggiornare il magazzino
+                    }
+                }
+            }
+            if ($find==false){
+                //L'utente l'ha eliminato,devo vedere lo stato precedente
+                //Se lo stato precedente era trasmesso diminuisco la quantità in arrivo
+                $arriving = DB::table('inventories')->where('id_inventory',$now->inventory_purchase_content)->where('company_inventory',$company)->select('arriving')->first();
+                $update = $arriving->arriving - $now->quantity_purchase_content;
+                DB::table('inventories')->where('id_inventory',$now->inventory_purchase_content)->where('company_inventory',$company)->update(
+                    [
+                        'arriving' => $update
+                    ]
+                );
+                DB::table('purchase_order_contents')->where('id_purchase_order_content',$now->id_purchase_order_content)->where('order_purchase_content',$id_order)->delete();
+            }
+
+
+        }
+
+
+    }
+
+    //Trasmissione dell'ordine
+    public function transmissionPurchaseOrder($id,Request $request){
+        $acquisti = $this->supplieControl();
+        if ($acquisti->acquisti=='1') {
+            $company = Employee::where('user_employee',Auth::id())->join('company_offices','id_company_office','=','company_employee')->select('company_employee as id')->first();
+            dd($id,$request->all());
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
+        }
+    }
+
+    //Aggiornamento dell'ordine
+    public function updatePurchaseOrder($id,Request $request){
+        $acquisti = $this->supplieControl();
+        if ($acquisti->acquisti=='1') {
+            $company = Employee::where('user_employee',Auth::id())->join('company_offices','id_company_office','=','company_employee')->select('company_employee as id')->first();
+            dd($id,$request->all());
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
+        }
+    }
+
+    //Download pdf
+    public function downloadPdfPurchaseOrder($id){
+        $acquisti = $this->supplieControl();
+        if ($acquisti->acquisti=='1') {
+            $company = Employee::where('user_employee',Auth::id())->join('company_offices','id_company_office','=','company_employee')->select('company_employee as id')->first();
+            dd($id);
+        } else {
+            session()->flash('message', 'Non puoi accedere a queste informazioni');
+            return redirect()->route('employee');
+        }
+    }
+
+    //Download xml
+    public function downloadXmlPurchaseOrder($id){
+        $acquisti = $this->supplieControl();
+        if ($acquisti->acquisti=='1') {
+            $company = Employee::where('user_employee',Auth::id())->join('company_offices','id_company_office','=','company_employee')->select('company_employee as id')->first();
+            dd($id);
         } else {
             session()->flash('message', 'Non puoi accedere a queste informazioni');
             return redirect()->route('employee');

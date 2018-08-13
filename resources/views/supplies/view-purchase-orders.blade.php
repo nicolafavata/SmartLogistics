@@ -63,7 +63,7 @@
                                 <th scope="col">Data</th>
                                 <th scope="col">Fornitore</th>
                                 <th scope="col">Imponibile</th>
-                                <th scope="col">Iva</th>
+                                <th scope="col"></th>
                                 <th scope="col"></th>
                             </tr>
                             </thead>
@@ -104,9 +104,8 @@
                                             <?php $imp = number_format($found->total_no_tax,2, ',', '')?>
                                             {{$imp.' €'}}
                                         </td>
-                                        <td class="font-weight-bold text-dark text-capitalize">
-                                            <?php $iva = number_format($found->iva_purchase_order,2, ',', '')?>
-                                            {{$iva.' €'}}
+                                        <td>
+                                            <a href="{{route('download-pdf-order',$found->id)}}"><i title="Pdf" class="text-danger fa fa-file-pdf-o fa-2x"></i></a>
                                         </td>
                                         <td><a title="Visualizza i dettagli dell'ordine N: {{$found->number}}" href="{{route('view-purchase-order',$found->id)}}"><i class="text-success fa fa-list-ol fa-1x"></i></a></td>
                                     </tr>
