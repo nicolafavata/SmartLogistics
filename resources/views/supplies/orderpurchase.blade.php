@@ -54,7 +54,7 @@
                                             <input class="form-control" maxlength="190" name="comment" type="text" placeholder="Inserisci un commento identificativo" value="{{old('comment',$check->comment)}}">
                                         </div>
                                         <div id="document-content">
-                                            <input type="text" name="documentitems[]" hidden id="documentitems">
+                                            <input type="text" name="documentitems[]" hidden id="documentitems" value="{{$json}}">
                                             <table id="content" class="table table-responsive table-sm table-bordered">
                                                 <thead>
                                                 <tr class="bg-secondary text-white">
@@ -67,30 +67,26 @@
                                                     <th scope="col" class="text-center">U.m.</th>
                                                     <th scope="col" class="text-center">Prezzo</th>
                                                     <th scope="col" class="text-center">Sconti %</th>
-                                                    <th scope="col" class="text-center">Totale</th>
+                                                    <th scope="col" class="text-center">Totale Imponibile</th>
                                                     <th scope="col"></th>
                                                 </tr>
                                                 </thead>
                                                 <tbody>
-                                                <?php $i=0; ?>
                                                 @foreach($content as $item)
                                                     <tr>
-                                                        <?php $i++; ?>
-                                                        <th scope="row" class="text-center"><input hidden id="row{{$i}}" value="{{$i}}">{{$i}}</th>
-                                                            <td class="text-center text-dark text-center"><input hidden value="{{$item->id_content}}"><i title="Elimina la riga" class="text-danger fa fa-trash-o"></i></td>
-                                                            <td class="font-weight-bold text-center text-dark text-center"><input hidden value="{{$i}}"><i title="Modifica la riga" class="text-success fa fa-pencil-square-o"></i></td>
-                                                            <td><input hidden id="product{{$i}}" value="{{$item->id_inventory}}"><input hidden id="codice{{$i}}" value="{{$item->code}}"><input disabled class="form-control alert-success" maxlenght="50" type="text" id="code" name="product_salesDeskCon" value="{{$item->code}}"></td>
+                                                        <th scope="row" class="text-center">{{$item->riga}}</th>
+                                                            <td class="text-center text-dark text-center"><i title="Elimina la riga" class="text-danger fa fa-trash-o"></i></td>
+                                                            <td class="font-weight-bold text-center text-dark text-center"><i title="Modifica la riga" class="text-success fa fa-pencil-square-o"></i></td>
+                                                            <td><input disabled class="form-control alert-success" maxlenght="50" type="text" id="code" name="product_salesDeskCon" value="{{$item->codice}}"></td>
                                                             <td><input disabled class="form-control" maxlenght="80" type="text" name="title_product" value="{{$item->title}}"></td>
-                                                        <td><input hidden id="idcontent{{$i}}" value="{{$item->id_content}}"><input hidden id="quant{{$i}}" value="{{$item->quantity}}"><input disabled class="form-check-label" size="1" min="1" type="number" step="1.00" name="quantity_salesDeskCon" value="{{$item->quantity}}"></td>
+                                                            <td><input disabled class="form-check-label" size="1" min="1" type="number" step="1.00" name="quantity_salesDeskCon" value="{{$item->quant}}"></td>
                                                         <td><input disabled class="form-control" maxlenght="2" type="text" name="unit" value="{{$item->unit}}"></td>
-                                                            <td><input hidden id="imposta{{$i}}" value="{{$item->imposta}}"><input hidden id="price{{$i}}" value="{{$item->price}}"><input disabled class="form-control" type="text" name="price_product" value="{{$item->price}}"></td>
-                                                            <?php if($item->discount==0) $discount=null; else $discount=$item->discount ?>
-                                                        <td><input hidden id="perc{{$i}}" value="{{$item->discount}}"><input disabled class="form-check" min="0" type="number" step="0.10" name="discount_salesDeskCon" value="{{$discount}}"></td>
-                                                            <?php $tot_price = ($item->price * $item->quantity) - ((($item->price * $item->quantity)*$item->discount)/100);
-                                                                $tot_price = number_format($tot_price,2, ',', '');
-                                                            ?>
+                                                            <td><input disabled class="form-check-label" type="number" step="0.10" name="price_product" value="{{$item->price}}"></td>
+                                                            <?php if($item->perc==0) $discount=null; else $discount=$item->perc ?>
+                                                        <td><input disabled class="form-check-label" min="0" type="number" step="0.10" name="discount_salesDeskCon" value="{{$discount}}"></td>
+                                                            <?php $tot_price = ($item->price * $item->quant) - ((($item->price * $item->quant)*$item->perc)/100);?>
                                                             <td><input disabled class="form-control" type="text" name="price_product" value="{{$tot_price}}"></td>
-                                                            <td class="text-center text-dark text-center"><input hidden value="{{$item->id_content}}"><i  class="verdino fa fa-check"></i></td>
+                                                            <td class="text-center text-dark text-center"><i  class="verdino fa fa-check"></i></td>
                                                     </tr>
                                                 @endforeach
                                                 </tbody>
@@ -144,19 +140,64 @@
     @section('ajax')
         <script>
             var block = 1;
-            var numberRows = {{$i+1}};
-            var document  = new Object();
-            for (i=1; i<numberRows; i++){
-                var idcontent=document.getElementById(idcontent{{$i}}).value;
-                console.log(idcontent);
-                document[i-1]={'id_content':idcontent};
-            }
-            console.log(document);
+            var numberRows = {{$number+1}};
+            var products = JSON.parse(document.getElementById('documentitems').value);
             var upblock = 1;
+            var prova = JSON.stringify(products);
+            document.getElementById('documentitems').value = prova;
             $('document').ready(function () {
                 $('div').on('click','i.fa-trash-o', function (ele) {
-                    ele.preventDefault();
-                    console.log('click_trash');
+                    var rows = document.getElementById('content').getElementsByTagName('tr').length;
+                    if (rows<=numberRows+1){
+                        var e = ele.target;
+                        var index = e.parentNode.parentNode.cells[0].innerHTML;
+                        var t = e.parentNode.parentNode.cells[9].firstChild;
+                        var netto = parseFloat(t.value);
+                        var row = products[parseInt(index)-1];
+                        var imposta = parseInt(row['imposta']);
+                        var iva = parseFloat((netto * imposta)/100);
+                        var ivatot = document.getElementById('iva_tot').value;
+                        var totnetto = document.getElementById('tot').value;
+                        ivatot = parseFloat(ivatot).toFixed(2);
+                        totnetto = parseFloat(totnetto).toFixed(2);
+                        ivatot = parseFloat(ivatot - iva);
+                        totnetto = parseFloat(totnetto -netto);
+                        var totdoc = parseFloat(totnetto + ivatot);
+                        totdoc = parseFloat(totdoc).toFixed(2);
+                        ivatot = parseFloat(ivatot).toFixed(2);
+                        totnetto = parseFloat(totnetto).toFixed(2);
+                        document.getElementById('iva_tot').value = ivatot + " €";
+                        document.getElementById('tot').value = totnetto + " €";
+                        document.getElementById('tot_doc').value = totdoc + " €";
+                        delete products[parseInt(index)-1];
+                        document.getElementById('content').deleteRow(parseInt(index));
+                        var rows = document.getElementById('content').getElementsByTagName('tr').length;
+                        var indice = parseInt(index);
+                        if (rows>=parseInt(indice+1)) {
+                            try {
+                                for (i=indice; i<rows;i++) {
+                                    document.getElementById('content').rows[i].cells[0].innerHTML = i;
+                                    var documento2 = products[i];
+                                    products[i-1]= {'id_content':documento2['id_content'],'riga':documento2['riga']-1,'codice':documento2['codice'],'quant':documento2['quant'],'discount':documento2['discount'],'product':documento2['product'],'price':documento2['price'],'imposta':documento2['imposta']};
+                                }
+                                delete products[rows-1];
+                            } catch (e) {
+                                console.log('eccezione',documento2);
+                            }
+                        }
+                        if (numberRows<=2) {
+                            addrow('content');
+                            document.getElementById('iva_tot').value = "0.00 €";
+                            document.getElementById('tot').value = "0.00 €";
+                            document.getElementById('tot_doc').value = "0.00 €";
+                        }
+                        numberRows = numberRows - 1;
+                        block = 1;
+                        var prova = JSON.stringify(products);
+                        document.getElementById('documentitems').value = prova;
+                        if (numberRows==1)  document.getElementById('submit_document').disabled = true;
+                        if (numberRows>1)  document.getElementById('submit_document').disabled = false;
+                    }
                 });
                 return;
             });
@@ -165,35 +206,39 @@
                 $('div').on('click','i.fa-pencil-square-o', function (ele) {
                     if (upblock==1){
                         upblock++;
+                        block = 1;
                         var e = ele.target;
                         var index = e.parentNode.parentNode.cells[0].innerHTML;
                         var t = e.parentNode.parentNode.cells[9].firstChild;
                         e.parentNode.parentNode.cells[5].firstChild.disabled = false;
                         e.parentNode.parentNode.cells[8].firstChild.disabled = false;
-                        var data = document[parseInt(index)-1];
+                        e.parentNode.parentNode.cells[7].firstChild.disabled = false;
+                        var data = products[parseInt(index)-1];
                         e.parentNode.parentNode.cells[10].innerHTML = '<td class="font-weight-bold text-center text-dark text-center"><input hidden value="' + data['product'] + '"><i title="Conferma le modifiche" class="text-success fa fa-check-circle-o"></i></td>';
-                        var tot = parseFloat(t.value).toFixed(2);
-                        var row = document[parseInt(index)-1];
-                        console.log(row);
-                        var imposta = row['codice'];
-                        console.log(imposta);
-                        var netto = parseFloat(tot / imposta).toFixed(2);
-                        var iva = parseFloat(tot - netto).toFixed(2);
+                        var netto = parseFloat(t.value);
+                        var row = products[parseInt(index)-1];
+                        var imposta = row['imposta'];
+                        var iva = parseFloat((netto * imposta)/100);
+                        var totconiva = parseFloat(netto + iva);
+                        iva = parseFloat(iva);
+                        totconiva = parseFloat(totconiva);
+                        netto = parseFloat(netto);
                         var ivatot = document.getElementById('iva_tot').value;
                         var totnetto = document.getElementById('tot').value;
                         var totdoc = document.getElementById('tot_doc').value;
                         ivatot = parseFloat(ivatot).toFixed(2);
                         totnetto = parseFloat(totnetto).toFixed(2);
                         totdoc = parseFloat(totdoc).toFixed(2);
-                        ivatot = parseFloat(ivatot - iva).toFixed(2);
-                        totnetto = parseFloat(totnetto -netto).toFixed(2);
-                        totdoc = parseFloat(totdoc - tot).toFixed(2);
-                        console.log(ivatot,totnetto,totdoc);
+                        ivatot = parseFloat(ivatot - iva);
+                        totnetto = parseFloat(totnetto - netto);
+                        totdoc = parseFloat(totdoc - totconiva);
+                        ivatot = parseFloat(ivatot).toFixed(2);
+                        totnetto = parseFloat(totnetto).toFixed(2);
+                        totdoc = parseFloat(totdoc).toFixed(2);
                         document.getElementById('iva_tot').value = ivatot + " €";
                         document.getElementById('tot').value = totnetto + " €";
                         document.getElementById('tot_doc').value = totdoc + " €";
-                        block = 1;
-                        var prova = JSON.stringify(document);
+                        var prova = JSON.stringify(products);
                         document.getElementById('documentitems').value = prova;
                         document.getElementById('ean').disabled = true;
                         document.getElementById('add-item').disabled = true;
@@ -206,27 +251,30 @@
             $('document').ready(function (){
                 $('div').on('click','i.fa-check-circle-o',function (ele){
                     if (upblock==2){
+                        block = 1;
                         upblock=1;
                         var e = ele.target;
                         var index = e.parentNode.parentNode.cells[0].innerHTML;
-                        var data = document[parseInt(index)-1];
+                        var data = products[parseInt(index)-1];
                         var t = e.parentNode.parentNode.cells[9].firstChild;
+                        var netto = parseFloat(t.value);
+                        var p = e.parentNode.parentNode.cells[7].firstChild;
                         var imposta = data['imposta'];
-                        var tot = parseFloat(t.value).toFixed(2);
+                        var price = parseFloat(p.value);
                         var q = e.parentNode.parentNode.cells[5].firstChild;
                         var quant = q.value;
                         var s = e.parentNode.parentNode.cells[8].firstChild;
                         var perc = parseFloat(s.value).toFixed(2);
                         if (perc === 'NaN') perc = 0;
-                        document[parseInt(index)-1] = {'riga':data['riga'],'codice':data['codice'],'quant':quant,'discount':perc,'product':data['product'],'price':data['price'],'imposta':data['imposta']};
-                        var prova = JSON.stringify(document);
+                        if (data['id_content'] === undefined)  data['id_content']='new';
+                        products[parseInt(index)-1] = {'id_content':data['id_content'],'riga':data['riga'],'codice':data['codice'],'quant':quant,'discount':perc,'product':data['product'],'price':data['price'],'imposta':data['imposta']};
+                        var prova = JSON.stringify(products);
                         document.getElementById('documentitems').value = prova;
-                        console.log(document);
-                        block = 1;
                         document.getElementById('ean').disabled = false;
                         document.getElementById('add-item').disabled = false;
                         q.disabled = true;
                         s.disabled = true;
+                        p.disabled = true;
                         var check = e.parentNode.parentNode.cells[10];
                         var del = e.parentNode.parentNode.cells[1];
                         var up = e.parentNode.parentNode.cells[2];
@@ -235,18 +283,16 @@
                         check.innerHTML = '<td class="text-center text-dark text-center"><input hidden value="' + data['product'] + '"><i  class="verdino fa fa-check"></i></td>';
                         var ivatot = document.getElementById('iva_tot').value;
                         ivatot = parseFloat(ivatot);
-                        var importo = document.getElementById('tot').value;
-                        importo = parseFloat(importo);
-                        var netto = parseFloat(tot / imposta);
-                        var addiva = parseFloat(tot - netto);
+                        var importo = parseFloat(document.getElementById('tot').value);
+                        var addiva = parseFloat((netto * imposta)/100);
                         var totiva = parseFloat(ivatot + addiva);
-                        var totimporto = parseFloat(importo + netto);
-                        var totaledocumento = parseFloat(totimporto + totiva);
+                        var totnetto = parseFloat(netto + importo);
+                        var totaledocumento = parseFloat(totnetto + totiva);
                         totiva = parseFloat(totiva).toFixed(2);
-                        totimporto = parseFloat(totimporto).toFixed(2);
+                        totnetto = parseFloat(totnetto).toFixed(2);
                         totaledocumento = parseFloat(totaledocumento).toFixed(2);
                         document.getElementById('iva_tot').value = totiva + " €";
-                        document.getElementById('tot').value = totimporto + " €";
+                        document.getElementById('tot').value = totnetto + " €";
                         document.getElementById('tot_doc').value = totaledocumento + " €";
                         if (numberRows==1)  document.getElementById('submit_document').disabled = true;
                         if (numberRows>1)  document.getElementById('submit_document').disabled = false;
@@ -259,6 +305,7 @@
                $('div').on('click','i.fa-check-square-o',function (ele){
                    var rows = document.getElementById('content').getElementsByTagName('tr').length;
                    if (rows>numberRows){
+                       console.log('fsafdsa');
                        var e = ele.target;
                        if (e.parentNode.parentNode.cells[3].firstChild === undefined) return; else {
                            var c = e.parentNode.parentNode.cells[3].firstChild;
@@ -266,8 +313,7 @@
                            var i = e.parentNode.parentNode.cells[7].lastChild;
                            var t = e.parentNode.parentNode.cells[9].firstChild;
                            var imposta = parseFloat(i.value).toFixed(2);
-                           var tot = parseFloat(t.value).toFixed(2);
-                           var imposta = parseFloat(1+(imposta/100)).toFixed(2);
+                           var tot = parseFloat(t.value);
                            var q = e.parentNode.parentNode.cells[5].firstChild;
                            var quant = q.value;
                            var p = e.parentNode.parentNode.cells[7].firstChild;
@@ -278,17 +324,17 @@
                            var i = e.parentNode.parentNode.cells[10].firstChild;
                            var id = i.value;
                            var index = numberRows - 1;
-                           document[index] = {'riga':numberRows,'codice':codice,'quant':quant,'discount':perc,'product':id,'price':price,'imposta':imposta};
-                           var prova = JSON.stringify(document);
+                           products[index] = {'id_content':'new','riga':numberRows,'codice':codice,'quant':quant,'discount':perc,'product':id,'price':price,'imposta':imposta};
+                           var prova = JSON.stringify(products);
                            document.getElementById('documentitems').value = prova;
                            numberRows++;
                            block = 1;
-                           blockdel = 1;
-                           blockup = 1;
+                           upblock = 1;
                            document.getElementById('ean').disabled = false;
                            document.getElementById('add-item').disabled = false;
                            q.disabled = true;
                            s.disabled = true;
+                           p.disabled = true;
                            var check = e.parentNode.parentNode.cells[10];
                            var del = e.parentNode.parentNode.cells[1];
                            var up = e.parentNode.parentNode.cells[2];
@@ -299,10 +345,9 @@
                            ivatot = parseFloat(ivatot);
                            var importo = document.getElementById('tot').value;
                            importo = parseFloat(importo);
-                           var netto = parseFloat(tot / imposta);
-                           var addiva = parseFloat(tot - netto);
+                           var addiva = parseFloat((tot * imposta)/100);
                            var totiva = parseFloat(ivatot + addiva);
-                           var totimporto = parseFloat(importo + netto);
+                           var totimporto = parseFloat(importo + tot);
                            var totaledocumento = parseFloat(totimporto + totiva);
                            totiva = parseFloat(totiva).toFixed(2);
                            totimporto = parseFloat(totimporto).toFixed(2);
@@ -310,7 +355,7 @@
                            document.getElementById('iva_tot').value = totiva + " €";
                            document.getElementById('tot').value = totimporto + " €";
                            document.getElementById('tot_doc').value = totaledocumento + " €";
-                           upblock = 1;
+
                            if (numberRows==1)  document.getElementById('submit_document').disabled = true;
                            if (numberRows>1)  document.getElementById('submit_document').disabled = false;
                        }
@@ -319,58 +364,25 @@
                return;
             });
 
-            $('document').ready(function () {
-                $('div').on('click','input.form-check', function () {
-                    if (block !== undefined) block = 1;
-                });
-                return;
-            });
-
-            $('document').ready(function () {
-               $('div').on('change','input.form-check', function (ele) {
-                   if (block !== undefined){
-                       if (block==1) {
-                           console.log('click sconto');
-                           block++;
-                           var s = ele.target;
-                           var p = s.parentNode.parentNode.cells[7].firstChild;
-                           var q = s.parentNode.parentNode.cells[5].firstChild;
-                           var quant = parseFloat(q.value).toFixed(2);
-                           var price = parseFloat(p.value).toFixed(2);
-                           var perc = parseFloat(s.value).toFixed(2);
-                           if (perc === 'NaN') perc = 0;
-                           var tot = parseFloat(price * quant).toFixed(2);
-                           var discount = parseFloat((perc * tot) / 100).toFixed(2);
-                           var newtotale = parseFloat(tot - discount).toFixed(2);
-                           var change = s.parentNode.parentNode.cells[9].firstChild;
-                           change.value = newtotale + " €";
-                           if (numberRows==1)  document.getElementById('submit_document').disabled = true;
-                           if (numberRows>1)  document.getElementById('submit_document').disabled = false;
-                       }
-                   }
-               });
-               return;
-            });
 
             $('document').ready(function () {
                 $('div').on('change','input.form-check-label', function (ele) {
-                    ele.preventDefault();
-                    var q = ele.target;
-                    var tr = q.parentNode.parentNode.cells[7].firstChild;
-                    var s = q.parentNode.parentNode.cells[8].firstChild;
-
-                    var perc = parseFloat(s.value).toFixed(2);
-                    if (perc === 'NaN') perc = 0;
-                    var quant = parseFloat(q.value).toFixed(2);
-                    var price = (parseFloat(tr.value).toFixed(2));
-                    console.log(tr.value,quant,price,perc);
-                    var totale = parseFloat(quant * price).toFixed(2);
-                    var discount = parseFloat((totale * perc)/100).toFixed(2);
-                    var newtotale = parseFloat(totale - discount).toFixed(2);
-                    var td = q.parentNode.parentNode.cells[9].firstChild;
-                    td.value = newtotale + " €";
-                    if (numberRows==1)  document.getElementById('submit_document').disabled = true;
-                    if (numberRows>1)  document.getElementById('submit_document').disabled = false;
+                            ele.preventDefault();
+                            var element = ele.target;
+                            var q = element.parentNode.parentNode.cells[5].firstChild;
+                            var tr = element.parentNode.parentNode.cells[7].firstChild;
+                            var s = element.parentNode.parentNode.cells[8].firstChild;
+                            var perc = parseFloat(s.value).toFixed(2);
+                            if (perc === 'NaN') perc = 0;
+                            var quant = parseFloat(q.value).toFixed(2);
+                            var price = (parseFloat(tr.value).toFixed(2));
+                            var totale = parseFloat(quant * price).toFixed(2);
+                            var discount = parseFloat((totale * perc) / 100).toFixed(2);
+                            var newtotale = parseFloat(totale - discount).toFixed(2);
+                            var td = q.parentNode.parentNode.cells[9].firstChild;
+                            td.value = newtotale + " €";
+                            if (numberRows == 1) document.getElementById('submit_document').disabled = true;
+                            if (numberRows > 1) document.getElementById('submit_document').disabled = false;
                 });
                 return;
             });
@@ -381,8 +393,7 @@
                     var ean = document.getElementById('ean').value;
                     var e = ele.target;
                     var codice = e.value;
-                    var id = "{{$id}}";
-                    if ( codice > ean) var url = '/check-codice-new-sales/' + codice; else var url = '/check-ean-new-sales/'  + ean;
+                    if ( codice > ean) var url = '/check-codice-new-order/' + codice; else var url = '/check-ean-new-order/'  + ean;
                     var table = document.getElementById('content');
                     $.ajax(
                         {
@@ -396,93 +407,56 @@
                             },
                             dataType: "json",
                             success : function (data) {
-                                if ( data['cod'] === undefined) {
-                                    document.getElementById('alert-ajax').innerHTML = "<ul class='alert alert-danger alert-dismissible'><li>Il codice: " + codice + ean + " non è presente nel tuo catalogo" +
-                                        "</li><button type='button' class='close' onclick='NoHtml()' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></ul>";
-                                } else {
-                                    if (numberRows == 1) document.getElementById('content').deleteRow(1);
-                                    var rows = document.getElementById('content').getElementsByTagName('tr').length;
-                                    if ( codice > ean && rows>2) document.getElementById('content').deleteRow(rows-1);
-                                    var rows = document.getElementById('content').getElementsByTagName('tr').length;
-                                    if (rows<numberRows+1) {
-                                        var row = table.insertRow(rows);
-                                        var cell1 = row.insertCell(0);
-                                        cell1.innerHTML = '<th scope="row" class="text-center">' + (rows) + '</th>';
-                                        var cell2 = row.insertCell(1);
-                                        cell2.innerHTML = '<td class="font-weight-bold text-center text-dark text-center"><a  onclick="deleterowTableContent('+ (rows) +')" title="Cancella la riga"><i class="text-danger fa fa-minus-circle"></i></a></td>';
-                                        var cell3 = row.insertCell(2);
-                                        cell3.innerHTML = ' ';
-                                        var cell4 = row.insertCell(3);
-                                        cell4.innerHTML = '<td><input class="form-control" disabled maxlenght="50" type="text" id="code" name="product_salesDeskCon" value="' + data['cod'] + '"></td>'
-                                        var list = document.getElementById('list').value;
-                                        var cell5 = row.insertCell(4);
-                                        cell5.innerHTML = '<td><input disabled class="form-control" maxlenght="80" type="text" name="title_product" value="' + data['title'] + '"></td>';
-                                        var cell6 = row.insertCell(5);
-                                        if (data['unit']=='NR') var step = "1"; else var step = "1.10"
-                                        cell6.innerHTML = '<td><input class="form-check-label" min="1" type="number" step="'+ step +'" name="quantity_salesDeskCon" value="1"></td>';
-                                        var cell7 = row.insertCell(6);
-                                        cell7.innerHTML =  '<td><input disabled class="form-control" maxlenght="2" type="text" name="unit" value="' + data['unit'] + '"></td>';
-                                        var cell8 = row.insertCell(7);
-                                        if (list=='price-user') var price = parseFloat(data['price_user']); else var price = parseFloat(data['price_b2b']);
-                                        var iva = parseFloat((data['imposta'] * price) / 100);
-                                        var imposta = parseFloat(data['imposta']).toFixed(0);
-                                        var prezzoimposta = parseFloat(price + iva);
-                                        var tot = parseFloat(prezzoimposta).toFixed(2);
-                                        cell8.innerHTML = '<td><input disabled class="form-control" type="text" name="price_product" value="'+tot+' €" /><input hidden value="'+imposta+'" /></td>';
-                                        var cell9 = row.insertCell(8);
-                                        cell9.innerHTML = '<td><input class="form-check" type="number" step="0.10" name="discount_salesDeskCon" value="0.00 %"></td>';
-                                        var cell10 = row.insertCell(9);
-                                        cell10.innerHTML = '<td><input disabled class="form-control" type="text" name="price_product" value="'+tot+' €"></td>';
-                                        var cell11 = row.insertCell(10);
-                                        cell11.innerHTML = '<td class="font-weight-bold text-center text-dark text-center"><input hidden value="' + data['id_sales_list'] + '"><i title="Conferma" class="text-success fa fa-check-square-o"></i></td>';
-                                        document.getElementById('ean').value = "";
-                                        document.getElementById('ean').disabled = true;
-                                        document.getElementById('add-item').disabled = true;
-                                        upblock = 1;
-                                        if (numberRows==1)  document.getElementById('submit_document').disabled = true;
-                                        if (numberRows>1)  document.getElementById('submit_document').disabled = false;
+                                    if ( data['cod'] === undefined) {
+                                        document.getElementById('alert-ajax').innerHTML = "<ul class='alert alert-danger alert-dismissible'><li>Il codice: " + codice + ean + " non è presente nel tuo catalogo" +
+                                            "</li><button type='button' class='close' onclick='NoHtml()' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></ul>";
+                                    } else {
+                                        if (numberRows == 1) document.getElementById('content').deleteRow(1);
+                                        var rows = document.getElementById('content').getElementsByTagName('tr').length;
+                                        if ( codice > ean && rows>2) document.getElementById('content').deleteRow(rows-1);
+                                        var rows = document.getElementById('content').getElementsByTagName('tr').length;
+                                        if (rows<numberRows+1) {
+                                            var row = table.insertRow(rows);
+                                            var cell1 = row.insertCell(0);
+                                            cell1.innerHTML = '<th scope="row" class="text-center">' + (rows) + '</th>';
+                                            var cell2 = row.insertCell(1);
+                                            cell2.innerHTML = '<td class="font-weight-bold text-center text-dark text-center"><a  onclick="deleterowTableContent('+ (rows) +')" title="Cancella la riga"><i class="text-danger fa fa-minus-circle"></i></a></td>';
+                                            var cell3 = row.insertCell(2);
+                                            cell3.innerHTML = ' ';
+                                            var cell4 = row.insertCell(3);
+                                            cell4.innerHTML = '<td><input class="form-control" disabled maxlenght="50" type="text" id="code" name="product_salesDeskCon" value="' + data['cod'] + '"></td>'
+                                            var cell5 = row.insertCell(4);
+                                            cell5.innerHTML = '<td><input disabled class="form-control" maxlenght="80" type="text" name="title_product" value="' + data['title'] + '"></td>';
+                                            var cell6 = row.insertCell(5);
+                                            if (data['unit']=='NR') var step = "1"; else var step = "1.10"
+                                            cell6.innerHTML = '<td><input class="form-check-label" min="1" type="number" step="'+ step +'" name="quantity_salesDeskCon" value="1"></td>';
+                                            var cell7 = row.insertCell(6);
+                                            cell7.innerHTML =  '<td><input disabled class="form-control" maxlenght="2" type="text" name="unit" value="' + data['unit'] + '"></td>';
+                                            var cell8 = row.insertCell(7);
+                                            var price = parseFloat(data['price']);
+                                            var tot = parseFloat(price).toFixed(2);
+                                            cell8.innerHTML = '<td><input class="form-check-label" type="number" step="0.10" name="price_product" value="'+tot+'" /><input hidden value="'+ data['imposta'] +'" /></td>';
+                                            var cell9 = row.insertCell(8);
+                                            cell9.innerHTML = '<td><input class="form-check-label" type="number" step="0.10" name="discount_salesDeskCon" value="0.00 %"></td>';
+                                            var cell10 = row.insertCell(9);
+                                            cell10.innerHTML = '<td><input disabled class="form-control" type="text" name="price_product" value="'+tot+'"></td>';
+                                            var cell11 = row.insertCell(10);
+                                            cell11.innerHTML = '<td class="font-weight-bold text-center text-dark text-center"><input hidden value="' + data['id_inventory'] + '"><i title="Conferma" class="text-success fa fa-check-square-o"></i></td>';
+                                            document.getElementById('ean').value = "";
+                                            document.getElementById('ean').disabled = true;
+                                            document.getElementById('add-item').disabled = true;
+                                            upblock = 1;
+                                            block=1;
+                                            if (numberRows==1)  document.getElementById('submit_document').disabled = true;
+                                            if (numberRows>1)  document.getElementById('submit_document').disabled = false;
+                                        }
                                     }
-                                }
                             }
                         }
                     );
                 });
                 return;
             });
-
-            $('document').ready(function () {
-                $('div').on('change','input.font-weight-bold', function (ele) {
-                    ele.preventDefault();
-                    var number = document.getElementById('number_sales_desk').value;
-                    var data = document.getElementById('date_sales_desk').value;
-                    var id = "{{$id}}";
-                    var url = '/check-number-new-sales-invoice/' + id + '/' + number + '/' + data;
-                    $.ajax(
-                        {
-                            url: url,
-                            type: 'post',
-                            data: '_token={{csrf_token()}}',
-                            complete : function (resp) {
-                                if (resp.responseText == 1){
-                                    return;
-                                } else {
-                                    document.getElementById('number_sales_desk').value = "{{$number}}";
-                                    document.getElementById('date_sales_desk').value = "{{$date}}";
-                                    var giorno = data.split("-");
-                                    document.getElementById('alert-ajax').innerHTML = "<ul class='alert alert-danger alert-dismissible'><li>Non puoi inserire questo numero con la data del " + giorno[2] + "/" + giorno[1] + "/" + giorno[0] +
-                                        "</li><button type='button' class='close' onclick='NoHtml()' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></ul>";
-                                }
-
-                            }
-                        }
-                    );
-                    if (numberRows==1)  document.getElementById('submit_document').disabled = true;
-                    if (numberRows>1)  document.getElementById('submit_document').disabled = false;
-                });
-                return;
-            });
-
-
         </script>
     @endsection
 
