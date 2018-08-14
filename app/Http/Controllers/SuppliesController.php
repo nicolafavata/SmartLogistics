@@ -568,7 +568,7 @@ class SuppliesController extends Controller
                     return redirect()->route('providers');
                 }
             }
-            $mapping = DB::table('mapping_inventory_providers')->join('inventories','id_inventory','=','inventory_mapping_provider')->where('company_mapping_provider',$id_company)->where('provider_mapping_provider',$id)->select('cod_inventory','cod_mapping_inventory_provider','url_inventory','title_inventory','price_provider','unit_inventory','id_mapping_inventory_provider')->paginate(env('PAGINATE_ITEM'));
+            $mapping = DB::table('mapping_inventory_providers')->join('inventories','id_inventory','=','inventory_mapping_provider')->where('company_mapping_provider',$id_company)->where('provider_mapping_provider',$id)->select('cod_inventory','cod_mapping_inventory_provider','url_inventory','title_inventory','price_provider','unit_inventory','id_mapping_inventory_provider','id_inventory','provider_mapping_provider as id_provider','first')->paginate(env('PAGINATE_ITEM'));
             return view('supplies.view-mapping',
                     [
                         'dati' => $dato[0],
@@ -1815,6 +1815,33 @@ class SuppliesController extends Controller
             session()->flash('message', 'Non puoi accedere a queste informazioni');
             return redirect()->route('employee');
         }
+    }
+
+    public function updateMapping($id, Request $request){
+            $acquisti = $this->supplieControl();
+            if ($acquisti->acquisti=='1') {
+                $company = Employee::where('user_employee',Auth::id())->join('company_offices','id_company_office','=','company_employee')->select('company_employee as id')->first();
+                $data = $request->all();
+                $check = DB::table('mapping_inventory_providers')->where('id_mapping_inventory_provider',$id)->where('provider_mapping_provider',$data['provider'])->where('company_mapping_provider',$company->id)->where('inventory_mapping_provider',$data['code'])->first();
+                if (count($check)>0) {
+                   $up = DB::table('mapping_inventory_providers')->where('id_mapping_inventory_provider',$id)->where('provider_mapping_provider',$data['provider'])->where('company_mapping_provider',$company->id)->where('inventory_mapping_provider',$data['code'])->update(
+                     [
+                         'cod_mapping_inventory_provider' => $data['newmapping'],
+                         'price_provider' => $data['newprice'],
+                         'first' => $data['first']
+                     ]
+                   );
+                   $messaggio = $up ? 'Il mapping con il fornitore è stato aggiornato' :'Problemi con il Server riprovare più tardi';
+                   session()->flash('message', $messaggio);
+                   return redirect()->route('mapping-providers', $data['provider']);
+                } else {
+                    session()->flash('message', 'Il prodotto richiesto non appartiene alla tua lista');
+                    return redirect()->route('mapping-providers', $data['provider']);
+                }
+            } else {
+                session()->flash('message', 'Non puoi accedere a queste informazioni');
+                return redirect()->route('employee');
+            }
     }
 
 }

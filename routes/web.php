@@ -103,6 +103,7 @@ Route::group(['middleware'=> 'auth'],
         //Mapping Inventario-Fornitori
         Route::get('/mapping-providers/{id}','SuppliesController@mappingProviders')->name('mapping-providers');
         Route::get('/add-mapping/{id}', 'SuppliesController@addMapping')->name('add_mapping');
+        Route::patch('/update-mapping/{id}','SuppliesController@updateMapping')->where('id', '[0-9]+')->name('update-mapping');
         Route::post('/delete-mapping/{id}','SuppliesController@deleteMapping')->where('id', '[0-9]+')->name('delete-mapping');
         Route::post('/del-mapping/{id}','SuppliesController@delMapping')->where('id', '[0-9]+')->name('del-mapping');
         Route::get('/store-mapping/{id}', 'SuppliesController@storeMapping')->name('store_mapping');

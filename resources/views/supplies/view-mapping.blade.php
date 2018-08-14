@@ -22,16 +22,16 @@
                     <div class="row">
                         <div class="col-md-8 text-left">
                             <h4 class="font-weight-bold text-dark shadow">Mapping con {{$providers->rag_soc_provider}}</h4>
-                            <h3>codice fornitore: {{$providers->provider_cod}}</h3>
+                            <small class="fucsia">codice fornitore: {{$providers->provider_cod}}</small>
                         </div>
                         <div class="col-md-4 text-right">
                             @if(count($mapping)>0)
                                 <div class="icon-list">
-                                    <a type="button" data-toggle="modal" data-target="#exampleModal{{$providers->id_provider}}" title="Elimina l'intero mapping"><i class="text-danger shadow fa fa-minus-square-o fa-4x"></i></a>
+                                    <a type="button" data-toggle="modal" data-target="#exampleModal{{$providers->id_provider}}" title="Elimina l'intero mapping"><i class="text-danger shadow fa fa-minus-square-o fa-2x"></i></a>
                                 </div>
                             @endif
                                 <div class="icon-list">
-                                    <a href="{{route('add_mapping',$providers->id_provider)}}" title="Aggiungi file con il mapping"><i class="text-success shadow fa fa-plus-square-o fa-4x"></i></a>
+                                    <a href="{{route('add_mapping',$providers->id_provider)}}" title="Aggiungi file con il mapping"><i class="text-success shadow fa fa-plus-square-o fa-2x"></i></a>
                                 </div>
                         </div>
                     </div>
@@ -81,7 +81,8 @@
                                 <th scope="col">Descrizione</th>
                                 <th scope="col">U.M.</th>
                                 <th scope="col">Mapping</th>
-                                <th scope="col">Prezzo unitario</th>
+                                <th scope="col">Prezzo</th>
+                                <th scope="col">Modifica</th>
                                 <th scope="col">Elimina</th>
                             </tr>
                             </thead>
@@ -102,18 +103,68 @@
                                         @endif
                                         width="70" height="70" alt="{{$found->title_inventory}}"/></div>
                                     </td>
-                                    <td class="font-weight-bold text-dark text-uppercase">
+                                    <td class="font-weight-bold text-dark text-uppercase text-center">
                                         {{$found->cod_inventory}}
                                     </td>
                                     <td class="font-weight-bold text-dark text-capitalize">
                                         {{$found->title_inventory}}
                                     </td>
+                                    <?php $price = number_format($found->price_provider,2, ',', '') ?>
                                     <td class="font-weight-bold text-center text-dark text-uppercase" >{{$found->unit_inventory}}</td>
                                     <td class="font-weight-bold text-center text-dark text-uppercase" >{{$found->cod_mapping_inventory_provider}}</td>
-                                    <td class="font-weight-bold text-center text-dark text-uppercase" >{{$found->price_provider.' €'}}</td>
-                                    <td class="font-weight-bold text-center text-dark text-center"><a  href="{{route('del-mapping',$found->id_mapping_inventory_provider)}}" title="Elimina il mapping del prodotto {{$found->cod_inventory}}"><i class="fucsia fa fa-trash-o fa-4x"></i></a></td>
+                                    <td class="font-weight-bold text-center text-dark text-uppercase text-center" >{{$price.' €'}}</td>
+                                    <td class="text-center"><a data-toggle="modal" data-target="#changeMapping{{$found->id_mapping_inventory_provider}}"><i title="Modifica il mapping" class="text-success fa fa-pencil-square-o fa-2x"></i></a></td>
+
+                                    <td class="font-weight-bold text-center text-dark text-center"><a  href="{{route('del-mapping',$found->id_mapping_inventory_provider)}}" title="Elimina il mapping del prodotto {{$found->cod_inventory}}"><i class="fucsia fa fa-trash-o fa-2x"></i></a></td>
 
                             </tr>
+                            <!-- Modal -->
+                            <div class="modal fade" id="changeMapping{{$found->id_mapping_inventory_provider}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title font-weight-bold fucsia" id="exampleModalLabel">{{$found->title_inventory}}</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form onsubmit="showloader()" method="POST" action="{{ route('update-mapping',$found->id_mapping_inventory_provider) }}">
+                                                {{ csrf_field() }}
+                                                <input type="hidden" name="_method" value="PATCH">
+                                                <input type="hidden" name="code" value="{{$found->id_inventory}}">
+                                                <input type="hidden" name="provider" value="{{$found->id_provider}}">
+                                                <div class="form-group">
+                                                    <label class="form-check-inline">Nostro codice:</label>
+                                                    <span class="font-weight-bold grigio shadow">{{$found->cod_inventory}}</span>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="form-check-inline">Codice Fornitore:</label>
+                                                    <input class="form-check-label text-uppercase" type="text" name="newmapping" required value="{{old('newmapping',$found->cod_mapping_inventory_provider)}}">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="form-check-inline">Prezzo Fornitore:</label>
+                                                    <input class="form-check-label"min="1" type="number" step="0.01"  name="newprice"  required value="{{$found->price_provider}}">
+                                                </div>
+                                                <div class="input-group mb-3">
+                                                    <div class="input-group-prepend">
+                                                        <label class="input-group-text">Categoria</label>
+                                                    </div>
+                                                    <select class="custom-select"  name="first">
+                                                        <option value="1" @if($found->first=="1") selected @endif >Principale</option>
+                                                        <option value="0" @if($found->first=="0") selected @endif>Secondaria</option>
+                                                    </select>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
+                                                    <button type="submit" class="btn btn-primary">Aggiorna</button>
+                                                </div>
+                                            </form>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
                             @empty
                                 <h6 class="fucsia font-weight-bold shadow">Non hai effettuato il mapping dei prodotti con il fornitore {{$providers->rag_soc_provider}}</h6>
                             @endforelse
