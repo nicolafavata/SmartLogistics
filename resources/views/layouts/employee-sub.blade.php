@@ -73,11 +73,11 @@
 							</ul>
 						</li>
 						<li>
-							<span>Supply chain</span>
+							<span>Supply chain<span class="badge badge-light">{{$dati->request}}</span></span>
 							<ul>
 								<li><a href="{{ route('supplyresearch') }}">Ricerca azienda</a></li>
 								<li><a href="{{ route('supplychainmanagement')}}">Gestione aggregazioni</a></li>
-								<li><a href="{{route('requests-received')}}">Richieste ricevute</a></li>
+								<li><a href="{{route('requests-received')}}">Richieste ricevute<span class="badge badge-light">{{$dati->request}}</span></a></li>
 								<li><a href="{{route('requests-transmitted')}}">Richieste trasmesse</a></li>
 								<li><a href="{{route('block-supply')}}">Aziende bloccate</a></li>
 							</ul>

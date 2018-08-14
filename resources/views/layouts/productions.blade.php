@@ -43,6 +43,21 @@
                 <li class="nav-item active">
                     <a class="nav-link shadow" style="color: white;" href="{{ route('employee') }}">Home <span class="sr-only">(current)</span></a>
                 </li>
+                @if($dati->acquisti=='1')
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle shadow" href="#" style="color: white;" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                            Gestione acquisti
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                            <a class="dropdown-item" href="{{route('inventories')}}">Inventario</a>
+                            <a class="dropdown-item" href="{{route('providers')}}">Fornitori</a>
+                            <a class="dropdown-item" href="{{route('expires')}}">Scadenze</a>
+                            <a class="dropdown-item" href="{{route('providers')}}">Configurazione</a>
+                            <a class="dropdown-item" href="{{route('providers')}}">Genera ordine</a>
+                            <a class="dropdown-item" href="{{route('purchase-orders')}}">Ordini effettuati</a>
+                        </div>
+                    </li>
+                @endif
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle shadow" href="#" style="color: white;" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                         Gestione produzione
@@ -52,6 +67,18 @@
                         <a class="dropdown-item" href="{{route('mapping-production')}}">Associazione acquisti-produzione</a>
                     </div>
                 </li>
+                @if($dati->vendite=='1')
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle shadow" href="#" style="color: white;" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                            Gestione vendite
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                            <a class="dropdown-item" href="{{route('catalogue')}}">Catalogo</a>
+                            <a class="dropdown-item" href="{{route('mapping-production')}}">Listini di vendita</a>
+                            <a class="dropdown-item" href="{{route('expire-monitor')}}">Monitoraggio delle scadenze</a>
+                        </div>
+                    </li>
+                @endif
                 <li class="nav-item active">
                     <a class="nav-link shadow" style="color: white;" href="{{ route('logout') }}"onclick="event.preventDefault();
                                                      document.getElementById('logout-form').submit();">

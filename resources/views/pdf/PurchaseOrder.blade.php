@@ -139,8 +139,8 @@
                 </td>
                 <td class="text-center">
                     <?php
-                     $tot = $price * $item->quantity;
-                     if ($item->discount>0) $tot = $tot - (($tot * $discount)/100);
+                     $tot = $item->price_unit_no_tax * $item->quantity;
+                     if ($item->discount>0) $tot = $tot - (($tot * $item->discount)/100);
                      $tot = number_format($tot,2, ',', '');
                     ?>
                     {{$tot.' €'}}

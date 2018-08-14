@@ -1,4 +1,4 @@
-@extends('layouts.document')
+@extends('layouts.supplies')
 @section('title','Ordini fornitori')
 @section('content')
     <div class="carousel-inner purchase-order">

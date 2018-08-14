@@ -15,6 +15,7 @@ use App\Models\Batch_MappingInventoryProvider;
 use App\Models\Batch_monitoringOrder;
 use App\Models\BatchHistoricalData;
 use App\Models\ConfigOrder;
+use App\Models\DeleteFile;
 use App\Models\Expiry;
 use App\Models\MappingInventoryProvider;
 use App\Models\Provider;
@@ -36,6 +37,7 @@ use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderContent;
 use Illuminate\Support\Facades\Mail;
 use phpDocumentor\Reflection\DocBlock;
+use SimpleXMLElement;
 
 
 class SuppliesController extends Controller
@@ -1649,6 +1651,9 @@ class SuppliesController extends Controller
                         session()->flash('message', $messaggio);
                         return redirect()->route('view-purchase-order',$id);
                     }
+            } else {
+                session()->flash('message', 'L\'ordine non risulta nella tua lista');
+                return redirect()->route('purchase-orders');
             }
         } else {
             session()->flash('message', 'Non puoi accedere a queste informazioni');
@@ -1661,7 +1666,35 @@ class SuppliesController extends Controller
         $acquisti = $this->supplieControl();
         if ($acquisti->acquisti=='1') {
             $company = Employee::where('user_employee',Auth::id())->join('company_offices','id_company_office','=','company_employee')->select('company_employee as id')->first();
-            dd($id);
+            $order = DB::table('purchase_orders')->where('id_purchase_order',$id)->where('company_purchase_order',$company->id)->select('*')->first();
+            if (count($order)>0) {
+                //RECUPERIAMO I DATI PER GENERARE IL PDF DELL'ORDINE
+                $companys = DB::table('company_offices')->where('id_company_office', $company->id)->join('comuni', 'id_comune', '=', 'cap_company')->leftjoin('company_offices_extra_italia as extra', 'extra.company_office', '=', 'id_company_office')->join('providers', 'company_provider', '=', 'id_company_office')->where('id_provider', $order->provider_purchase_order)->join('business_profiles', 'id_admin', '=', 'id_admin_company')->select('rag_soc_company as rag_soc_shares', 'rag_soc_provider as rag_soc_received', 'indirizzo_company as indirizzo_shares', 'civico_company as civico_shares', 'address_provider as indirizzo_received', 'cap_company as cap_shares', 'cap_company_office_extra as cap_extra1', 'city_company_office_extra as city_extra1', 'state_company_office_extra as state_extra1', 'cap as cap_shares', 'comune as comune_shares', 'sigla_prov as sigla_prov_shares', 'email_company as email_shares', 'email_provider as email_received', 'logo', 'partita_iva_company as partiva', 'telefono_company as telefono', 'telefono_provider', 'iva_provider')->first();
+                $companys->sigla_prov_received = '';
+                $companys->civico_received = '';
+                $companys->cap_received = '';
+                $companys->comune_received = '';
+                $companys->city_received = '';
+                $companys->state_received = '';
+                $document = DB::table('purchase_orders')->where('id_purchase_order', $id)->select('state_purchase_order as state', 'order_number_purchase as number', 'order_date_purchase as date', 'total_purchase_order as total_no_tax', 'iva_purchase_order as tax')->first();
+                $date = substr($document->date, 0, 10);
+                $array = explode('-', $date);
+                $document->date = $array[2] . '/' . $array[1] . '/' . $array[0];
+                $products = DB::table('purchase_order_contents')->where('order_purchase_content', $id)->join('inventories', 'id_inventory', '=', 'inventory_purchase_content')->join('mapping_inventory_providers', 'inventory_mapping_provider', '=', 'id_inventory')->where('company_mapping_provider', $company->id)->where('provider_mapping_provider', $order->provider_purchase_order)->select('cod_inventory as our_code', 'cod_mapping_inventory_provider as your_code', 'title_inventory as desc', 'unit_inventory as unit', 'quantity_purchase_content as quantity', 'unit_price_purchase_content as price_unit_no_tax', 'imposta_purchase_order as tax', 'discount', 'expiry_purchase_content as expiry', 'id_inventory')->get();
+                //GENERAZIONE DEL PDF DELL'ORDINE
+                $today = explode('-', substr($order->order_date_purchase, 0, 10));
+                $order_date = $today[2] . '/' . $today[1] . '/' . $today[0];
+                $filename = $this->pdforder($products, 'PurchaseOrder_', 'PurchaseOrder', $companys, $document, $order_date);
+                DeleteFile::create(
+                    [
+                        'filename' => $filename
+                    ]
+                );
+                return response()->download($filename);
+            } else {
+                session()->flash('message', 'L\'ordine non risulta nella tua lista');
+                return redirect()->route('purchase-orders');
+            }
         } else {
             session()->flash('message', 'Non puoi accedere a queste informazioni');
             return redirect()->route('employee');
@@ -1673,7 +1706,111 @@ class SuppliesController extends Controller
         $acquisti = $this->supplieControl();
         if ($acquisti->acquisti=='1') {
             $company = Employee::where('user_employee',Auth::id())->join('company_offices','id_company_office','=','company_employee')->select('company_employee as id')->first();
-            dd($id);
+            $order = DB::table('purchase_orders')->where('id_purchase_order',$id)->where('company_purchase_order',$company->id)->select('*')->first();
+            if (count($order)>0){
+                //RECUPERIAMO I DATI PER GENERARE IL PDF DELL'ORDINE
+                $companys = DB::table('company_offices')->where('id_company_office',$company->id)->join('comuni','id_comune','=','cap_company')->leftjoin('company_offices_extra_italia as extra','extra.company_office','=','id_company_office')->join('providers','company_provider','=','id_company_office')->where('id_provider',$order->provider_purchase_order)->join('business_profiles','id_admin','=','id_admin_company')->select('rag_soc_company as rag_soc_shares','rag_soc_provider as rag_soc_received','indirizzo_company as indirizzo_shares','civico_company as civico_shares','address_provider as indirizzo_received','cap_company as cap_shares','cap_company_office_extra as cap_extra1','city_company_office_extra as city_extra1','state_company_office_extra as state_extra1','cap as cap_shares','comune as comune_shares','sigla_prov as sigla_prov_shares','email_company as email_shares','email_provider as email_received','logo','partita_iva_company as partiva','telefono_company as telefono','telefono_provider','iva_provider','provider_cod','fax_company','codice_fiscale_company')->first();
+                $companys->sigla_prov_received = '';
+                $companys->civico_received = '';
+                $companys->cap_received = '';
+                $companys->comune_received = '';
+                $companys->city_received = '';
+                $companys->state_received = '';
+                $document = DB::table('purchase_orders')->where('id_purchase_order',$id)->select('state_purchase_order as state','order_number_purchase as number','order_date_purchase as date','total_purchase_order as total_no_tax','iva_purchase_order as tax')->first();
+                $date = substr($document->date,0,10);
+                $array = explode('-',$date);
+                $document->date = $array[2].'/'.$array[1].'/'.$array[0];
+                $products = DB::table('purchase_order_contents')->where('order_purchase_content',$id)->join('inventories','id_inventory','=','inventory_purchase_content')->join('mapping_inventory_providers','inventory_mapping_provider','=','id_inventory')->where('company_mapping_provider',$company->id)->where('provider_mapping_provider',$order->provider_purchase_order)->select('cod_inventory as our_code','cod_mapping_inventory_provider as your_code','title_inventory as desc','unit_inventory as unit','quantity_purchase_content as quantity','unit_price_purchase_content as price_unit_no_tax','imposta_purchase_order as tax','discount','expiry_purchase_content as expiry','id_inventory')->get();
+                $today = explode('-',substr($order->order_date_purchase,0,10));
+                $order_date = $today[2].'/'.$today[1].'/'.$today[0];
+                //GENERAZIONE DEL FILE XML DELL'ORDINE
+                $xml = simplexml_load_file('order.xml');
+                if (isset($xml->Documents->Document) and ($xml->Documents->Document!==null)){
+                    if ($companys->cap_shares!==null) $cap = $companys->cap_shares; else $cap = $companys->cap_extra1;
+                    if ($companys->comune_shares!==null) $comune = $companys->comune_shares; else $comune = $companys->city_extra1;
+                    if ($companys->state_extra1==null) $country = 'Italia'; else $country=$companys->state_extra1;
+                    if ($companys->sigla_prov_shares!==null) $provincia = $companys->sigla_prov_shares; else $provincia='';
+                    //Informazioni Azienda
+                    $xml->Company->Name = strtoupper($companys->rag_soc_shares);
+                    $xml->Company->Address = $companys->indirizzo_shares.', '.$companys->civico_shares;
+                    $xml->Company->Country = $country;
+                    $xml->Company->Postcode = $cap;
+                    $xml->Company->City = $comune;
+                    $xml->Company->Province = $provincia;
+                    $xml->Company->Tel = $companys->telefono;
+                    $xml->Company->Fax = $companys->fax_company;
+                    $xml->Company->Email = $companys->email_shares;
+                    $xml->Company->FiscalCode = $companys->partiva;
+                    $xml->Company->VatCode = strtoupper($companys->codice_fiscale_company);
+                    //Informazioni Fornitore e ordine
+                    $xml->Documents->Document->CustomerCode = $companys->provider_cod;
+                    $xml->Documents->Document->CustomerName = strtoupper($companys->rag_soc_received);
+                    $xml->Documents->Document->CustomerAddress = $companys->indirizzo_received;
+                    $xml->Documents->Document->CustomerVatCode = $companys->iva_provider;
+                    $xml->Documents->Document->CustomerTel = $companys->telefono_provider;
+                    $xml->Documents->Document->CustomerEmail = $companys->email_received;
+                    $xml->Documents->Document->Date = $order_date;
+                    $xml->Documents->Document->Number = $document->number;
+                    $xml->Documents->Document->TotalWithoutTax = $document->total_no_tax;
+                    $xml->Documents->Document->VatAmount = $document->tax;
+                    $xml->Documents->Document->Total = $document->total_no_tax + $document->tax;
+                    //Dettagli del documento
+                    $i=0;
+                    foreach ($products as $item){
+                        $xml->Documents->Document->Rows->addChild('Row');
+                        if ($i>1) dd($xml);
+
+                        $ivacode = DB::table('inventories')->where('id_inventory',$item->id_inventory)->where('company_inventory',$company->id)->select('codice_iva_inventory','imposta_desc_inventory','stock')->first();
+                        if (count($ivacode)==0) {
+                            $codice_iva_inventory=1;
+                            $imposta_desc_inventory=22;
+                            $stock=0;
+                        } else {
+                            $codice_iva_inventory=$ivacode->codice_iva_inventory;
+                            $imposta_desc_inventory=$ivacode->imposta_desc_inventory;
+                            $stock=$ivacode->stock;
+                        }
+                        $imponibile = DB::table('iva')->where('codice_iva',$codice_iva_inventory)->select('classe_Iva')->first();
+                        if ($imponibile==null) $class = ''; else $class=$imponibile->classe_Iva;
+                        $xml->Documents->Document->Rows->Row[$i]->Code = $item->our_code;
+                        $xml->Documents->Document->Rows->Row[$i]->SupplierCode = $item->your_code;
+                        $xml->Documents->Document->Rows->Row[$i]->Description = strtoupper($item->desc);
+                        $xml->Documents->Document->Rows->Row[$i]->Qty = $item->quantity;
+                        $xml->Documents->Document->Rows->Row[$i]->Um = $item->unit;
+                        $xml->Documents->Document->Rows->Row[$i]->Price = $item->price_unit_no_tax;
+                        $total = ($item->price_unit_no_tax * $item->quantity);
+                        if ($item->discount==0) $item->discount=null; else $total = $total - (($total * $item->discount)/100);
+                        $xml->Documents->Document->Rows->Row[$i]->Discounts = $item->discount;
+                        $xml->Documents->Document->Rows->Row[$i]->VatCode = $codice_iva_inventory;
+                        $xml->Documents->Document->Rows->Row[$i]->VatCode->addAttribute('Perc',$item->tax);
+                        $xml->Documents->Document->Rows->Row[$i]->VatCode->addAttribute('Class',$class);
+                        $xml->Documents->Document->Rows->Row[$i]->VatCode->addAttribute('Description',$imposta_desc_inventory);
+                        $xml->Documents->Document->Rows->Row[$i]->Total = $total;
+                        if ($stock>0) $xml->Documents->Document->Rows->Row[$i]->Stock = 'true'; else $xml->Documents->Document->Rows->Row[$i]->Stock = 'false';
+                        $i++;
+                    }
+                    //$xml->Documents->Document->Rows
+                    $filename = 'DocumentEasy'.$company->id.'ordine'.$document->number;
+                    $file = $xml->saveXML($filename);
+                    if ($file) {
+                        DeleteFile::create(
+                            [
+                                'filename' => $filename
+                            ]
+                        );
+                        return response()->download($filename);
+                    }
+                    else {
+                        session()->flash('message', 'Problemi con il Server riprova');
+                        return redirect()->route('view-purchase-order',$id);
+                    }
+
+                }
+
+            } else {
+                session()->flash('message', 'L\'ordine non risulta nella tua lista');
+                return redirect()->route('purchase-orders');
+            }
         } else {
             session()->flash('message', 'Non puoi accedere a queste informazioni');
             return redirect()->route('employee');

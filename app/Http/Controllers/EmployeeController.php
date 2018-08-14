@@ -969,6 +969,10 @@ class EmployeeController extends Controller
     public function dataProfile(): \Illuminate\Support\Collection
     {
         $data = User::join('employees', 'id', '=', 'user_employee')->join('company_offices', 'employees.company_employee', '=', 'company_offices.id_company_office')->join('business_profiles', 'company_offices.id_admin_company', '=', 'business_profiles.id_admin')->join('comuni', 'comuni.id_comune', '=', 'company_offices.cap_company')->leftJoin('company_offices_extra_italia', 'company_offices_extra_italia.company_office', '=', 'company_offices.id_company_office')->where('id', Auth::id())->select('name', 'cognome', 'img_employee', 'responsabile', 'acquisti', 'produzione', 'vendite', 'rag_soc_company', 'cap_company', 'indirizzo_company', 'civico_company', 'logo', 'cap', 'comune', 'sigla_prov', 'cap_company_office_extra', 'city_company_office_extra', 'state_company_office_extra', 'nazione_company','id_company_office','provincia','visible_user','visible_business')->get();
+        $company = Employee::where('user_employee',Auth::id())->select('company_employee as id')->first();
+        $trasmit = CompanyOffice::join('supply_requests','company_received','=','id_company_office')->where('company_received',$company->id)->where('block','0')->where('supply','0')->where('recipient','1')->join('comuni','id_comune','=','cap_company')->leftJoin('company_offices_extra_italia','id_company_office_extra','id_company_office')->select('company_received','rag_soc_company','partita_iva_company','nazione_company','indirizzo_company','civico_company','cap','comune','sigla_prov','cap_company_office_extra','city_company_office_extra','state_company_office_extra')->get();
+        $request = count($trasmit);
+        $data[0]->request = $request;
         return $data;
     }
 

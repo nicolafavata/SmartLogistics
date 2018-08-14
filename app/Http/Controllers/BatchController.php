@@ -71,9 +71,18 @@ class BatchController extends Controller
             $this->SharingForecast();
             $this->ExpiresMonitorings();
             $this->Monitoring();
-
+            $this->DeleteFiles();
             dd('previsione generata');
         } else return view('errors.500');
+    }
+
+    public function DeleteFiles(){
+        $file = DB::table('delete_files')->select('*')->get();
+        foreach ($file as $objetc){
+            $delete = unlink($objetc->filename);
+            if ($delete) DB::table('delete_files')->where('id',$objetc->id)->delete();
+        }
+        return;
     }
 
     public function Monitoring(){

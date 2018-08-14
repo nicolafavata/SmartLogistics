@@ -4,6 +4,13 @@
 @section('content_header')
     <div class="codrops-links">
         @if($dati->responsabile=='1')
+                @if($dati->request>0)
+                    <div class="center">
+                        <a href="{{route('requests-received')}}"}><i class="fucsia fa fa-envelope fa-2x" ></i><span>&nbsp;Hai ricevuto &nbsp;</span><span class="font-weight-bold fucsia">{{$dati->request}}&nbsp;</span><span>
+                        @if($dati->request==1) nuova richiesta @else nuove richieste @endif di aggregazione supply chain
+                    </span></a>
+                    </div>
+                @endif
             <div class="center">
                 <a class="fa fa-eye" href="{{route('visiblecompany')}}"><span>&nbsp;Visibilità</span></a>
                 <a class="fa fa-link" href="{{route('supplychainmanagement')}}"><span>&nbsp;Gestione Supply Chain</span></a>
