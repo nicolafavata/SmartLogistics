@@ -27,7 +27,7 @@ class BusinessUpdateProfile extends FormRequest
      */
     public function rules()
     {
-          $BusinessProfile = DB::table('business_profiles')->select('id_business_profile')->where('id_business_profile',Auth::id())->first();
+          $BusinessProfile = DB::table('business_profiles')->where('id_admin',Auth::id())->select('id_business_profile')->first();
           return [
             'rag_soc' => 'required|string|between:3,50',
             'nazione' => 'required|string|max:128',

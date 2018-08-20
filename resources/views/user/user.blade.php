@@ -6,7 +6,7 @@
         <div class="container-fluid text-left">
             <div class="row">
                 <div class="col-md-12 text-left">
-                    <h6> Ciao&nbsp{{ Auth::user()->name }}&nbsp{{ Auth::user()->cognome }}&nbsp{{'Accedi ai servizi smart logistcs di '}}
+                    <h6> Ciao&nbsp{{ Auth::user()->name }}&nbsp{{ Auth::user()->cognome }}&nbsp{{'Accedi ai servizi smartlogis di '}}
                         {{Auth::user()->comunenow}}</h6>
                 </div>
             </div>

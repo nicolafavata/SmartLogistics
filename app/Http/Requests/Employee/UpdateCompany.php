@@ -27,6 +27,7 @@ class UpdateCompany extends FormRequest
     public function rules()
     {
         $BusinessProfile = DB::table('employees')->join('company_offices','id_company_office','=','company_employee')->join('business_profiles','id_admin','=','id_admin_company')->where('user_employee',Auth::id())->select('id_business_profile')->first();
+        $company = DB::table('employees')->where('user_employee',Auth::id())->select('company_employee as id')->first();
         return [
             'rag_soc_company' => 'required|string|between:3,50',
             'partita_iva_company' => 'required|string|digits:11|unique:business_profiles,partita_iva,'.$BusinessProfile->id_business_profile.',id_business_profile',
@@ -41,7 +42,7 @@ class UpdateCompany extends FormRequest
             'telefono_company' => 'nullable|digits_between:5,16',
             'cellulare_company' => 'nullable|digits_between:5,16',
             'fax_company' => 'nullable|digits_between:5,16',
-            'email_company' => 'required|string|email|max:255',
+            'email_company' => 'required|string|email|max:255|unique:company_offices,email_company,'.$company->id.',id_company_office',
         ];
     }
 
@@ -55,6 +56,7 @@ class UpdateCompany extends FormRequest
             'email_company.string' => 'Devi inserire l\'email della sede',
             'email_company.email' => 'Devi inserire l\'email della sede',
             'email_company.max' => 'Devi inserire l\'email della sede',
+            'email_company.unique' => 'L\'email inserita appartiene già ad un\'altra azienda',
             'indirizzo_company.required' => 'L\'indirizzo non è stato inserito',
             'indirizzo_company.string' => 'Devi inserire l\'indirizzo',
             'indirizzo_company.max' => 'Devi inserire l\'indirizzo',

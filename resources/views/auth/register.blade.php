@@ -23,10 +23,9 @@
             </nav>
         @endauth
     @endif
-    <hr>
 
 
-    <div class="carousel-inner register" style="background-image: url(img/register-smart.jpg);">
+    <div class="carousel-inner register-business" style="background-image: url(img/register-smart.jpg);">
         <div style="padding-top: 10px; padding-bottom: 300px;" class="container">
             <div class="row">
                 <!-- Box ricerca -->
@@ -205,13 +204,12 @@
                     L'elenco aggiornato dei responsabili e degli incaricati al trattamento è custodito ed è consultabile presso la sede del Titolare del trattamento.
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <hr>
 @endsection
 @section('footer')
     @parent

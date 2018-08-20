@@ -3,7 +3,7 @@
 
 @section('content_header')
     <div class="content">
-        <h2>{{$provider->rag_soc_provider}}</h2>
+        <h2 class="uppercase">{{$provider->rag_soc_provider}}</h2>
         <h3 class="grigio">{{$provider->address_provider}}<br />{{'tel. '.$provider->telefono_provider.' - email. '.$provider->email_provider}}</h3>
     </div>
 @endsection

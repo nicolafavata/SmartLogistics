@@ -49,6 +49,7 @@ class EmployeeController extends Controller
             return view('errors.500');
         } else {
             $data = $this->dataProfile();
+            if (!isset($data[0])) $data[0]=null;
             return view('employee.employee', [
                 'dati' => $data[0],
             ]);
@@ -89,7 +90,7 @@ class EmployeeController extends Controller
                     foreach ($rag_soc as $rag) {
                         $filename = 'employee' . $id_user .'-company'. $rag['rag_soc_company'] . '.' . $file->extension();
                         $up = $file->storeAs(env('IMG_PROFILE'), $filename);
-                        if ($rag['img_employee']=='0'){
+                        if ($rag['img_employee']=='0' or $rag['img_employee']==null){
                             $path = env('IMG_PROFILE') . '/' . $filename;
                             $up = Employee::where('user_employee','=',$id_user)->update(
                                 [
@@ -566,25 +567,29 @@ class EmployeeController extends Controller
         if ($responsabile->responsabile=='1') {
             $data = $request->only('research');
             $dati = $this->dataProfile();
-            $business = CompanyOffice::leftjoin('supply_requests','company_received','=','id_company_office')->where('visible_business','1')->where('partita_iva_company',$data['research'])->where('block',null)->where('supply',null)->join('comuni','id_comune','=','cap_company')->leftJoin('company_offices_extra_italia','id_company_office_extra','id_company_office')->join('employees','company_employee','=','id_company_office')->where('responsabile','=','1')->join('users','id','=','user_employee')->where('company_requested','=',null)->where('company_received','=',null)->select('rag_soc_company','nazione_company','indirizzo_company','civico_company','telefono_company','fax_company','email_company','cap','comune','sigla_prov','cap_company_office_extra','city_company_office_extra','state_company_office_extra','name','cognome','id_company_office')->get();
-            $employee = Employee::join('users','user_employee','=','id')->where('id',Auth::id())->select('matricola','tel_employee','cell_employee','employees.created_at','email')->get();
-            if(count($business)==0){
+            $company = $dati[0];
+            $id_company = $company['id_company_office'];
+            $business = DB::table('company_offices')->join('supply_requests','company_received','=','id_company_office')->where('company_requested','=',$id_company)->where('partita_iva_company',$data['research'])->first();
+            $check=false;
+            if (count($business)>0){
+                if ($business->block=='1' or $business->supply=='1') $check=true;
+            }
+            if($check==true){
                 session()->flash('message', 'Non ci sono aziende da mostrare con questa partita iva');
                 return redirect()->route('supplyresearch');
             } else {
+                $employee = Employee::join('users','user_employee','=','id')->where('id',Auth::id())->select('matricola','tel_employee','cell_employee','employees.created_at','email')->get();
+                $business = DB::table('company_offices')->where('visible_business','1')->where('partita_iva_company',$data['research'])->join('comuni','id_comune','=','cap_company')->leftJoin('company_offices_extra_italia','id_company_office_extra','id_company_office')->join('employees','company_employee','=','id_company_office')->where('responsabile','=','1')->join('users','id','=','user_employee')->select('rag_soc_company','nazione_company','indirizzo_company','civico_company','telefono_company','fax_company','email_company','cap','comune','sigla_prov','cap_company_office_extra','city_company_office_extra','state_company_office_extra','name','cognome','id_company_office')->get();
                 if(count($business)==1){
-                    $company = Employee::where('user_employee',Auth::id())->select('company_employee')->first();
-                    foreach ($business as $azienda) $block = $azienda['id_company_office'];
-                    if ($block==$company->company_employee){
-                        session()->flash('message', 'Non ci sono aziende da mostrare con questa partita iva');
-                        return redirect()->route('supplyresearch');
-                    }
+                    return view('employee.companiesfound', [
+                        'dati' => $dati[0],
+                        'employee' => $employee[0],
+                        'business' => $business,
+                    ]);
+                } else {
+                    session()->flash('message', 'Non ci sono aziende da mostrare con questa partita iva');
+                    return redirect()->route('supplyresearch');
                 }
-                return view('employee.companiesfound', [
-                    'dati' => $dati[0],
-                    'employee' => $employee[0],
-                    'business' => $business,
-                ]);
             }
         } else {
             session()->flash('message', 'Non puoi accedere a queste informazioni');
@@ -970,9 +975,11 @@ class EmployeeController extends Controller
     {
         $data = User::join('employees', 'id', '=', 'user_employee')->join('company_offices', 'employees.company_employee', '=', 'company_offices.id_company_office')->join('business_profiles', 'company_offices.id_admin_company', '=', 'business_profiles.id_admin')->join('comuni', 'comuni.id_comune', '=', 'company_offices.cap_company')->leftJoin('company_offices_extra_italia', 'company_offices_extra_italia.company_office', '=', 'company_offices.id_company_office')->where('id', Auth::id())->select('name', 'cognome', 'img_employee', 'responsabile', 'acquisti', 'produzione', 'vendite', 'rag_soc_company', 'cap_company', 'indirizzo_company', 'civico_company', 'logo', 'cap', 'comune', 'sigla_prov', 'cap_company_office_extra', 'city_company_office_extra', 'state_company_office_extra', 'nazione_company','id_company_office','provincia','visible_user','visible_business')->get();
         $company = Employee::where('user_employee',Auth::id())->select('company_employee as id')->first();
-        $trasmit = CompanyOffice::join('supply_requests','company_received','=','id_company_office')->where('company_received',$company->id)->where('block','0')->where('supply','0')->where('recipient','1')->join('comuni','id_comune','=','cap_company')->leftJoin('company_offices_extra_italia','id_company_office_extra','id_company_office')->select('company_received','rag_soc_company','partita_iva_company','nazione_company','indirizzo_company','civico_company','cap','comune','sigla_prov','cap_company_office_extra','city_company_office_extra','state_company_office_extra')->get();
-        $request = count($trasmit);
-        $data[0]->request = $request;
+        if($company){
+            $trasmit = CompanyOffice::join('supply_requests','company_received','=','id_company_office')->where('company_received',$company->id)->where('block','0')->where('supply','0')->where('recipient','1')->join('comuni','id_comune','=','cap_company')->leftJoin('company_offices_extra_italia','id_company_office_extra','id_company_office')->select('company_received','rag_soc_company','partita_iva_company','nazione_company','indirizzo_company','civico_company','cap','comune','sigla_prov','cap_company_office_extra','city_company_office_extra','state_company_office_extra')->get();
+            $request = count($trasmit);
+            $data[0]->request = $request;
+        } else $data[0]->request = 0;
         return $data;
     }
 

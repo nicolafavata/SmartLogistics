@@ -1029,10 +1029,15 @@ class SuppliesController extends Controller
                             'date_batch_monitoring_order' => $date_booking
                         ]
                     );
-
-                    session()->flash('message', 'Ti abbiamo trasmesso via email l\'ordine generato');
-                    unlink($filename);
-                    return redirect()->route('view-purchase-order',$order->id_purchase_order);
+                    if (isset($filename)){
+                        session()->flash('message', 'Ti abbiamo trasmesso via email l\'ordine generato');
+                        unlink($filename);
+                        return redirect()->route('view-purchase-order',$order->id_purchase_order);
+                    } else  {
+                        DB::table('purchase_orders')->where('id_purchase_order',$order->id_purchase_order)->delete();
+                        session()->flash('message', 'Non è stato generato nessun ordine');
+                        return redirect()->route('providers');
+                    }
                 } else {
                     session()->flash('message', 'Non hai inserito la configurazione degli ordini');
                     return redirect()->route('config-order',$id);
@@ -1060,20 +1065,27 @@ class SuppliesController extends Controller
         //Controlliamo se il prodotto è destinato alla rivendita diretta
         $quantity = 0;
         $sales = DB::table('sales_lists')->where('inventory_sales_list',$item)->where('company_sales_list',$company)->select('id_sales_list','forecast_model','initial_month_sales')->first();
-        if (count($sales)>0) $quant_order = $this->CalculateQuantityToOrder($leadtime,$giorni,$sales);
+        if (count($sales)>0) {
+            if ($sales->forecast_model!==null) {
+                $quant_order = $this->CalculateQuantityToOrder($leadtime, $giorni, $sales);
+            } else $quantity = 0;
+        }
         $quantity = $quantity + $quant_order;
+
         //Controlliamo se il prodotto partecipa alla produzione per aggiungere altra quantità
         $production = DB::table('mapping_inventory_productions')->where('company_mapping_production',$company)->where('inventory_map_pro',$item)->select('production_map_pro','quantity_mapping_production')->get();
         if (count($production)>0){
             foreach ($production as $prod){
                 $sales = DB::table('sales_lists')->where('production_sales_list',$prod->production_map_pro)->where('company_sales_list',$company)->select('id_sales_list','forecast_model','initial_month_sales')->first();
-                $quant_order = $this->CalculateQuantityToOrder($leadtime,$giorni,$sales);
-                $quantity = $quantity + ($quant_order * $prod->quantity_mapping_production);
+                if ($sales->forecast_model!==null){
+                    $quant_order = $this->CalculateQuantityToOrder($leadtime,$giorni,$sales);
+                    $quantity = $quantity + ($quant_order * $prod->quantity_mapping_production);
+
+                }
             }
         }
         //$quantity rappresenta la quantità che si prevede di vendere sino al prossimo riordino
         $stock = DB::table('inventories')->where('id_inventory',$item)->where('company_inventory',$company)->select('stock','committed','arriving','unit_inventory')->first();
-        $quantity_to_order = 0;
         if ($stock){
             if (count($stock)>0) $quantity_stock = $stock->stock - $stock->committed + $stock->arriving;
 
@@ -1093,6 +1105,7 @@ class SuppliesController extends Controller
         if ($sales->forecast_model=='01') $table = $this->tableForecastHolt($sales->id_sales_list);
         if ($sales->forecast_model=='10') $table = $this->tableForecastWinter2($sales->id_sales_list);
         if ($sales->forecast_model=='11') $table = $this->tableForecastWinter4($sales->id_sales_list);
+        if (!isset($table))
         if ($giorni==0) {
             $day = floatval(date('d'));
             if ($day>30) $day = 30;
@@ -1210,19 +1223,22 @@ class SuppliesController extends Controller
                         $assign--;
                     }
                 }
-                $provider = DB::table('purchase_orders')->where('company_purchase_order',$company_provider->company_employee)->join('providers','id_provider','=','provider_purchase_order')->select('provider_purchase_order','rag_soc_provider')->groupBy('provider_purchase_order')->get();
+                $provider = DB::table('purchase_orders')->where('company_purchase_order',$company_provider->company_employee)->join('providers','id_provider','=','provider_purchase_order')->select('provider_purchase_order','rag_soc_provider')->groupBy('provider_purchase_order','rag_soc_provider')->get();
                 $order = DB::table('purchase_orders')->where('company_purchase_order',$company_provider->company_employee)->join('providers','id_provider','=','provider_purchase_order')->where('company_provider',$company_provider->company_employee)->whereYear('order_date_purchase','=',$year)->select('id_purchase_order as id','provider_purchase_order as provider','order_number_purchase as number','order_date_purchase as date','total_purchase_order as total_no_tax','state_purchase_order as state','reference_purchase_order as reference','comment_purchase_order as comment','iva_purchase_order','rag_soc_provider')->orderByDesc('number')->paginate(env('PAGINATE_DOCUMENT'));
+                if (!isset($table)) $table=null;
+                if (!isset($provider)) $provider=null;
+                $dato = $this->dataProfile();
+                return view('supplies.view-purchase-orders',
+                    [
+                        'dati' => $dato[0],
+                        'item' => $order,
+                        'year' => $table_year,
+                        'provider' => $provider
+                    ]);
+            } else {
+                session()->flash('message', 'Non hai ancora effettuato ordini d\'acquisto');
+                return redirect()->route('employee');
             }
-            if (!isset($table)) $table=null;
-            if (!isset($provider)) $provider=null;
-            $dato = $this->dataProfile();
-            return view('supplies.view-purchase-orders',
-                [
-                    'dati' => $dato[0],
-                    'item' => $order,
-                    'year' => $table_year,
-                    'provider' => $provider
-                ]);
         } else {
             session()->flash('message', 'Non puoi accedere a queste informazioni');
             return redirect()->route('employee');
@@ -1407,7 +1423,6 @@ class SuppliesController extends Controller
                         session()->flash('message', $messaggio);
                         return redirect()->route('view-purchase-order',$id);
                     }
-                    dd($order,$data);
                 } else {
                     session()->flash('message', 'Lo stato dell\'ordine non è di trasmesso. Cambia lo stato dell\'ordine in trasmesso e poi conferma l\'arrivo della merce');
                     return redirect()->route('purchase-orders');
@@ -1497,6 +1512,8 @@ class SuppliesController extends Controller
                         if ($current_state == '11') $future = $this->FromTransmissionToConclude($item->product,$item->quant,$company);
                         //Se il nuovo stato è annullato o cancellato
                         if ($current_state == '00' or $current_state == '01') $future = $this->FromTransmissionToCanceled($item->product,$item->quant,$company);
+                        //Se il nuovo stato è ancora trasmesso
+                        if ($current_state == '10') $future = $this->FromCanceledToTransmission($item->product,$item->quant,$company);
                     }
                     //Se lo stato era annullato o non trasmesso e adesso è trasmesso
                     if ($previous_state == '00' or $previous_state == '01'){
@@ -1633,7 +1650,7 @@ class SuppliesController extends Controller
             $order = DB::table('purchase_orders')->where('id_purchase_order',$id)->where('company_purchase_order',$company->id)->select('*')->first();
             if (count($order)>0) {
                 $data = $request->all();
-                if ($order->state_purchase_order="11") $data['state']='11';
+                if ($order->state_purchase_order=="11") $data['state']='11';
                 $control = $this->orderSystem($data['documentitems'],$order->id_purchase_order,$order->state_purchase_order,$data['state'],$company->id,$order->provider_purchase_order);
                 if ($control) {
                     $total = floatval(substr($data['totale'],0,strlen($data['totale']-2)));
@@ -1758,17 +1775,22 @@ class SuppliesController extends Controller
                     $i=0;
                     foreach ($products as $item){
                         $xml->Documents->Document->Rows->addChild('Row');
-                        if ($i>1) dd($xml);
-
+                        if ($i>1)
                         $ivacode = DB::table('inventories')->where('id_inventory',$item->id_inventory)->where('company_inventory',$company->id)->select('codice_iva_inventory','imposta_desc_inventory','stock')->first();
-                        if (count($ivacode)==0) {
-                            $codice_iva_inventory=1;
-                            $imposta_desc_inventory=22;
-                            $stock=0;
+                        if (isset($ivacode)){
+                            if (count($ivacode)==0) {
+                                $codice_iva_inventory=1;
+                                $imposta_desc_inventory=22;
+                                $stock=0;
+                            } else {
+                                $codice_iva_inventory=$ivacode->codice_iva_inventory;
+                                $imposta_desc_inventory=$ivacode->imposta_desc_inventory;
+                                $stock=$ivacode->stock;
+                            }
                         } else {
-                            $codice_iva_inventory=$ivacode->codice_iva_inventory;
-                            $imposta_desc_inventory=$ivacode->imposta_desc_inventory;
-                            $stock=$ivacode->stock;
+                            $codice_iva_inventory='1';
+                            $imposta_desc_inventory=null;
+                            $stock=0;
                         }
                         $imponibile = DB::table('iva')->where('codice_iva',$codice_iva_inventory)->select('classe_Iva')->first();
                         if ($imponibile==null) $class = ''; else $class=$imponibile->classe_Iva;

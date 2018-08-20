@@ -116,7 +116,7 @@ Route::group(['middleware'=> 'auth'],
         Route::get('/purchase-orders', 'SuppliesController@ViewpurchaseOrders')->name('purchase-orders');
         Route::post('/purchase-orders/{year}/{id}', 'SuppliesController@SelectpurchaseOrders')->where('year', '[0-9]+')->where('id', '[0-9]+');
         Route::get('/view-orders{id}', 'SuppliesController@ViewOrder')->where('id', '[0-9]+')->name('view-purchase-order');
-        Route::post('/check-codice-new-order/{code}','SuppliesController@checkCodeNewOrder')->where('code', '[0-9]+');
+        Route::post('/check-codice-new-order/{code}','SuppliesController@checkCodeNewOrder');
         Route::post('/check-ean-new-order/{code}','SuppliesController@checkEanNewOrder')->where('code', '[0-9]+');
         Route::post('/cancel-purchase-order/{id}','SuppliesController@cancelPurchaseOrder')->where('id', '[0-9]+')->name('cancel-purchase-order');
         Route::post('/arrive-purchase-order/{id}','SuppliesController@arrivePurchaseOrder')->where('id', '[0-9]+')->name('arrive-purchase-order');
@@ -158,7 +158,7 @@ Route::group(['middleware'=> 'auth'],
         Route::get('/view-sales-order','SalesController@viewSalesOrder')->name('list-sales-order');
         Route::post('/order-sales-file', 'SalesController@addSalesOrder')->name('order-sales-file');
         Route::post('/cancel-sales-order/{id}','SalesController@cancelSalesOrder')->where('id', '[0-9]+');
-        Route::post('/order-sales-open/{customer}', 'SalesController@viewOrderOpen');
+        Route::get('/order-sales-open', 'SalesController@viewOrderOpen');
         Route::post('/close-order-sales-open', 'SalesController@closeOrderOpen');
         Route::post('/take-last-number/{type}','SalesController@takeLastNumber');
 
@@ -175,7 +175,7 @@ Route::group(['middleware'=> 'auth'],
         Route::get('/new-sales-desk','SalesController@newSalesDesk')->name('new-sales-desk');
         Route::post('/check-number-new-sales-desk/{id}/{number}/{date}','SalesController@checkNumberNewSalesDesk')->where('id', '[0-9]+')->where('number', '[0-9]+');
         Route::post('/check-ean-new-sales/{ean}','SalesController@checkEanNewSales')->where('ean', '[0-9]+');
-        Route::post('/check-codice-new-sales/{code}','SalesController@checkCodeNewSales')->where('code', '[0-9]+');
+        Route::post('/check-codice-new-sales/{code}','SalesController@checkCodeNewSales');
         Route::post('/store-sales-desk','SalesController@storeSalesDesk')->name('store-sales-desk');
         Route::post('/cancel-desk-sale','SalesController@cancelDeskSale')->name('cancel-desk-sale');
         Route::get('/view-sales-desk','SalesController@viewSalesDesk')->name('desk-sales-list');
@@ -227,3 +227,13 @@ Route::group(['middleware'=> 'auth'],
 
 //Route script in batch => http://www.smartlogis.it/batch/verifyfcYjdwXDVblc52ONMhflDNk0LCqBJ23vNqPZSGnLNbpkIdB11G0MtgFMYVYB ATTENZIONE!!!! dopo verify scrivere il token
 Route::get('/batch/verify{token}','BatchController@verifyToken');
+
+//Sviluppi futuri nuove rotte ammesse
+//Route::get('/batch/monitor{token}','BatchController@monitorToken');
+//Route::get('/batch/delete{token}','BatchController@deleteToken');
+
+
+//View Batch
+Route::get('/batch/stop', function () {
+    return view('home');
+})->name('stop');

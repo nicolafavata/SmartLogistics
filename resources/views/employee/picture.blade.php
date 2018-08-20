@@ -13,7 +13,7 @@
                                     <h1 class="shadow grigio center">Foto attuale di {{$dati->name.' '.$dati->cognome}}</h1>
                                     <div class="row form-check center">
                                         <img class="border-border-fucsia doppio img-fluid image-responsive" title="{{$dati->name.' '.$dati->cognome}}" alt="Profilo {{$dati->name.' '.$dati->cognome}}"
-                                             @if(($dati->img_employee)!='0')
+                                             @if(($dati->img_employee)!=='0')
                                              src="{{env('APP_URL').'/storage/'.$dati->img_employee}}">
                                         @else
                                             src="{{env('APP_URL').'/img/profile.jpg'}}">

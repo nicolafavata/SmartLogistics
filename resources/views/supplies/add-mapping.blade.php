@@ -21,7 +21,7 @@
                 <div class="col-md-12 jumbotron-inventory border">
                     <div class="row">
                         <div class="col-md-8 text-center">
-                            <h3 class="font-weight-bold text-dark shadow">Specifica il mapping con {{$providers->rag_soc_provider}}</h3>
+                            <small class="font-weight-bold text-dark shadow text-uppercase">Specifica il mapping con {{$providers->rag_soc_provider}}</small>
                         </div>
                         <div class="col-md-4 text-right">
                             <div class="icon-list">

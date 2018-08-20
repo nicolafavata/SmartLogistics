@@ -35,7 +35,7 @@
                                     <div id="sales_desk" class="p-3 mb-2 bg-white text-dark  font-weight-bold">
                                         <div class="input-group">
                                             <span class="input-group-text">Fornitore:</span>
-                                            <span class="form-control">{{$desc_customer}}</span>
+                                            <span class="form-control text-uppercase">{{$desc_customer}}</span>
                                         </div>
                                         <div class="input-group">
                                             <span class="input-group-text"> Numero:</span>
@@ -47,11 +47,16 @@
                                                         <option class="text-capitalize" value="10"  select >Trasmesso</option>
                                                         <option class="text-capitalize" value="00">Annullato</option>
                                                     @endif
-                                                    @if($check->state=='00' or $check->state=='01')
+                                                    @if($check->state=='00')
                                                         <option value="00" @if($check->state=='00') select @endif>Annullato</option>
-                                                        <option value="01" @if($check->state=='01') select @endif>Non trasmesso</option>
-                                                        <option value="10" @if($check->state=='10') select @endif>Trasmesso</option>
+                                                        <option value="01">Non trasmesso</option>
+                                                        <option value="10">Trasmesso</option>
                                                     @endif
+                                                        @if($check->state=='01')
+                                                            <option value="01" @if($check->state=='01') select @endif>Non trasmesso</option>
+                                                            <option value="10">Trasmesso</option>
+                                                            <option value="00">Annullato</option>
+                                                        @endif
                                                     @if($check->state=='11') select
                                                         <option value="11"  >Concluso</option>
                                                     @endif
@@ -121,7 +126,7 @@
                                             Elimina ordine
                                         </button>
                                         @if($check->state=='01')
-                                            <button id="transmission" onclick="pushInformation('reference-transmission','comment-transmission','tottransmission','ivatottransmission')" type="button" class="btn btn-primary" data-toggle="modal" data-target="#transmissiondocument">
+                                            <button onclick="pushInformation('reference-transmission','comment-transmission','tottransmission','ivatottransmission')" id="transmission" type="button" class="btn btn-primary" data-toggle="modal" data-target="#transmissiondocument">
                                                 Trasmissione ordine
                                             </button>
                                         @endif
@@ -323,7 +328,6 @@
             $('document').ready(function () {
                 $('div').on('click','i.fa-pencil-square-o', function (ele) {
                     if (upblock==1){
-
                         upblock++;
                         block = 1;
                         var e = ele.target;
@@ -364,8 +368,8 @@
                         document.getElementById('ean').disabled = true;
                         document.getElementById('add-item').disabled = true;
                         document.getElementById('submit_document').disabled = true;
-                        document.getElementById('arriveItem').disabled = true;
-                        document.getElementById('transmission').disabled = true;
+                        if (document.getElementById('arriveItem') === null) console.log('è null'); else document.getElementById('arriveItem').disabled = true;
+                        if (document.getElementById('transmission') === null) console.log('è null'); else document.getElementById('transmission').disabled = true;
                         document.getElementById('delete').disabled = true;
                         e.parentNode.parentNode.cells[2].innerHTML = "<td></td>";
                     }
@@ -392,7 +396,7 @@
                         var perc = parseFloat(s.value).toFixed(2);
                         if (perc === 'NaN') perc = 0;
                         if (data['id_content'] === undefined)  data['id_content']='new';
-                        products[parseInt(index)-1] = {'id_content':data['id_content'],'riga':data['riga'],'codice':data['codice'],'quant':quant,'discount':perc,'product':data['product'],'price':data['price'],'imposta':data['imposta']};
+                        products[parseInt(index)-1] = {'id_content':data['id_content'],'riga':data['riga'],'codice':data['codice'],'quant':quant,'discount':perc,'product':data['product'],'price':price,'imposta':data['imposta']};
                         var prova = JSON.stringify(products);
                         document.getElementById('documentitems').value = prova;
                         document.getElementById('documentitemsarrive').value = prova;
@@ -403,8 +407,8 @@
                         s.disabled = true;
                         p.disabled = true;
                         document.getElementById('submit_document').disabled = false;
-                        document.getElementById('arriveItem').disabled = false;
-                        document.getElementById('transmission').disabled = false;
+                        if (document.getElementById('arriveItem') === null) console.log('è null'); else document.getElementById('arriveItem').disabled = false;
+                        if (document.getElementById('transmission') === null) console.log('è null'); else document.getElementById('transmission').disabled = false;
                         document.getElementById('delete').disabled = false;
                         var check = e.parentNode.parentNode.cells[10];
                         var del = e.parentNode.parentNode.cells[1];
@@ -525,11 +529,13 @@
             $('document').ready(function () {
                 $('div').on('change','input.alert-success', function (ele) {
                     ele.preventDefault();
+                    console.log('dentro');
                     var ean = document.getElementById('ean').value;
                     var e = ele.target;
                     var codice = e.value;
-                    if ( codice > ean) var url = '/check-codice-new-order/' + codice; else var url = '/check-ean-new-order/'  + ean;
+                    if ( codice > ean) var url = 'https://www.nicolafavata.com/smartlogis/check-codice-new-order/' + codice; else var url = 'https://www.nicolafavata.com/smartlogis/check-ean-new-order/'  + ean;
                     var table = document.getElementById('content');
+                    console.log(url);
                     $.ajax(
                         {
                             url: url,
@@ -542,6 +548,7 @@
                             },
                             dataType: "json",
                             success : function (data) {
+                                console.log(data,url);
                                     if ( data['cod'] === undefined) {
                                         document.getElementById('alert-ajax').innerHTML = "<ul class='alert alert-danger alert-dismissible'><li>Il codice: " + codice + ean + " non è presente nel tuo catalogo" +
                                             "</li><button type='button' class='close' onclick='NoHtml()' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></ul>";

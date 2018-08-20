@@ -43,6 +43,31 @@
                 <li class="nav-item active">
                     <a class="nav-link shadow" style="color: white;" href="{{ route('employee') }}">Home <span class="sr-only">(current)</span></a>
                 </li>
+                @if($dati->responsabile=='1')
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle shadow" href="#" style="color: white;" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                            Dipendenti
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                            <a class="dropdown-item" href="{{ route('viewemployees') }}">Visualizza</a>
+                            <a class="dropdown-item" href="{{ route('addemployee') }}">Aggiungi</a>
+                            <a class="dropdown-item" href="{{ route('upemployee') }}">Modifica</a>
+                            <a class="dropdown-item" href="{{ route('delemployee') }}">Elimina</a>
+                        </div>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle shadow" href="#" style="color: white;" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                            Supply Chain
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                            <a class="dropdown-item" href="{{ route('supplyresearch') }}">Ricerca azienda</a>
+                            <a class="dropdown-item" href="{{ route('supplychainmanagement')}}">Gestione aggregazioni</a>
+                            <a class="dropdown-item" href="{{route('requests-received')}}">Richieste ricevute</a>
+                            <a class="dropdown-item" href="{{route('requests-transmitted')}}">Richieste trasmesse</a>
+                            <a class="dropdown-item" href="{{route('block-supply')}}">Aziende bloccate</a>
+                        </div>
+                    </li>
+                @endif
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle shadow" href="#" style="color: white;" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                         Gestione acquisti
@@ -62,7 +87,7 @@
                             Gestione produzione
                         </a>
                         <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                            <a class="dropdown-item" href="{{route('production')}}">Catalogo</a>
+                            <a class="dropdown-item" href="{{route('production')}}">Catalogo della produzione</a>
                             <a class="dropdown-item" href="{{route('mapping-production')}}">Associazione acquisti-produzione</a>
                         </div>
                     </li>
@@ -74,8 +99,14 @@
                         </a>
                         <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                             <a class="dropdown-item" href="{{route('catalogue')}}">Catalogo</a>
-                            <a class="dropdown-item" href="{{route('mapping-production')}}">Listini di vendita</a>
+                            <a class="dropdown-item" href="{{route('add_catalogue')}}">Upload Listini</a>
                             <a class="dropdown-item" href="{{route('expire-monitor')}}">Monitoraggio delle scadenze</a>
+                            <a class="dropdown-item" href="{{route('list-invoice')}}">Visualizza Fatture</a>
+                            <a class="dropdown-item" href="{{route('list-sales-order')}}">Visualizza Ordini</a>
+                            <a class="dropdown-item" href="{{route('desk-sales-list')}}">Visualizza Scontrini</a>
+                            <a class="dropdown-item" href="{{route('new-sales-invoice')}}">Nuova Fattura</a>
+                            <a class="dropdown-item" href="{{route('new-sales-order')}}">Nuovo Ordine</a>
+                            <a class="dropdown-item" href="{{route('new-sales-desk')}}">Nuovo Scontrino</a>
                         </div>
                     </li>
                 @endif

@@ -83,7 +83,7 @@
                         Gestione produzione
                     </a>
                     <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                        <a class="dropdown-item" href="{{route('production')}}">Catalogo</a>
+                        <a class="dropdown-item" href="{{route('production')}}">Catalogo della produzione</a>
                         <a class="dropdown-item" href="{{route('mapping-production')}}">Associazione acquisti-produzione</a>
                     </div>
                 </li>
@@ -93,8 +93,14 @@
                     </a>
                     <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                         <a class="dropdown-item" href="{{route('catalogue')}}">Catalogo</a>
-                        <a class="dropdown-item" href="{{route('mapping-production')}}">Listini di vendita</a>
+                        <a class="dropdown-item" href="{{route('add_catalogue')}}">Upload Listini</a>
                         <a class="dropdown-item" href="{{route('expire-monitor')}}">Monitoraggio delle scadenze</a>
+                        <a class="dropdown-item" href="{{route('list-invoice')}}">Visualizza Fatture</a>
+                        <a class="dropdown-item" href="{{route('list-sales-order')}}">Visualizza Ordini</a>
+                        <a class="dropdown-item" href="{{route('desk-sales-list')}}">Visualizza Scontrini</a>
+                        <a class="dropdown-item" href="{{route('new-sales-invoice')}}">Nuova Fattura</a>
+                        <a class="dropdown-item" href="{{route('new-sales-order')}}">Nuovo Ordine</a>
+                        <a class="dropdown-item" href="{{route('new-sales-desk')}}">Nuovo Scontrino</a>
                     </div>
                 </li>
                 <li class="nav-item active">

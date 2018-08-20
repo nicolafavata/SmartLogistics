@@ -1,5 +1,5 @@
 @component('mail::message')
-    <img src="{{env('APP_URL')}}/img/logo.gif" width="300" height="55" alt="logo_smartlogis">
+    <img src="https://www.nicolafavata.com/smartlogis/img/logo.gif" width="300" height="55" alt="logo_smartlogis">
     # Consivisione della previsione sulle vendite
 
     Salve {{$name}},

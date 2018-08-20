@@ -103,7 +103,7 @@
                                 <div class="form-row">
                                     <div class="form-check">
                                         <label class="grigio" for="">Indirizzo&nbsp</label>
-                                        <input required maxlength="30" placeholder="Via/Piazza" type="text" name="indirizzo_company" id="indirizzo_company" class="font-weight-bold text-uppercase form-group"
+                                        <input required maxlength="30" placeholder="Via/Piazza" type="text" name="indirizzo_company" id="indirizzo_company" class="font-weight-bold uppercase form-group"
                                                value="{{old('indirizzo_company', $dati->indirizzo_company)}}" >
                                     </div>
                                     <div class="form-check">

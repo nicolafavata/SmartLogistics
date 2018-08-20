@@ -7,15 +7,15 @@ function getPosition(){
             var url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng='+position.coords.latitude+','+position.coords.longitude;
             axios.get(url,{
                 param:{
-                    key:'AIzaSyBf81k4IAFil6omJv2VFTcvTssfdeiwcQQ'
+                    key:'AIzaSyAtbAPbG3JP7b-d9p1c4EqlGcBzoDS4eU0'
                 }
             }).then(function (response) {
                 console.log(response);
                 if (response.data.results[0]){
                     var comune = response.data.results[0].address_components[2].long_name;
                     var cap = response.data.results[0].address_components[7].long_name;
-                    window.location="user/"+cap+"/"+comune;
-                } else window.location="/user/91100/Residenza";
+                    window.location="https://www.nicolafavata.com/smartlogisuser/"+cap+"/"+comune;
+                } else window.location="https://www.nicolafavata.com/smartlogis/user/91100/Residenza";
 
 
             });
@@ -32,16 +32,16 @@ function getPosition(){
 function showError(error) {
     switch(error.code) {
         case error.PERMISSION_DENIED:
-            window.location="/user/91100/Residenza";
+            window.location="https://www.nicolafavata.com/smartlogis/user/91100/Residenza";
             break;
         case error.POSITION_UNAVAILABLE:
-            window.location="/user/91100/Residenza";
+            window.location="https://www.nicolafavata.com/smartlogis/user/91100/Residenza";
             break;
         case error.TIMEOUT:
-            window.location="/user/91100/Residenza";
+            window.location="https://www.nicolafavata.com/smartlogis/user/91100/Residenza";
             break;
         case error.UNKNOWN_ERROR:
-            window.location="/user/91100/Residenza";
+            window.location="https://www.nicolafavata.com/smartlogis/user/91100/Residenza";
             break;
     }
 }

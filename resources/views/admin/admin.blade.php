@@ -34,7 +34,7 @@
                             <div class="card text-center align-items-center" style="width: 24rem;">
                                 <div class="card-body">
                                     <h5 class="display-6 card-title text-uppercase font-weight-bold">{{$profile->rag_soc}}</h5>
-                                    <p class="card-text">{{$profile->indirizzo}}&nbsp{{$profile->civico}}<br />
+                                    <p class="card-text text-capitalize">{{$profile->indirizzo}}&nbsp{{$profile->civico}}<br />
                                         @if($profile->cap_busines=='8092')
                                                 {{$profile->cap_extra.' '.$profile->city.' ('.$profile->state.')'}}<br />
                                             {{$profile->nazione}}</p>

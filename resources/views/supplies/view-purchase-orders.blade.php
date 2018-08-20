@@ -45,7 +45,7 @@
                             <select class="custom-select" id="provider">
                                 <option value="0" selected>Tutti</option>
                                 @foreach($provider as $p)
-                                    <option value="{{$p->provider_purchase_order}}">{{$p->rag_soc_provider}}</option>
+                                    <option value="{{$p->provider_purchase_order}}" class="text-uppercase">{{$p->rag_soc_provider}}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -98,7 +98,7 @@
                                             {{$data[2].'/'.$data[1].'/'.$data[0]}}
                                         </td>
                                         <td>
-                                            <small>{{$found->rag_soc_provider}}</small>
+                                            <small class="text-uppercase">{{$found->rag_soc_provider}}</small>
                                         </td>
                                         <td class="font-weight-bold text-dark text-capitalize">
                                             <?php $imp = number_format($found->total_no_tax,2, ',', '')?>
@@ -107,7 +107,7 @@
                                         <td>
                                             <a href="{{route('download-pdf-order',$found->id)}}"><i title="Pdf" class="text-danger fa fa-file-pdf-o fa-2x"></i></a>
                                         </td>
-                                        <td><a title="Visualizza i dettagli dell'ordine N: {{$found->number}}" href="{{route('view-purchase-order',$found->id)}}"><i class="text-success fa fa-list-ol fa-1x"></i></a></td>
+                                        <td><a title="Visualizza i dettagli dell'ordine N: {{$found->number}}" href="{{'https://www.nicolafavata.com/smartlogis/view-orders'.$found->id}}"><i class="text-success fa fa-list-ol fa-1x"></i></a></td>
                                     </tr>
 
                                 @empty
@@ -147,7 +147,7 @@
               ele.preventDefault();
               var provider = document.getElementById('provider').value;
               var year = document.getElementById('year').value;
-              var url = "/purchase-orders/" + year + "/" + provider;
+              var url = "https://www.nicolafavata.com/smartlogis/purchase-orders/" + year + "/" + provider;
               var check = 1;
               $.ajax(
                   {
@@ -187,7 +187,7 @@
                                           var cell4 = row.insertCell(3);
                                           cell4.innerHTML = date[2] + '/' + date[1] + '/' + date[0];
                                           var cell5 = row.insertCell(4);
-                                          cell5.innerHTML = '<small>' + e['rag_soc_provider'] + '</small>';
+                                          cell5.innerHTML = '<small class="text-uppercase">' + e['rag_soc_provider'] + '</small>';
                                           e['total_no_tax'] = parseFloat(e['total_no_tax']).toFixed(2);
                                           var imp = (e['total_no_tax'].toString()).split('.');
                                           var cell6 = row.insertCell(5);
@@ -198,7 +198,7 @@
                                           cell7.innerHTML = iva[0] + ',' + iva[1] + ' €';
                                           cell7.firstChild.parentElement.className = 'font-weight-bold text-dark text-capitalize';
                                           var cell8 = row.insertCell(7);
-                                          cell8.innerHTML = '<a title="Visualizza i dettagli dell\'ordine N: ' + e['id'] + '" href="/view-orders' + e['id'] + '"><i class="text-success fa fa-list-ol fa-1x"></i></a>';
+                                          cell8.innerHTML = '<a title="Visualizza i dettagli dell\'ordine N: ' + e['id'] + '" href="https://www.nicolafavata.com/smartlogis/view-orders' + e['id'] + '"><i class="text-success fa fa-list-ol fa-1x"></i></a>';
                                       });
                                   }
                               } else {

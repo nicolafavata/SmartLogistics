@@ -32,10 +32,10 @@
 			<div class="menu-wrap">
 				<nav class="menu-top">
 					<div class="profile"><img class="border-border-verde"
-											@if ($dati->img_employee=='0')
+											@if ($dati->img_employee=='0' or $dati->img_employee==null)
 											  src="img/profile.jpg"
 											  @else
-													  src="{{env('APP_URL').'/storage/'.$dati->img_employee}}"
+													  src="{{'https://www.nicolafavata.com/smartlogis/storage/'.$dati->img_employee}}"
 													  @endif
 											  width="50" height="50" alt="{{$dati->name.' '.$dati->cognome}}"/><span>{{$dati->name.' '.$dati->cognome}}</span></div>
 					<div class="icon-list">
@@ -98,7 +98,7 @@
 						<li>
 							<span>Produzione</span>
 							<ul>
-								<li><a href="{{route('production')}}">Catalogo</a></li>
+								<li><a href="{{route('production')}}">Catalogo della produzione</a></li>
 								<li><a href="{{route('mapping-production')}}">Associazione acquisti produzione</a></li>
 							</ul>
 						</li>
@@ -108,7 +108,7 @@
 							<span>Vendite</span>
 							<ul>
 								<li><a href="{{route('catalogue')}}">Catalogo</a></li>
-								<li><a href="{{route('add_catalogue')}}">Listini</a></li>
+								<li><a href="{{route('add_catalogue')}}">Upload Listini</a></li>
 								<li><a href="{{route('expire-monitor')}}">Monitoraggio delle scadenze</a></li>
 								<li><a href="{{route('list-invoice')}}">Fatture</a></li>
 								<li><a href="{{route('list-sales-order')}}">Ordini</a></li>

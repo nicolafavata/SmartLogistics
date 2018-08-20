@@ -112,7 +112,7 @@
                                             </td>
                                             <td class="font-weight-bold text-center text-dark text-uppercase" >{{$found->unit_production}}</td>
                                             <td class="font-weight-bold text-dark">{{$found->imposta_desc_production}}</td>
-                                            <td class="font-weight-bold text-center text-dark text-center"><a  href="{{route('del-production',$found->id_production)}}" title="Elimina la produzione di {{$found->title_production}}"><i class="fucsia fa fa-trash-o fa-4x"></i></a></td>
+                                            <td class="font-weight-bold text-center text-dark text-center"><a  href="{{route('del-production',$found->id_production)}}" title="Elimina la produzione di {{$found->title_production}}"><i class="fucsia fa fa-trash-o fa-2x"></i></a></td>
                             </tr>
                             @empty
                                 <h6 class="fucsia font-weight-bold shadow">Non hai caricato la tua produzione</h6>

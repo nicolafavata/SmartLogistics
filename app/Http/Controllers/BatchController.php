@@ -72,7 +72,7 @@ class BatchController extends Controller
             $this->ExpiresMonitorings();
             $this->Monitoring();
             $this->DeleteFiles();
-            dd('previsione generata');
+            return redirect()->route('stop');
         } else return view('errors.500');
     }
 
@@ -304,20 +304,27 @@ class BatchController extends Controller
         //Controlliamo se il prodotto è destinato alla rivendita diretta
         $quantity = 0;
         $sales = DB::table('sales_lists')->where('inventory_sales_list',$item)->where('company_sales_list',$company)->select('id_sales_list','forecast_model','initial_month_sales')->first();
-        if (count($sales)>0) $quant_order = $this->CalculateQuantityToOrder($leadtime,$giorni,$sales);
+        if (count($sales)>0) {
+            if ($sales->forecast_model!==null) {
+                $quant_order = $this->CalculateQuantityToOrder($leadtime, $giorni, $sales);
+            } else $quantity = 0;
+        }
         $quantity = $quantity + $quant_order;
+
         //Controlliamo se il prodotto partecipa alla produzione per aggiungere altra quantità
         $production = DB::table('mapping_inventory_productions')->where('company_mapping_production',$company)->where('inventory_map_pro',$item)->select('production_map_pro','quantity_mapping_production')->get();
         if (count($production)>0){
             foreach ($production as $prod){
                 $sales = DB::table('sales_lists')->where('production_sales_list',$prod->production_map_pro)->where('company_sales_list',$company)->select('id_sales_list','forecast_model','initial_month_sales')->first();
-                $quant_order = $this->CalculateQuantityToOrder($leadtime,$giorni,$sales);
-                $quantity = $quantity + ($quant_order * $prod->quantity_mapping_production);
+                if ($sales->forecast_model!==null){
+                    $quant_order = $this->CalculateQuantityToOrder($leadtime,$giorni,$sales);
+                    $quantity = $quantity + ($quant_order * $prod->quantity_mapping_production);
+
+                }
             }
         }
         //$quantity rappresenta la quantità che si prevede di vendere sino al prossimo riordino
         $stock = DB::table('inventories')->where('id_inventory',$item)->where('company_inventory',$company)->select('stock','committed','arriving','unit_inventory')->first();
-        $quantity_to_order = 0;
         if ($stock){
             if (count($stock)>0) $quantity_stock = $stock->stock - $stock->committed + $stock->arriving;
 
@@ -470,6 +477,11 @@ class BatchController extends Controller
         $works = DB::table('batch_inventories')->where('executed_batch_inventory','0')->select('*')->get();
         if ($works!=null){
             foreach ($works as $work){
+                $up = DB::table('batch_inventories')->where('id_batch_inventory',$work->id_batch_inventory)->update(
+                    [
+                        'executed_batch_inventory' => '1'
+                    ]
+                );
                 $path = 'storage/'.$work->url_file_batch_inventory;
                 ini_set('auto_detect_line_endings',TRUE);
                 $csv = fopen($path,'r');
@@ -520,18 +532,26 @@ class BatchController extends Controller
                                         if (strlen($data['7']>30)) $data['7'] = substr($data['7'],0,30);
                                         if (strlen($data['8']>18)) $data['8'] = substr($data['8'],0,18);
                                         $array = explode(",", $data['5']);
+                                        if (!isset($array[1])) $array[1]='00';
                                         $data['5'] = $array[0].'.'.$array[1];
                                         $array = explode(",", $data['12']);
+                                        if (!isset($array[1])) $array[1]='00';
                                         $data['12'] = $array[0].'.'.$array[1];
                                         $array = explode(",", $data['13']);
+                                        if (!isset($array[1])) $array[1]='00';
                                         $data['13'] = $array[0].'.'.$array[1];
                                         $array = explode(",", $data['14']);
+                                        if (!isset($array[1])) $array[1]='00';
                                         $data['14'] = $array[0].'.'.$array[1];
                                         $array = explode(",", $data['15']);
+                                        if (!isset($array[1])) $array[1]='00';
                                         $data['15'] = $array[0].'.'.$array[1];
+                                        if (!isset($array[1])) $array[1]='00';
                                         $array = explode(",", $data['10']);
+                                        if (!isset($array[1])) $array[1]='00';
                                         $data['10'] = $array[0].'.'.$array[1];
                                         $array = explode(",", $data['9']);
+                                        if (!isset($array[1])) $array[1]='00';
                                         $data['9'] = $array[0].'.'.$array[1];
                                         if($data['16']!='0') $data['16']='1';
                                         if($data['17']!='0') $data['17']='1';
@@ -826,11 +846,6 @@ class BatchController extends Controller
                 $array = explode("-", $work->created_at);
                 $array[2] = substr($array[2],0,2);
                 $data_it = $array[2]."/".$array[1]."/".$array[0];
-                $up = DB::table('batch_inventories')->where('id_batch_inventory',$work->id_batch_inventory)->update(
-                  [
-                      'executed_batch_inventory' => '1'
-                  ]
-                );
                 if ($up) Mail::to($work->email_batch_inventory)->send(new BatchInventories($work->email_batch_inventory,$store,$problem,$data_it));
                 unlink($path);
             } return true;
@@ -841,6 +856,11 @@ class BatchController extends Controller
         $works = DB::table('batch_expiries')->where('executed_batch_expiries','0')->select('*')->get();
         if ($works!=null){
             foreach ($works as $work) {
+                $up = DB::table('batch_expiries')->where('id_batch_expiries',$work->id_batch_expiries)->update(
+                    [
+                        'executed_batch_expiries' => '1'
+                    ]
+                );
                 $path = 'storage/'.$work->url_file_batch_expiries;
                 ini_set('auto_detect_line_endings',TRUE);
                 $csv = fopen($path,'r');
@@ -908,11 +928,6 @@ class BatchController extends Controller
                 $array = explode("-", $work->created_at);
                 $array[2] = substr($array[2],0,2);
                 $data_it = $array[2]."/".$array[1]."/".$array[0];
-                $up = DB::table('batch_expiries')->where('id_batch_expiries',$work->id_batch_expiries)->update(
-                    [
-                        'executed_batch_expiries' => '1'
-                    ]
-                );
                 if ($up) {
                     unlink($path);
                     Mail::to($work->email_batch_expiries)->send(new BatchExpires($work->email_batch_expiries,$problem,$create,$data_it));
@@ -925,6 +940,11 @@ class BatchController extends Controller
         $works = DB::table('batch_mappingInventoryProviders')->where('executed_batch_mapping_provider','0')->select('*')->get();
         if ($works!=null) {
             foreach ($works as $work) {
+                $up = DB::table('batch_mappingInventoryProviders')->where('id_batch_mapping_inventory_provider',$work->id_batch_mapping_inventory_provider)->update(
+                    [
+                        'executed_batch_mapping_provider' => '1'
+                    ]
+                );
                 $path = 'storage/'.$work->url_file_batch_mapping_provider;
                 ini_set('auto_detect_line_endings',TRUE);
                 $csv = fopen($path,'r');
@@ -988,11 +1008,6 @@ class BatchController extends Controller
                 $array = explode("-", $work->created_at);
                 $array[2] = substr($array[2],0,2);
                 $data_it = $array[2]."/".$array[1]."/".$array[0];
-                $up = DB::table('batch_mappingInventoryProviders')->where('id_batch_mapping_inventory_provider',$work->id_batch_mapping_inventory_provider)->update(
-                    [
-                        'executed_batch_mapping_provider' => '1'
-                    ]
-                );
                 if ($up) {
                     $rag = DB::table('providers')->where('company_provider',$work->company_batchMapPro)->where('id_provider',$work->provider_batchMapPro)->select('rag_soc_provider')->first();
                     Mail::to($work->email_batch_mapping_provider)->send(new BatchMappingProvider($work->email_batch_mapping_provider,$rag->rag_soc_provider,$data_it,$up));
@@ -1006,7 +1021,11 @@ class BatchController extends Controller
         $works = DB::table('batch_productions')->where('executed_batch_production','0')->select('*')->get();
         if ($works!=null){
             foreach ($works as $work){
-             //   dd($work);
+                $up = DB::table('batch_productions')->where('id_batch_production',$work->id_batch_production)->update(
+                    [
+                        'executed_batch_production' => '1'
+                    ]
+                );
                 $path = 'storage/'.$work->url_file_batch_production;
                 ini_set('auto_detect_line_endings',TRUE);
                 $csv = fopen($path,'r');
@@ -1052,12 +1071,16 @@ class BatchController extends Controller
                                             if (strlen($data['7']>30)) $data['7'] = substr($data['7'],0,30);
                                             if (strlen($data['6']>18)) $data['6'] = substr($data['6'],0,18);
                                             $array = explode(",", $data['12']);
+                                            if (!isset($array[1])) $array[1]='00';
                                             $data['12'] = $array[0].'.'.$array[1];
                                             $array = explode(",", $data['11']);
+                                            if (!isset($array[1])) $array[1]='00';
                                             $data['11'] = $array[0].'.'.$array[1];
                                             $array = explode(",", $data['10']);
+                                            if (!isset($array[1])) $array[1]='00';
                                             $data['10'] = $array[0].'.'.$array[1];
                                             $array = explode(",", $data['9']);
+                                            if (!isset($array[1])) $array[1]='00';
                                             $data['9'] = $array[0].'.'.$array[1];
                                             $create = Production::create(
                                               [
@@ -1333,11 +1356,6 @@ class BatchController extends Controller
                 $array = explode("-", $work->created_at);
                 $array[2] = substr($array[2],0,2);
                 $data_it = $array[2]."/".$array[1]."/".$array[0];
-                $up = DB::table('batch_productions')->where('id_batch_production',$work->id_batch_production)->update(
-                    [
-                        'executed_batch_production' => '1'
-                    ]
-                );
                 if ($up) Mail::to($work->email_batch_production)->send(new BatchProduction($work->email_batch_production,$store,$problem,$data_it));
                 unlink($path);
             } return true;
@@ -1348,6 +1366,11 @@ class BatchController extends Controller
         $works = DB::table('batch_mapping_productions')->where('executed_batch_map_pro','0')->select('*')->get();
         if ($works!=null) {
             foreach ($works as $work) {
+                $up = DB::table('batch_mapping_productions')->where('id_batch_mapping_production',$work->id_batch_mapping_production)->update(
+                    [
+                        'executed_batch_map_pro' => '1'
+                    ]
+                );
                 $path = 'storage/'.$work->url_file_batch_map_pro;
                 ini_set('auto_detect_line_endings',TRUE);
                 $csv = fopen($path,'r');
@@ -1398,11 +1421,6 @@ class BatchController extends Controller
                 $array = explode("-", $work->created_at);
                 $array[2] = substr($array[2],0,2);
                 $data_it = $array[2]."/".$array[1]."/".$array[0];
-                $up = DB::table('batch_mapping_productions')->where('id_batch_mapping_production',$work->id_batch_mapping_production)->update(
-                    [
-                        'executed_batch_map_pro' => '1'
-                    ]
-                );
                 if ($up) Mail::to($work->email_batch_map_pro)->send(new BatchMappingProduction($work->email_batch_map_pro,$store,$problem,$data_it));
                 unlink($path);
             } return true;
@@ -1413,6 +1431,11 @@ class BatchController extends Controller
         $works = DB::table('batch_sales_lists')->where('executed_batch_sales_list','0')->select('*')->get();
         if ($works!=null) {
             foreach ($works as $work) {
+                $up = DB::table('batch_sales_lists')->where('id_batch_sales_list',$work->id_batch_sales_list)->update(
+                    [
+                        'executed_batch_sales_list' => '1'
+                    ]
+                );
                 $path = 'storage/'.$work->url_file_batch_sales_list;
                 ini_set('auto_detect_line_endings',TRUE);
                 $csv = fopen($path,'r');
@@ -1449,12 +1472,26 @@ class BatchController extends Controller
                                 if($data['4']!=='1') $data['4']='0';
                                 if($data['5']!=='1') $data['5']='0';
                                 $array = explode("€ ", $data['2']);
-                                $str = $array[1];
-                                $array = explode(',',$str);
+                                if (isset($array[1])) {
+                                    $str = $array[1];
+                                    $array = explode(',',$str);
+                                    if (!isset($array[1])) $array[1]='00';
+                                } else {
+                                    $str = $array[0];
+                                    $array = explode(',',$str);
+                                    if (!isset($array[1])) $array[1]='00';
+                                }
                                 $price_user = $array[0].'.'.$array[1];
                                 $array = explode("€ ", $data['3']);
-                                $str = $array[1];
-                                $array = explode(',',$str);
+                                if (isset($array[1])) {
+                                    $str = $array[1];
+                                    $array = explode(',',$str);
+                                    if (!isset($array[1])) $array[1]='00';
+                                } else {
+                                    $str = $array[0];
+                                    $array = explode(',',$str);
+                                    if (!isset($array[1])) $array[1]='00';
+                                }
                                 $price_b2b = $array[0].'.'.$array[1];
                                 DB::statement('SET FOREIGN_KEY_CHECKS=0');
                                 $update = DB::table('sales_lists')->where('company_sales_list',$work->company_batch_sales_list)->where($field,$id_product)->update(
@@ -1475,14 +1512,8 @@ class BatchController extends Controller
                 $array = explode("-", $work->created_at);
                 $array[2] = substr($array[2],0,2);
                 $data_it = $array[2]."/".$array[1]."/".$array[0];
-                $up = DB::table('batch_sales_lists')->where('id_batch_sales_list',$work->id_batch_sales_list)->update(
-                    [
-                        'executed_batch_sales_list' => '1'
-                    ]
-                );
                 if ($up) Mail::to($work->email_batch_sales_list)->send(new BatchSalesList($work->email_batch_sales_list,$store,$problem,$data_it));
-               // unlink($path);
-                dd('fatto');
+                unlink($path);
             } return true;
         } else return false;
     }
@@ -1520,6 +1551,11 @@ class BatchController extends Controller
         $works = DB::table('batch_historical_datas')->where('executed_batchHisDat','0')->select('*')->get();
         if ($works!=null){
             foreach ($works as $work){
+                $up = DB::table('batch_historical_datas')->where('id_batchHisDat',$work->id_batchHisDat)->update(
+                    [
+                        'executed_batchHisDat' => '1'
+                    ]
+                );
                 $path = 'storage/'.$work->url_batchHisDat;
                 ini_set('auto_detect_line_endings',TRUE);
                 $csv = fopen($path,'r');
@@ -1622,11 +1658,6 @@ class BatchController extends Controller
                 $array = explode("-", $work->created_at);
                 $array[2] = substr($array[2],0,2);
                 $data_it = $array[2]."/".$array[1]."/".$array[0];
-                $up = DB::table('batch_historical_datas')->where('id_batchHisDat',$work->id_batchHisDat)->update(
-                    [
-                        'executed_batchHisDat' => '1'
-                    ]
-                );
                 if ($up) {
                     Mail::to($work->email_batchHisDat)->send(new BatchHistoricalData($work->email_batchHisDat,$store,$problem,$data_it));
                     unlink($path);
@@ -1681,6 +1712,11 @@ class BatchController extends Controller
         $works = DB::table('batch_historical_data_analyses')->where('executed','0')->where('booking_historical_data_analysi','<=',$system_time)->select('*')->get();
         if($works!=null){
             foreach ($works as $work){
+                DB::table('batch_historical_data_analyses')->where('id_batch_historical_data_analysi',$work->id_batch_historical_data_analysi)->update(
+                    [
+                        'executed' => '1'
+                    ]
+                );
                 $data = DB::table('historical_datas')->where('company_historical_data',$work->CompanyDataAnalysis)->where('product_historical_data',$work->productDataAnalysis)->get();
                 if ($data){
                      foreach ($data as $item){
@@ -1740,11 +1776,6 @@ class BatchController extends Controller
                          }
                      }
                 }
-                DB::table('batch_historical_data_analyses')->where('id_batch_historical_data_analysi',$work->id_batch_historical_data_analysi)->update(
-                    [
-                        'executed' => '1'
-                    ]
-                );
             } return true;
         } else return false;
     }
@@ -1898,6 +1929,13 @@ class BatchController extends Controller
         $works = DB::table('batch_generation_forecasts')->where('executed_generation_forecast','0')->where('booking_generation_forecast','<=',$system_time)->select('*')->get();
         if($works!=null){
             foreach ($works as $work) {
+                //Modifica dello stato dell'operazione di generazione previsione in eseguita ed eliminazione dati storici
+                DB::table('batch_generation_forecasts')->where('id_generation_forecast',$work->id_generation_forecast)->update(
+                    [
+                        'executed_generation_forecast' => '1'
+
+                    ]
+                );
                 $data = DB::table('historical_datas')->where('id_historical_data',$work->GenerationForecast)->first();
                 if ($data) {
                     $i=0;
@@ -2096,13 +2134,6 @@ class BatchController extends Controller
                         }
 
 
-                        //Modifica dello stato dell'operazione di generazione previsione in eseguita ed eliminazione dati storici
-                        DB::table('batch_generation_forecasts')->where('id_generation_forecast',$work->id_generation_forecast)->update(
-                          [
-                              'executed_generation_forecast' => '1'
-
-                          ]
-                        );
                         DB::table('historical_datas')->where('id_historical_data',$work->GenerationForecast)->update(
                           [
                               '1' => 0,

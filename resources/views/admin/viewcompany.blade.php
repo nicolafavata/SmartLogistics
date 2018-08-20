@@ -67,7 +67,7 @@
                                                             <td rowspan="2" class="barrabianca">
                                                                 <div class="row form-check">
                                                                     <img class="border-border-fucsia" width="75" height="75" title="Responsabile sede" alt="Responsabile"
-                                                                         @if(($sede->img_employee)!=NULL)
+                                                                         @if(($sede->img_employee)!=='0'))
                                                                          src="{{'../storage/'.$sede->img_employee}}">
                                                                     @else
                                                                         src="{{'../img/profile.jpg'}}">

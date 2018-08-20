@@ -76,12 +76,12 @@
                             <tr>
                                 <th scope="col">#</th>
                                 <th scope="col"></th>
-                                <th scope="col">Codice</th>
+                                <th scope="col" class="text-center">Codice</th>
                                 <th scope="col">Descrizione</th>
-                                <th scope="col">U.M.</th>
-                                <th scope="col">Produttività</th>
-                                <th scope="col">Composizione</th>
-                                <th scope="col">Elimina</th>
+                                <th scope="col" class="text-center">U.M.</th>
+                                <th scope="col" class="text-center">Produttività</th>
+                                <th scope="col" class="text-center">Composizione</th>
+                                <th scope="col" class="text-center">Elimina</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -108,12 +108,12 @@
                                         {{$found->title_production}}
                                     </td>
 
-                                    <td class="font-weight-bold text-center text-dark text-uppercase" >{{$found->unit_production}}</td>
+                                    <td class="font-weight-bold text-center text-dark text-uppercase text-center" >{{$found->unit_production}}</td>
                                     <td class="font-weight-bold text-dark text-center">
                                         {{$found->quantity}}
                                     </td>
-                                    <td class="font-weight-bold text-center text-dark text-center"><a  data-toggle="modal" data-target="#composer{{$found->id_production}}"  title="Visualizza la composizione di {{$found->title_production}}"><i class="text-success fa fa-eye fa-3x"></i></a></td>
-                                    <td class="font-weight-bold text-center text-dark text-center"><a  href="{{route('del-mapping-production',$found->id_production)}}" title="Elimina la produzione di {{$found->title_production}}"><i class="fucsia fa fa-trash-o fa-3x"></i></a></td>
+                                    <td class="font-weight-bold text-center text-dark text-center"><a  data-toggle="modal" data-target="#composer{{$found->id_production}}"  title="Visualizza la composizione di {{$found->title_production}}"><i class="text-success fa fa-info-circle fa-2x"></i></a></td>
+                                    <td class="font-weight-bold text-center text-dark text-center"><a  href="{{'https://www.nicolafavata.com/smartlogis/del-mapping-production/'.$found->id_production}}" title="Elimina la produzione di {{$found->title_production}}"><i class="fucsia fa fa-trash-o fa-2x"></i></a></td>
                                 </tr>
 
                             @empty
@@ -140,7 +140,7 @@
                                     </div>
                                     <div class="modal-body">
                                         <div class="table-responsive-sm">
-                                            <table class="table table-striped">
+                                            <table class="table table-striped table-responsive">
                                                 <thead class="thead-light">
                                                 <tr>
                                                     <th scope="col">Codice</th>
@@ -208,8 +208,7 @@
                         type: 'POST',
                         data: '_token={{csrf_token()}}',
                         complete : function (resp) {
-                            console.log(resp);
-                            if (resp.responseText == 1){
+                            if (resp.statusText == "OK"){
                                 tr.parentNode.removeChild(tr);
                             } else {
                                 alert('Problemi con il Server, riprovare tra un pò')

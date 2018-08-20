@@ -34,7 +34,7 @@
                                     <td class="grigio shadow destra">
                                         Sede:&nbsp
                                     </td>
-                                    <td class="fucsia ombra sinistra">
+                                    <td class="fucsia ombra sinistra uppercase">
                                         {{$dati->indirizzo_company.' '.$dati->civico_company.' - '}}
                                         @if ($dati->cap_company=='8092')
                                             {{$dati->cap_company_office_extra.' '.$dati->city_company_office_extra.' ('.$dati->state_company_office_extra.' - '.$dati->nazione_company.')'}}

@@ -77,18 +77,18 @@
                             <tr>
                                 <th scope="col"></th>
                                 <th scope="col"></th>
-                                <th scope="col">Codice</th>
+                                <th scope="col" class="text-center">Codice</th>
                                 <th scope="col">Descrizione</th>
-                                <th scope="col">U.M.</th>
-                                <th scope="col">Iva</th>
-                                <th scope="col">Prezzo</th>
-                                <th scope="col">Azzera</th>
+                                <th scope="col" class="text-center">U.M.</th>
+                                <th scope="col" class="text-center">Iva</th>
+                                <th scope="col" class="text-center">Prezzo</th>
+                                <th scope="col" class="text-center">Azzera</th>
                             </tr>
                             </thead>
                             <tbody>
                             @forelse($item as $found)
                                 <tr>
-                                    <td class="font-weight-bold text-center text-dark text-center"><a  data-toggle="modal" data-target="#setting{{$found->id_sales_list}}" title="Impostazioni del prodotto"><i class="verde fa fa-cog fa-2x"></i></a></td>
+                                    <td class="font-weight-bold text-center text-dark text-center"><a  data-toggle="modal" data-target="#setting{{$found->id_sales_list}}" title="Impostazioni del prodotto"><i class="verde fa fa-cog fa-1x"></i></a></td>
                                     @if($found->cod_inventory==null)
                                         <td>
                                             <img class="border-inventory"
@@ -99,14 +99,14 @@
                                                  @endif
                                                  width="70" height="70" alt="{{$found->title_production}}"/>
                                         </td>
-                                        <td class="font-weight-bold text-dark text-uppercase">
+                                        <td class="font-weight-bold text-dark text-uppercase text-center">
                                             {{$found->cod_production}}
                                         </td>
                                         <td class="font-weight-bold text-dark text-capitalize">
                                             {{$found->title_production}}
                                         </td>
-                                        <td class="font-weight-bold text-center text-dark text-uppercase" >{{$found->unit_production}}</td>
-                                        <td class="font-weight-bold text-dark">{{$found->imposta_desc_production}}</td>
+                                        <td class="font-weight-bold text-center text-dark text-uppercase text-center" >{{$found->unit_production}}</td>
+                                        <td class="font-weight-bold text-dark text-center">{{$found->imposta_desc_production}}</td>
                                     @else
                                         <td>
                                             <img class="border-inventory"
@@ -117,17 +117,18 @@
                                                  @endif
                                                  width="70" height="70" alt="{{$found->title_production}}"/>
                                         </td>
-                                        <td class="font-weight-bold text-dark text-uppercase">
+                                        <td class="font-weight-bold text-dark text-uppercase text-center">
                                             {{$found->cod_inventory}}
                                         </td>
                                         <td class="font-weight-bold text-dark text-capitalize">
                                             {{$found->title_inventory}}
                                         </td>
-                                        <td class="font-weight-bold text-center text-dark text-uppercase" >{{$found->unit_inventory}}</td>
-                                        <td class="font-weight-bold text-dark">{{$found->imposta_desc_inventory}}</td>
+                                        <td class="font-weight-bold text-center text-dark text-uppercase text-center" >{{$found->unit_inventory}}</td>
+                                        <td class="font-weight-bold text-dark text-center">{{$found->imposta_desc_inventory}}</td>
                                     @endif
-                                        <td class="font-weight-bold text-dark text-center">{{$found->price_user." €"}}</td>
-                                        <td class="font-weight-bold text-center text-dark text-center"><a  href="{{route('del-catalogue',$found->id_sales_list)}}" title="Azzera i prezzi del prodotto"><i class="fucsia fa fa-trash-o fa-3x"></i></a></td>
+                                        <?php $price = number_format($found->price_user,2, ',', '')?>
+                                        <td class="font-weight-bold text-dark text-center">{{$price." €"}}</td>
+                                        <td class="font-weight-bold text-center text-dark"><a  href="{{route('del-catalogue',$found->id_sales_list)}}" title="Azzera i prezzi del prodotto"><i class="fucsia fa fa-trash-o fa-1x"></i></a></td>
                                 </tr>
                             @empty
                                 <h6 class="fucsia font-weight-bold shadow">Non hai caricato prodotti</h6>

@@ -105,10 +105,10 @@ class BusinessController extends Controller
             $data['cap']='8092';
 
         }
-        if ($request['logo']!=null){
+        if ($request['logo']!==null){
             $data = $this->processFile($request, $data);
         } else {
-            $data['logo']=null;
+            $data['logo']=0;
         }
         $res = BusinessProfile::where('id_admin', Auth::id())->update(
           [
@@ -577,7 +577,7 @@ class BusinessController extends Controller
                 $id_user=($push->id);
 
                 //Profilo impiegato
-                if ($request['img_employee']!=null){
+                if ($request['img_employee']!==null){
                     $file = $request->file('img_employee');
                     if ($file->isValid()) {
                         $filename = 'employee' . $id_user .'-company'. $data['rag_soc_company'] . '.' . $file->extension();
@@ -585,7 +585,7 @@ class BusinessController extends Controller
                         $data['img_employee'] = env('IMG_PROFILE') . '/' . $filename;
                     }
                 } else {
-                    $data['img_employee']=null;
+                    $data['img_employee']='0';
                 }
                 $profile = Employee::create(
                   [

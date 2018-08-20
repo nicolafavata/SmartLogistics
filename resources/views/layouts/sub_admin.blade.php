@@ -128,19 +128,19 @@
 
 
         <!-- footer -->
-        <div class="container-fluid" style="text-align: center";>
-            <div class="row" style="background-color: #eeeeee; align:center;">
+        <div class="container-fluid footer-employee">
+            <div class="row">
                 <div class="col-sm-12">
                     <br />
-                    <h3 class="card-text">Università degli studi "Guglielmo Marconi"</h5>
-                        <div class="card-body">
-                            <h4 class="card-title" style="text-align: center">Facoltà di scienze e tecnologie applicate</br>Corso di Laurea in Ingegneria Informatica</h5>
-                                <h5 class="card-title" style="text-align: center">Sviluppo di un'applicazione web per la smart logistics</h5>
-                                <p class="card-text">Candidato: Nicola Favata - Matricola: 008272 - Relatore: Luca Regoli</p>
-                        </div>
-                        <div class="card-body">
-                            Anno accademico 2017/2018
-                        </div>
+                    <h3 class="card-text">Università degli studi "Guglielmo Marconi"</h3>
+                    <div class="card-body">
+                        <h4 class="card-title">Facoltà di Scienze e Tecnologie Applicate</br>Corso di Laurea in Ingegneria Informatica</h4>
+                        <h3 class="card-title">Sviluppo di un'applicazione web per la logistica nelle Smart City</h3>
+                        <p class="card-text">Candidato: Nicola Favata - Matricola: 008272 - Relatore: Luca Regoli</p>
+                    </div>
+                    <div class="card-body">
+                        Anno accademico 2017/2018
+                    </div>
                 </div>
             </div>
         </div>

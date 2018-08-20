@@ -209,7 +209,7 @@
             $('table').on('click','i.fa-trash-o', function (ele) {
                 ele.preventDefault();
                 var e = ele.target.parentNode.firstChild;
-                var url = "/cancel-desk-sale/" + e.value;
+                var url = "https://www.nicolafavata.com/smartlogis/cancel-desk-sale/" + e.value;
                 var tr = ele.target.parentNode.parentNode;
                 $.ajax(
                     {
@@ -217,7 +217,6 @@
                         type: 'post',
                         data: '_token={{csrf_token()}}',
                         complete : function (resp) {
-                            console.log(resp);
                             if (resp.responseText == 1){
                                 tr.parentNode.removeChild(tr);
                             } else {

@@ -5,12 +5,11 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="col-md-12  justify-content-between barraverde">
-                    <h6> Grazie&nbsp{{ Auth::user()->name }}&nbsp{{ Auth::user()->cognome }}&nbsp{{'per esserti registrato a smart logistcs'}}</h6>
+                    <h6> Grazie&nbsp{{ Auth::user()->name }}&nbsp{{ Auth::user()->cognome }}&nbsp{{'per esserti registrato a Smartlogis'}}</h6>
                 </div>
             </div>
         </div>
     </nav>
-    <hr>
     <div class="container-fluid">
         <div class="col-md-12">
             <h3 class="display-6 shadow">Devi completare il profilo della tua azienda</h3>

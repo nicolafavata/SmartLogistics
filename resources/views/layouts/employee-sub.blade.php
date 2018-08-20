@@ -73,11 +73,11 @@
 							</ul>
 						</li>
 						<li>
-							<span>Supply chain<span class="badge badge-light">{{$dati->request}}</span></span>
+							<span>Supply chain</span>
 							<ul>
 								<li><a href="{{ route('supplyresearch') }}">Ricerca azienda</a></li>
 								<li><a href="{{ route('supplychainmanagement')}}">Gestione aggregazioni</a></li>
-								<li><a href="{{route('requests-received')}}">Richieste ricevute<span class="badge badge-light">{{$dati->request}}</span></a></li>
+								<li><a href="{{route('requests-received')}}">Richieste ricevute></a></li>
 								<li><a href="{{route('requests-transmitted')}}">Richieste trasmesse</a></li>
 								<li><a href="{{route('block-supply')}}">Aziende bloccate</a></li>
 							</ul>
@@ -98,7 +98,7 @@
 						<li>
 							<span>Produzione</span>
 							<ul>
-								<li><a href="{{route('production')}}">Catalogo</a></li>
+								<li><a href="{{route('production')}}">Catalogo della produzione</a></li>
 								<li><a href="{{route('mapping-production')}}">Associazione acquisti produzione</a></li>
 							</ul>
 						</li>
@@ -108,7 +108,7 @@
 							<span>Vendite</span>
 							<ul>
 								<li><a href="{{route('catalogue')}}">Catalogo</a></li>
-								<li><a href="{{route('add_catalogue')}}">Listini</a></li>
+								<li><a href="{{route('add_catalogue')}}">Upload Listini</a></li>
 								<li><a href="{{route('expire-monitor')}}">Monitoraggio delle scadenze</a></li>
 								<li><a href="{{route('list-invoice')}}">Fatture</a></li>
 								<li><a href="{{route('list-sales-order')}}">Ordini</a></li>

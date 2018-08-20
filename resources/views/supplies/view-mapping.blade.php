@@ -21,8 +21,8 @@
                 <div class="col-md-12 jumbotron-expires border">
                     <div class="row">
                         <div class="col-md-8 text-left">
-                            <h4 class="font-weight-bold text-dark shadow">Mapping con {{$providers->rag_soc_provider}}</h4>
-                            <small class="fucsia">codice fornitore: {{$providers->provider_cod}}</small>
+                            <h5 class="font-weight-bold text-dark shadow text-uppercase">Mapping con {{$providers->rag_soc_provider}}</h5>
+                            <small class="fucsia uppercase">codice fornitore: {{$providers->provider_cod}}</small>
                         </div>
                         <div class="col-md-4 text-right">
                             @if(count($mapping)>0)
@@ -166,7 +166,7 @@
                                 </div>
                             </div>
                             @empty
-                                <h6 class="fucsia font-weight-bold shadow">Non hai effettuato il mapping dei prodotti con il fornitore {{$providers->rag_soc_provider}}</h6>
+                                <h6 class="fucsia font-weight-bold shadow text-uppercase">Non hai effettuato il mapping dei prodotti con il fornitore {{$providers->rag_soc_provider}}</h6>
                             @endforelse
                                     <div class="row">
                                         <div class="col-md-8 push-2">

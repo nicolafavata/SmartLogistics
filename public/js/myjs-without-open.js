@@ -138,7 +138,7 @@ function showNumberDate() {
     document.getElementById('date').value = null;
     var type = document.getElementById('type-document').value;
     if (type == 'invoice' || type == 'desk'){
-        var url = '/take-last-number/' + type;
+        var url = 'https://www.nicolafavata.com/smartlogis/take-last-number/' + type;
         $.ajax({
            url: url,
            type: 'post',

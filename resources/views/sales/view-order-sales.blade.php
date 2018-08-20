@@ -292,12 +292,12 @@
               var e = ele.target.parentNode.firstChild;
               var rag = e.value.substr(0,25);
               var rag = rag +'%'
-              var url = "/order-sales-open/" + rag;
+              var url = "https://www.nicolafavata.com/smartlogis/order-sales-open";
               var customer = e.value;
               $.ajax({
                   url: url,
-                  type: 'post',
-                  data: '_token={{csrf_token()}}',
+                  type: 'get',
+                  data: 'rag='+rag,
                   beforeSend: function (xhr) {
                       if (xhr && xhr.overrideMimeType) {
                           xhr.overrideMimeType('application/json;charset=utf-8');
@@ -305,14 +305,13 @@
                   },
                   dataType: "json",
                   success : function (data){
-                      console.log(data);
                       if ( data.length === 0) {
                           document.getElementById('alert-ajax').innerHTML = "<ul class='alert alert-danger alert-dismissible'><li>Il cliente non ha ordini aperti</li><button type='button' class='close' onclick='NoHtml()' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></ul>";
                       } else {
                           var tok = document.getElementById('tok').value;
-                          document.getElementById('form').innerHTML='<form onsubmit="showloader()" method="post" action="/close-order-sales-open"><input hidden name="customer" value="'+customer+'">' +
+                          document.getElementById('form').innerHTML='<form onsubmit="showloader()" method="post" action="https://www.nicolafavata.com/smartlogis/close-order-sales-open"><input hidden name="customer" value="'+customer+'">' +
                                '<input type="hidden" name="_token" value="'+tok+'">' +
-                              '<div id="orders"></div><a type="button" class="btn btn-primary" href="/view-sales-order">Indietro</a> <button type="submit" class="btn btn-primary" id="submit_document">' +
+                              '<div id="orders"></div><a type="button" class="btn btn-primary" href="https://www.nicolafavata.com/smartlogis/view-sales-order">Indietro</a> <button type="submit" class="btn btn-primary" id="submit_document">' +
                               '                                            Conferma' +
                               '                                        </button></form>';
                           document.getElementById('orders').innerHTML = '<div class="row">' +
@@ -386,7 +385,7 @@
             $('table').on('click','i.fa-trash-o', function (ele) {
                 ele.preventDefault();
                 var e = ele.target.parentNode.firstChild.nextSibling;
-                var url = "/cancel-sales-order/" + e.value;
+                var url = "https://www.nicolafavata.com/smartlogis/cancel-sales-order/" + e.value;
                 var tr = ele.target.parentNode.parentNode;
                 $.ajax(
                     {

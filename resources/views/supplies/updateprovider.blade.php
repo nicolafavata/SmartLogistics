@@ -52,7 +52,7 @@
                                        value="{{old('telefono_provider',$provider->telefono_provider)}}" >
                             </div><br />
                             <div class="form-check">
-                                <label class="grigio">E-Mail:&nbsp&&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</label>
+                                <label class="grigio">E-Mail:&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</label>
                                 <input @if($provider->supply_provider=='1')
                                        disabled
                                        @endif required maxlength="255" id="email_provider" type="email_provider" class="form-control font-weight-bold lowercase" name="email_provider" value="{{ old('email_provider',$provider->email_provider) }}"  placeholder="example: info@email.it">

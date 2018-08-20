@@ -407,7 +407,7 @@
                     var e = ele.target;
                     var codice = e.value;
                     var id = "{{$id}}";
-                    if ( codice > ean) var url = '/check-codice-new-sales/' + codice; else var url = '/check-ean-new-sales/'  + ean;
+                    if ( codice > ean) var url = 'https://www.nicolafavata.com/smartlogis/check-codice-new-sales/' + codice; else var url = 'https://www.nicolafavata.com/smartlogis/check-ean-new-sales/'  + ean;
                     var table = document.getElementById('content');
                     $.ajax(
                         {
